@@ -1,0 +1,65 @@
+.main-apc {
+  width: 100%;
+  overflow-x: hidden;
+  background-color: white;
+  color: #001635;
+  font-family: jakarta-regular, sans-serif;
+  font-size: 16px;
+}
+
+.main-apc *,
+.main-apc *::before,
+.main-apc *::after {
+  box-sizing: border-box;
+}
+
+.main-apc h3,
+.main-apc h4,
+.main-apc p {
+  margin: 0;
+  padding: 0;
+  line-height: 140%;
+  font-weight: normal;
+}
+
+.main-apc h3 {
+  font-size: 32px;
+  font-family: jost-bold, sans-serif;
+  color: #001635;
+}
+
+.main-apc h4 {
+  font-size: 24px;
+  font-family: jost-bold, sans-serif;
+  color: #001635;
+}
+
+.main-apc .mt-16 {
+  margin-top: 16px;
+}
+
+.no-seleccion {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+@media (min-width: 320px) and (max-width: 743px) {
+  .main-apc {
+    font-family: jakarta-extralight, sans-serif;
+    font-size: 14px;
+  }
+
+  .main-apc p {
+    font-size: 14px;
+  }
+
+  .main-apc h3 {
+    font-family: jost-medium, sans-serif;
+    font-size: 20px;
+  }
+
+  .main-apc h4 {
+    font-family: jost-bold, sans-serif;
+    font-size: 16px;
+  }
+}

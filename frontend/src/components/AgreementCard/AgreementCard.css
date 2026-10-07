@@ -1,0 +1,129 @@
+.agreement-card {
+  width: 260px;
+  height: 248px;
+  border-radius: 25px;
+  box-shadow: var(--boxshadow-dp5);
+  position: relative;
+}
+
+.agreement-card .card__initial {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+  border-radius: 25px;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.agreement-card .card__initial_half_top {
+  padding-top: 10px;
+  height: 60%;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.agreement-card .card__initial_half_bottom {
+  height: 40%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  width: 100%;
+}
+
+.agreement-card .card__initial img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.agreement-card .card__initial h4 {
+  font-family: jakarta-medium, Helvetica, sans-serif;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 140%;
+  color: var(--class-third);
+  text-align: center;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.agreement-card .card__hover {
+  background-color: #fffc;
+  visibility: hidden;
+  width: 100%;
+  height: 100%;
+  border: 2px solid var(--class-secondary);
+  position: absolute;
+  border-radius: 25px;
+  top: 0;
+  left: 0;
+  cursor: pointer;
+}
+
+.agreement-card .card__hover_buttons {
+  width: 65%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  margin: auto;
+}
+
+.agreement-card:hover .card__hover,
+.agreement-card.is-open .card__hover {
+  visibility: visible;
+}
+
+@media (min-width: 320px) and (max-width: 744px) {
+  .agreement-card {
+    width: 100%;
+    height: 125px;
+    margin-bottom: 10px;
+  }
+
+  .agreement-card .card__initial {
+    flex-direction: row;
+  }
+
+  .agreement-card .card__initial_half_top {
+    padding-top: 0;
+    width: 40%;
+    height: 100%;
+    justify-content: center;
+  }
+
+  .agreement-card .card__initial_half_bottom {
+    width: 60%;
+    height: 100%;
+    justify-content: flex-start;
+    padding: 0 15px 0 0;
+  }
+
+  .agreement-card .card__initial img {
+    height: 80px;
+    width: auto;
+  }
+
+  .agreement-card .card__initial h4 {
+    text-align: left;
+  }
+
+  .agreement-card .card__hover_buttons {
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    padding: 0 12px;
+  }
+
+  .agreement-card .card__hover_buttons .btn {
+    width: 40%;
+  }
+}

@@ -1,0 +1,55 @@
+.payment-method-card {
+  width: 357px;
+  height: 257px;
+  max-width: 357px;
+  min-height: 257px;
+  border-radius: 25px;
+  box-shadow: var(--boxshadow-dp2);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+.payment-method-card .card-image {
+  height: 48px;
+  margin: 0 auto;
+  display: block;
+}
+
+.payment-method-card .card-title {
+  font-family: jost-semibold, Helvetica, sans-serif;
+  font-size: 28px;
+  text-align: center;
+  color: var(--class-third);
+}
+
+.payment-method-card .card-paragraph {
+  font-family: jost-regular, Helvetica, sans-serif;
+  font-size: 14px;
+  text-align: center;
+  color: var(--class-third);
+  padding: 0 45px;
+}
+
+.aval-group-logo .card-image {
+  width: 168.49px;
+}
+
+.pse-logo .card-image {
+  width: 121.46px;
+}
+
+.visa-logo .card-image {
+  width: 184.16px;
+}
+
+.bre-b-logo .card-image {
+  transform: scale(1.6);
+}
+
+@media (min-width: 320px) and (max-width: 744px) {
+  .payment-method-card {
+    width: 100%;
+    height: 100%;
+  }
+}

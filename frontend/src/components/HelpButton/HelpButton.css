@@ -1,0 +1,76 @@
+.help-button {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+}
+
+.alter-container {
+  width: 0;
+  height: 0;
+  position: sticky;
+  bottom: 0;
+  left: 100vw;
+}
+
+.container-help-btn .help-btn {
+  background-color: var(--class-red);
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  right: 15px;
+  bottom: 50px;
+  z-index: 1;
+  cursor: pointer;
+}
+
+.container-help-btn .help-img {
+  width: 25px;
+  height: 25px;
+}
+
+.container-help-btn .help {
+  width: 70px;
+  height: 33px;
+  border-radius: 16px 16px 0;
+  background-color: var(--class-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  bottom: 80px;
+  right: 35px;
+  visibility: hidden;
+  z-index: 2;
+  text-align: center;
+}
+
+.container-help-btn .help span {
+  margin: auto;
+  font-family: jakarta-bold, Helvetica, sans-serif;
+  font-size: 8px;
+  color: var(--class-third);
+  font-weight: 700;
+  background-color: var(--class-secondary);
+}
+
+.container-help-btn .help-btn:hover + .help {
+  visibility: visible;
+}
+
+@media (min-width: 320px) and (max-width: 744px) {
+  .container-help-btn .help-btn {
+    z-index: 15;
+    bottom: 60px;
+  }
+
+  .container-help-btn .help {
+    z-index: 15;
+    bottom: 90px;
+    right: 35px;
+  }
+}

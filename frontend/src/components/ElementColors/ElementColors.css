@@ -1,0 +1,32 @@
+.element-colors {
+  width: 90px;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: min-content;
+  gap: 10px;
+}
+
+.element-colors__dark-blue,
+.element-colors__red,
+.element-colors__blue,
+.element-colors__green {
+  width: 16px;
+  height: 16px;
+  border-radius: 100%;
+}
+
+.element-colors__dark-blue {
+  background-color: var(--class-blue-dark-bocc);
+}
+
+.element-colors__red {
+  background-color: var(--class-red);
+}
+
+.element-colors__blue {
+  background-color: var(--class-secondary);
+}
+
+.element-colors__green {
+  background-color: var(--class-green);
+}

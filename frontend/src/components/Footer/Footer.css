@@ -1,0 +1,172 @@
+.footer-container {
+  text-align: center;
+  padding-bottom: 30px;
+  margin-top: 30px;
+  position: relative;
+}
+
+.footer-container .img-vigilado {
+  position: absolute;
+  left: 10px;
+}
+
+.footer-container .content {
+  padding-top: 20px;
+}
+
+.footer__inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  max-width: 1116px;
+  margin: auto;
+}
+
+.footer__inner .image-aval {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer__inner .bank-img {
+  width: 48px;
+  height: 48px;
+  max-inline-size: 100%;
+  display: flex;
+  background-image: url('../../assets/images/AvalPayCenter/imgi_17_sprite-banks_lens.png');
+  background-repeat: no-repeat;
+  transform: scale(0.8);
+}
+
+.footer__inner .bank-bogota {
+  background-position: 0px 0px;
+}
+
+.footer__inner .bank-occidente {
+  background-position: -48px 0px;
+}
+
+.footer__inner .bank-popular {
+  background-position: -96px 0px;
+}
+
+.footer__inner .bank-avvillas {
+  background-position: -144px 0px;
+}
+
+.footer__inner .line {
+  border-right: 1px solid var(--class-gray-dark);
+  height: 46px;
+  padding-left: 9px;
+  margin-right: 9px;
+}
+
+.footer__inner .aval-logo {
+  width: 164px;
+  height: 46px;
+  max-inline-size: 100%;
+}
+
+.footer__inner .image-norton {
+  width: 71px;
+  height: 39px;
+  position: absolute;
+  right: 0.5em;
+  top: 0.5em;
+}
+
+.footer__inner .contact {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.footer__inner .contact p {
+  font-family: jakarta-regular, Helvetica, sans-serif;
+  font-size: 14px;
+  line-height: 140%;
+  color: var(--class-third);
+  margin-top: 30px;
+}
+
+.footer__inner .contact p a {
+  text-decoration: none;
+  color: var(--class-third);
+  font-weight: 700;
+}
+
+.footer__inner .media {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin: 30px auto 0;
+  padding: 0 30px;
+}
+
+.footer__inner .urls {
+  display: flex;
+}
+
+.footer__inner .urls a {
+  text-decoration: none;
+  margin: 20px 20px 0 0;
+}
+
+.footer__inner .urls p {
+  font-family: jakarta-regular, Helvetica, sans-serif;
+  font-size: 14px;
+  color: var(--class-third);
+}
+
+.footer__inner .urls p:hover {
+  color: var(--class-primary);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (min-width: 320px) and (max-width: 744px) {
+  .footer-container .img-vigilado {
+    top: 7rem;
+  }
+
+  .footer__inner .bank-img {
+    width: 40px;
+    height: 47px;
+    transform: scale(0.6);
+  }
+
+  .footer__inner .aval-logo {
+    width: 100px;
+    height: auto;
+  }
+
+  .footer__inner .image-norton {
+    position: initial;
+    margin: 50px auto 0;
+  }
+
+  .footer__inner .contact {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .footer__inner .media {
+    flex-direction: column-reverse;
+    margin: 40px auto 0;
+  }
+
+  .footer__inner .urls {
+    flex-direction: column;
+    margin-top: 10px;
+  }
+
+  .footer__inner .urls a {
+    margin: 10px 0;
+  }
+}
+
+@media print {
+  .footer-container {
+    display: none;
+  }
+}

@@ -1,0 +1,40 @@
+.home {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.home__section-1 {
+  margin: 30px 12px;
+  max-width: 696px;
+  width: 100%;
+}
+
+.home__section-2 {
+  width: 100%;
+  z-index: 0;
+}
+
+.home__slider-type-2 {
+  width: 100%;
+  z-index: 0;
+  background-color: var(--class-bg-blue-light);
+}
+
+.home__section-3 {
+  width: 100%;
+}
+
+.home__section-4 {
+  margin: 0 12px;
+  width: calc(100% - 24px);
+  display: flex;
+  justify-content: center;
+}
+
+@media (min-width: 992px) {
+  .home__section-1 {
+    max-width: 1116px;
+  }
+}

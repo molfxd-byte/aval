@@ -1,0 +1,44 @@
+.search-button {
+  padding: 0.3em;
+  border: none;
+  display: flex;
+  align-items: center;
+  border-radius: 25px;
+  font-size: 1rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.button-mobile {
+  display: none;
+  border-radius: 50%;
+}
+
+.button-mobile .btn {
+  width: 45px;
+  height: 45px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+@media (max-width: 992px) {
+  .search-button {
+    justify-content: end;
+    width: auto;
+    padding: 0;
+    margin: 0;
+  }
+}
+
+@media (min-width: 320px) and (max-width: 744px) {
+  .button-desktop {
+    display: none;
+  }
+
+  .button-mobile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

@@ -1,0 +1,42 @@
+.text-link {
+  font-family: jakarta-regular, Helvetica, sans-serif;
+  text-decoration: underline;
+  font-size: 14px;
+  line-height: 140%;
+  display: flex;
+  align-items: center;
+  word-break: break-all;
+}
+
+.text-link.active {
+  color: var(--class-primary);
+  cursor: pointer;
+  min-height: 20px;
+}
+
+.text-link.active:hover,
+.text-link.active:focus {
+  color: var(--class-third);
+  outline: none;
+}
+
+.text-link.active:hover .icon-active,
+.text-link.active:focus .icon-active {
+  background-image: url('../../assets/images/icons/chevron-up-focus.svg');
+}
+
+.text-link .tarjet {
+  position: relative;
+  top: 1.4px;
+  width: 11px;
+  height: 12px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  margin: 0.25rem 0;
+  transform: scale(1.7) rotate(90deg);
+}
+
+.text-link .icon-active {
+  background-image: url('../../assets/images/AvalPayCenter/imgi_18_chevron-up-active.38e44d278af14cfc.svg');
+  cursor: pointer;
+}

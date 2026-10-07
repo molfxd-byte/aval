@@ -1,0 +1,84 @@
+a.btn {
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.btn {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  align-items: center;
+  font-family: jakarta-bold, Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 25px;
+  text-align: center;
+  cursor: pointer;
+  width: 100%;
+  height: 44px;
+  white-space: nowrap;
+  padding: 16px 32px;
+}
+
+.btn--icon {
+  padding: 16px 17px 16px 15px;
+  flex-direction: row;
+  gap: 5px;
+  align-items: center;
+}
+
+.btn span {
+  min-height: 17.6px;
+}
+
+.btn-primary {
+  background-color: var(--class-secondary);
+  color: var(--class-third);
+  border: none;
+}
+
+.btn-primary path {
+  fill: var(--class-third);
+}
+
+.btn-primary:hover {
+  border: none;
+  background-color: var(--class-third);
+  color: var(--class-white);
+}
+
+.btn-primary:hover path {
+  fill: var(--class-white);
+}
+
+.btn-primary:focus {
+  background-color: var(--class-secondary);
+  color: var(--class-third);
+  outline: var(--class-third) solid 1px;
+}
+
+.btn-primary:focus path {
+  fill: var(--class-third);
+}
+
+.btn-secondary {
+  background-color: var(--class-white);
+  color: var(--class-third);
+  border: 1px solid var(--class-third);
+}
+
+.btn-secondary:hover {
+  background-color: var(--class-bg-gray-light);
+}
+
+.btn-secondary:focus {
+  border: none;
+  background-color: var(--class-white);
+  color: var(--class-secondary);
+  outline: var(--class-secondary) solid 1px;
+}
+
+.btn-absolute {
+  position: absolute;
+}
