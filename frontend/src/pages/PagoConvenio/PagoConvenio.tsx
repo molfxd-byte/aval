@@ -91,7 +91,7 @@ function PagoConvenio() {
                 </li>
               ))}
             </ol>
-            <img className="pay-logo" src={agreement.logo} alt={payment.serviceName} />
+            {!payment.hideLogo && <img className="pay-logo" src={agreement.logo} alt={payment.serviceName} />}
           </div>
 
           <form className="pay-form" onSubmit={(event) => event.preventDefault()}>
@@ -166,9 +166,8 @@ function PagoConvenio() {
 
             <div className="pay-methods">
               <p className="pay-methods__lead">Selecciona el medio de pago para continuar tu transacción:</p>
-              <div className="pay-methods__card">
-                <p>Otros medios de pago:</p>
-                <div className="pay-methods__logos">
+              {payment.plainMethods ? (
+                <div className="pay-methods__logos pay-methods__logos--plain">
                   {payment.methods.map((item) => (
                     <button
                       key={item.id}
@@ -181,7 +180,24 @@ function PagoConvenio() {
                     </button>
                   ))}
                 </div>
-              </div>
+              ) : (
+                <div className="pay-methods__card">
+                  <p>Otros medios de pago:</p>
+                  <div className="pay-methods__logos">
+                    {payment.methods.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        className={`pay-methods__logo ${method === item.id ? 'is-selected' : ''}`}
+                        title={item.title}
+                        onClick={() => setMethod(item.id)}
+                      >
+                        <img src={item.logo} alt={item.title} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <label className="pay-terms">
