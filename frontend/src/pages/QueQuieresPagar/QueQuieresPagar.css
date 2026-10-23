@@ -1,0 +1,247 @@
+.pay-today {
+  position: relative;
+  min-height: calc(100vh - 321px);
+}
+
+.pay-today__inner {
+  max-width: 1116px;
+  margin: 0 auto;
+  padding: 0 12px;
+}
+
+.pay-today__crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.pay-today__crumb-link {
+  font-family: jakarta-bold, Helvetica, sans-serif;
+  font-size: 12px;
+  color: var(--class-primary);
+  text-decoration: none;
+}
+
+.pay-today__crumb-current {
+  font-family: jakarta-regular, Helvetica, sans-serif;
+  font-size: 12px;
+  color: var(--class-third);
+  font-weight: 400;
+}
+
+.pay-today__intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 24px;
+}
+
+.pay-today__title {
+  width: 300px;
+  flex-shrink: 0;
+  margin-top: 50px;
+  align-self: flex-start;
+}
+
+.pay-today__title h1 {
+  margin: 0;
+  padding-bottom: 12px;
+  font-family: jost-bold, Helvetica, sans-serif;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 140%;
+  color: var(--class-third);
+}
+
+.pay-today__featured {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  flex-shrink: 0;
+  gap: 1.5rem;
+  margin-top: 25px;
+}
+
+.pay-today__featured .fast-payment-card {
+  flex-shrink: 0;
+}
+
+.pay-today__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+  width: 100%;
+  padding-bottom: 24px;
+}
+
+.category-row {
+  display: flex;
+  flex-direction: row;
+  gap: 18px;
+  align-items: center;
+  background-color: var(--class-white);
+  width: 100%;
+  height: 104px;
+  border-radius: 25px;
+  box-shadow: var(--boxshadow-dp5);
+  cursor: pointer;
+  border: 2px solid transparent;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.category-row:hover {
+  border-color: var(--class-secondary);
+}
+
+.category-row img {
+  width: 94px;
+  height: 93px;
+  margin-left: 6px;
+  flex-shrink: 0;
+}
+
+.category-row h4 {
+  font-family: jakarta-medium, Helvetica, sans-serif;
+  font-weight: 500;
+  color: var(--class-secondary);
+  font-size: 16px;
+  line-height: 140%;
+  text-align: left;
+  hyphens: auto;
+  overflow-wrap: break-word;
+  margin: 0 12px 0 0;
+  text-transform: capitalize;
+}
+
+@media (min-width: 745px) and (max-width: 991px) {
+  .pay-today__inner {
+    max-width: 991px;
+  }
+
+  .pay-today__intro {
+    gap: 10px;
+  }
+
+  .pay-today__title {
+    margin-top: 20px;
+  }
+}
+
+@media (min-width: 320px) and (max-width: 744px) {
+  .pay-today__crumbs {
+    display: none;
+  }
+
+  .pay-today__intro {
+    flex-direction: column;
+    align-items: stretch;
+    width: 90%;
+    margin: 0 auto;
+  }
+
+  .pay-today__title {
+    width: auto;
+    margin-top: 25px;
+  }
+
+  .pay-today__title h1 {
+    font-size: 32px;
+  }
+
+  .pay-today__featured {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(100px, 1fr));
+    width: 100%;
+    gap: 10px;
+    margin-top: 0;
+    justify-items: center;
+  }
+
+  .pay-today__grid {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .category-row img {
+    margin-left: 20px;
+  }
+}
+
+.pay-today .floating-pay__btn {
+  display: flex;
+  align-items: center;
+  background-color: var(--class-primary);
+  color: var(--class-white);
+  border: none;
+  border-radius: 56px 0 0 56px;
+  width: auto;
+  padding: 8px;
+  position: fixed;
+  top: 10%;
+  right: 0;
+  z-index: 15;
+  text-decoration: none;
+}
+
+.pay-today .floating-pay__icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: var(--class-white);
+  box-shadow: var(--boxshadow-dp1);
+}
+
+.pay-today .floating-pay__icon::after {
+  content: '';
+  width: 24px;
+  height: 24px;
+  background-image: url('../../assets/images/AvalPayCenter/imgi_17_sprite-banks_lens.png');
+  background-repeat: no-repeat;
+  background-position: -232px 0;
+}
+
+.pay-today .floating-pay__text {
+  display: none;
+  font-family: jakarta-bold, Helvetica, sans-serif;
+  font-size: 16px;
+  line-height: 140%;
+}
+
+.pay-today .floating-pay__btn:hover {
+  gap: 16px;
+  width: 220px;
+}
+
+.pay-today .floating-pay__btn:hover .floating-pay__text {
+  display: inline;
+}
+
+@media (min-width: 320px) and (max-width: 744px) {
+  .pay-today .floating-pay {
+    width: 100%;
+    position: sticky;
+    bottom: 0;
+    z-index: 15;
+  }
+
+  .pay-today .floating-pay__btn {
+    position: sticky;
+    width: 100%;
+    height: 55px;
+    border-radius: 56px 56px 0 0;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .pay-today .floating-pay__text {
+    display: inline;
+    font-size: 12px;
+  }
+}
+

@@ -10,7 +10,7 @@ import type {
 
 export const navItems: NavItem[] = [
   { label: 'Inicio', href: '/', active: true },
-  { label: '¿Qué quieres pagar hoy?', href: '#' },
+  { label: '¿Qué quieres pagar hoy?', href: '/que-quieres-pagar' },
   { label: 'Validar mi pago', href: '#' },
   { label: 'Centro de ayuda', href: '#' },
   {
@@ -31,14 +31,14 @@ export const searchContent = {
 export const fastPaymentsContent = {
   title: 'Pagos Rápidos',
   linkLabel: 'Ver todos',
-  linkHref: '#',
+  linkHref: '/que-quieres-pagar',
 };
 
 export const fastPayments: FastPayment[] = [
   { id: 'obligaciones-aval', title: 'Obligaciones\nAval', image: images.categoryCards, href: '/obligaciones-aval' },
-  { id: 'servicios-publicos', title: 'Servicios\nPúblicos', image: images.categoryUtilities, href: '#' },
-  { id: 'conjuntos-residenciales', title: 'Conjuntos\nResidenciales', image: images.categoryAdministration, href: '#' },
-  { id: 'salud-medicina', title: 'Salud\ny Medicina', image: images.categoryHealth, href: '#' },
+  { id: 'servicios-publicos', title: 'Servicios\nPúblicos', image: images.categoryUtilities, href: '/servicios-publicos' },
+  { id: 'conjuntos-residenciales', title: 'Conjuntos\nResidenciales', image: images.categoryAdministration, href: '/conjuntos-residenciales' },
+  { id: 'salud-medicina', title: 'Salud\ny Medicina', image: images.categoryHealth, href: '/salud-medicina' },
   { id: 'itau', title: 'Banco Itaú', image: images.logoItau, imageClass: 'img-itau', href: '#', isNew: true },
 ];
 

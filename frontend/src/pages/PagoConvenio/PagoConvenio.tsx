@@ -5,7 +5,11 @@ import Button from '@/components/Button/Button';
 import MainLayout from '@/layouts/MainLayout/MainLayout';
 import { obligacionesAgreements } from '@/data/agreements';
 import { getPayment, paymentAssets } from '@/data/payments';
-import type { PaymentField } from '@/data/payments';
+import type { PaymentField, PaymentView } from '@/data/payments';
+import { getConjuntoPayment, conjuntosAgreements } from '@/data/conjuntosResidenciales';
+import { getSaludPayment, saludAgreements } from '@/data/saludMedicina';
+import { getServicioPayment, serviciosAgreements } from '@/data/serviciosPublicos';
+import { getCatalogAgreement, getCatalogPayment, isCatalogSource } from '@/data/catalogStore';
 import './PagoConvenio.css';
 
 const steps = [
@@ -25,10 +29,36 @@ function formatMoney(value: string) {
   return `$ ${Number(digits).toLocaleString('es-CO')}`;
 }
 
-function PagoConvenio() {
+function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
   const { id = '' } = useParams();
-  const payment = getPayment(id);
-  const agreement = obligacionesAgreements.find((item) => item.id === id);
+  const catalog = isCatalogSource(source);
+  const payment: PaymentView | undefined = catalog
+    ? getCatalogPayment(source, id)
+    : source === 'servicios'
+      ? getServicioPayment(id)
+      : source === 'conjuntos'
+        ? getConjuntoPayment(id)
+        : source === 'salud'
+          ? getSaludPayment(id)
+          : getPayment(id);
+  const agreement = catalog
+    ? getCatalogAgreement(source, id)
+    : source === 'servicios'
+      ? serviciosAgreements.find((item) => item.id === id)
+      : source === 'conjuntos'
+        ? conjuntosAgreements.find((item) => item.id === id)
+        : source === 'salud'
+          ? saludAgreements.find((item) => item.id === id)
+          : obligacionesAgreements.find((item) => item.id === id);
+  const backTo = catalog
+    ? `/${source}`
+    : source === 'servicios'
+      ? '/servicios-publicos'
+      : source === 'conjuntos'
+        ? '/conjuntos-residenciales'
+        : source === 'salud'
+          ? '/salud-medicina'
+          : '/obligaciones-aval';
   const [values, setValues] = useState<Record<string, string>>({});
   const [openSelect, setOpenSelect] = useState<string | null>(null);
   const [amountFocused, setAmountFocused] = useState(false);
@@ -62,7 +92,7 @@ function PagoConvenio() {
   };
 
   if (!payment || !agreement) {
-    return <Navigate to="/obligaciones-aval" replace />;
+    return <Navigate to={backTo} replace />;
   }
 
   return (
@@ -98,6 +128,11 @@ function PagoConvenio() {
             <div className="pay-name">
               <p>Servicio a pagar</p>
               <h2>{payment.serviceName}</h2>
+              {payment.location && (
+                <p className="pay-location">
+                  <strong>Ubicación:</strong> {payment.location}
+                </p>
+              )}
             </div>
 
             {payment.helpImage && (
@@ -132,40 +167,46 @@ function PagoConvenio() {
                 />
               ))}
 
-              <div className="pay-cost">
-                <p className="pay-cost__label">Valor de la transacción</p>
-                <p className="pay-cost__value">{formatMoney(values.amount ?? '')}</p>
-              </div>
-
-              <div className="pay-detail">
-                <div className="pay-toggle">
-                  <input
-                    id="payment-detail"
-                    type="checkbox"
-                    checked={detailOpen}
-                    onChange={(event) => setDetailOpen(event.target.checked)}
-                  />
-                  <label className="pay-toggle__text" htmlFor="payment-detail">
-                    Agregar detalle del pago
-                  </label>
-                  <label className="pay-toggle__slider" htmlFor="payment-detail" />
+              {payment.fields.some((field) => field.kind === 'amount') && (
+                <div className="pay-cost">
+                  <p className="pay-cost__label">Valor de la transacción</p>
+                  <p className="pay-cost__value">{formatMoney(values.amount ?? '')}</p>
                 </div>
-                {detailOpen && (
-                  <>
-                    <hr className="pay-detail__line" />
-                    <textarea
-                      className="pay-detail__input"
-                      placeholder="Detalle del pago"
-                      value={detail}
-                      onChange={(event) => setDetail(event.target.value)}
+              )}
+
+              {payment.showDetail !== false && (
+                <div className="pay-detail">
+                  <div className="pay-toggle">
+                    <input
+                      id="payment-detail"
+                      type="checkbox"
+                      checked={detailOpen}
+                      onChange={(event) => setDetailOpen(event.target.checked)}
                     />
-                  </>
-                )}
-              </div>
+                    <label className="pay-toggle__text" htmlFor="payment-detail">
+                      Agregar detalle del pago
+                    </label>
+                    <label className="pay-toggle__slider" htmlFor="payment-detail" />
+                  </div>
+                  {detailOpen && (
+                    <>
+                      <hr className="pay-detail__line" />
+                      <textarea
+                        className="pay-detail__input"
+                        placeholder="Detalle del pago"
+                        value={detail}
+                        onChange={(event) => setDetail(event.target.value)}
+                      />
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="pay-methods">
-              <p className="pay-methods__lead">Selecciona el medio de pago para continuar tu transacción:</p>
+              <p className="pay-methods__lead">
+                {payment.methodsLead ?? 'Selecciona el medio de pago para continuar tu transacción:'}
+              </p>
               {payment.plainMethods ? (
                 <div className="pay-methods__logos pay-methods__logos--plain">
                   {payment.methods.map((item) => (
@@ -200,18 +241,22 @@ function PagoConvenio() {
               )}
             </div>
 
-            <label className="pay-terms">
-              <input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} />
-              <span>
-                Acepto <button type="button">términos y condiciones</button>
-              </span>
-            </label>
+            {payment.showTerms !== false && (
+              <label className="pay-terms">
+                <input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} />
+                <span>
+                  Acepto <button type="button">términos y condiciones</button>
+                </span>
+              </label>
+            )}
 
             <div className="pay-actions">
-              <p>¡Agiliza tu pago si ya te encuentras registrado en nuestro portal!</p>
+              {payment.showLogin !== false && <p>¡Agiliza tu pago si ya te encuentras registrado en nuestro portal!</p>}
               <div className="pay-actions__buttons">
-                <Button variant="primary">Pagar</Button>
-                <Button variant="primary">Agiliza tu pago</Button>
+                <Button variant="primary">{payment.submitLabel ?? 'Pagar'}</Button>
+                {(payment.secondaryLabel ?? 'Agiliza tu pago') && (
+                  <Button variant="primary">{payment.secondaryLabel ?? 'Agiliza tu pago'}</Button>
+                )}
               </div>
             </div>
           </form>

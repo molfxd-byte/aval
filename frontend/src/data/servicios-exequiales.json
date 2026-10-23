@@ -1,0 +1,1014 @@
+[
+  {
+    "id": "00014903",
+    "name": "Plenitud Proteccion Otros Recaudo",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "/convenios/servicios-exequiales/logos/00014903.png",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Nit o cedula *",
+        "maxLength": 12,
+        "numeric": true,
+        "id": "nit-o-cedula"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00011488",
+    "name": "Excelencia Exequial",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Nit o cedula *",
+        "maxLength": 18,
+        "numeric": true,
+        "id": "nit-o-cedula"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00002165",
+    "name": "Funeraria San Gabriel Sa Cr 52 50 33 Itagui",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "/convenios/servicios-exequiales/logos/00002165.png",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Numero de cedula *",
+        "maxLength": 10,
+        "numeric": true,
+        "id": "numero-de-cedula"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00009678",
+    "name": "Cofuneraria Los Olivos Bmang Exequ",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": false,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Identificacion *",
+        "maxLength": 10,
+        "numeric": true,
+        "id": "identificacion"
+      }
+    ]
+  },
+  {
+    "id": "00029569",
+    "name": "Servicio Exequial",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Numero de identificacion *",
+        "maxLength": 18,
+        "numeric": true,
+        "id": "numero-de-identificacion"
+      },
+      {
+        "kind": "text",
+        "label": "Nombres y apellidos *",
+        "maxLength": 50,
+        "numeric": false,
+        "id": "nombres-y-apellidos"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00009208",
+    "name": "Servicios Funebres San Pedro Ltda",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "/convenios/servicios-exequiales/logos/00009208.jpg",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Digite su no de cc o NIT cedula o nit *",
+        "maxLength": 18,
+        "numeric": true,
+        "id": "digite-su-no-de-cc-o-nit-cedula-o-nit"
+      },
+      {
+        "kind": "select",
+        "label": "Concepto del pago *",
+        "options": [],
+        "id": "concepto-del-pago"
+      },
+      {
+        "kind": "text",
+        "label": "Correo electronico",
+        "maxLength": 50,
+        "numeric": false,
+        "id": "correo-electronico"
+      },
+      {
+        "kind": "text",
+        "label": "Nombres y apellidos *",
+        "maxLength": 50,
+        "numeric": false,
+        "id": "nombres-y-apellidos"
+      },
+      {
+        "kind": "select",
+        "label": "Mes a pagar *",
+        "options": [],
+        "id": "mes-a-pagar"
+      },
+      {
+        "kind": "text",
+        "label": "Telefono *",
+        "maxLength": 50,
+        "numeric": false,
+        "id": "telefono"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00014636",
+    "name": "Funeraria Senderos Sas",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "/convenios/servicios-exequiales/logos/00014636.png",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Cedula o NIT *",
+        "maxLength": 18,
+        "numeric": true,
+        "id": "cedula-o-nit"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00001071",
+    "name": "Campo Santo Metropolitano Arquidiocesis De Cali",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "/convenios/servicios-exequiales/logos/00001071.png",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Numero de cedula o NIT *",
+        "maxLength": 18,
+        "numeric": true,
+        "id": "numero-de-cedula-o-nit"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00005768",
+    "name": "Sacro Santo Sas",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "/convenios/servicios-exequiales/logos/00005768.jpg",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Nit o cc",
+        "maxLength": 14,
+        "numeric": true,
+        "id": "nit-o-cc"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00011856",
+    "name": "Grupo Social Colombiano Cll 16 Sur 22 47 Ofi 207",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Cedula NIT *",
+        "maxLength": 18,
+        "numeric": true,
+        "id": "cedula-nit"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00001995",
+    "name": "Proexequiales Resurgir",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": false,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Cedula *",
+        "maxLength": 18,
+        "numeric": true,
+        "id": "cedula"
+      }
+    ]
+  },
+  {
+    "id": "00005343",
+    "name": "Funeraria San Vicente",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "/convenios/servicios-exequiales/logos/00005343.jpg",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Cc o NIT *",
+        "maxLength": 30,
+        "numeric": true,
+        "id": "cc-o-nit"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00002184",
+    "name": "Mapfre Servicios Exequiales Sas",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": false,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Digite el numero de referencia *",
+        "maxLength": 12,
+        "numeric": true,
+        "id": "digite-el-numero-de-referencia"
+      }
+    ]
+  },
+  {
+    "id": "00002207",
+    "name": "Olivos Ibague",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Digite numero de referencia *",
+        "maxLength": 30,
+        "numeric": true,
+        "id": "digite-numero-de-referencia"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00030239",
+    "name": "Organizacion San Francisco Sas",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": false,
+    "logo": "",
+    "helpImage": "",
+    "plainMethods": true,
+    "methodsLead": "",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": false,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Digite numero de referencia *",
+        "maxLength": 18,
+        "numeric": true,
+        "id": "digite-numero-de-referencia"
+      }
+    ]
+  },
+  {
+    "id": "00010086",
+    "name": "Cofuneraria Los Olivos Bmanga Otro",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "/convenios/servicios-exequiales/logos/00010086.jpg",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Identificacion *",
+        "maxLength": 18,
+        "numeric": true,
+        "id": "identificacion"
+      },
+      {
+        "kind": "select",
+        "label": "Producto o servicio *",
+        "options": [],
+        "id": "producto-o-servicio"
+      },
+      {
+        "kind": "text",
+        "label": "Nombre completo *",
+        "maxLength": 50,
+        "numeric": false,
+        "id": "nombre-completo"
+      },
+      {
+        "kind": "text",
+        "label": "Correo electronico *",
+        "maxLength": 50,
+        "numeric": false,
+        "id": "correo-electronico"
+      },
+      {
+        "kind": "text",
+        "label": "Celular *",
+        "maxLength": 50,
+        "numeric": false,
+        "id": "celular"
+      },
+      {
+        "kind": "text",
+        "label": "Direccion *",
+        "maxLength": 50,
+        "numeric": false,
+        "id": "direccion"
+      },
+      {
+        "kind": "text",
+        "label": "Ciudad *",
+        "maxLength": 50,
+        "numeric": false,
+        "id": "ciudad"
+      },
+      {
+        "kind": "text",
+        "label": "Referencia de pago u observaciones *",
+        "maxLength": 50,
+        "numeric": false,
+        "id": "referencia-de-pago-u-observaciones"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00013921",
+    "name": "Angeles De Dios",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Identficicacion *",
+        "maxLength": 18,
+        "numeric": true,
+        "id": "identficicacion"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00027503",
+    "name": "Funerales Del Cafe Asistencia Exequ",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "/convenios/servicios-exequiales/logos/00027503.png",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Cedula o NIT *",
+        "maxLength": 18,
+        "numeric": true,
+        "id": "cedula-o-nit"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00003555",
+    "name": "Funerales Integrales Sas Funintegra",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Recaudo de pagos *",
+        "maxLength": 30,
+        "numeric": true,
+        "id": "recaudo-de-pagos"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00001370",
+    "name": "Funerales La Verde Esperanza",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "No referencia *",
+        "maxLength": 30,
+        "numeric": true,
+        "id": "no-referencia"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00003468",
+    "name": "Funerales La Verde Esperanza Carrera 3 No 44 43",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "/convenios/servicios-exequiales/logos/00003468.png",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Codigo *",
+        "maxLength": 8,
+        "numeric": true,
+        "id": "codigo"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00004261",
+    "name": "Jardines De Jerusalen",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Numero de contrato *",
+        "maxLength": 18,
+        "numeric": true,
+        "id": "numero-de-contrato"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00001168",
+    "name": "Jardines De Paz Bta",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "/convenios/servicios-exequiales/logos/00001168.jpg",
+    "helpImage": "",
+    "plainMethods": true,
+    "methodsLead": "",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Digite no factura *",
+        "maxLength": 18,
+        "numeric": true,
+        "id": "digite-no-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00004732",
+    "name": "Plenitud Proteccion Medellin",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "",
+    "helpImage": "",
+    "plainMethods": true,
+    "methodsLead": "",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": false,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Identificacion *",
+        "maxLength": 18,
+        "numeric": true,
+        "id": "identificacion"
+      },
+      {
+        "kind": "text",
+        "label": "Mes pendiente",
+        "maxLength": 50,
+        "numeric": false,
+        "id": "mes-pendiente"
+      },
+      {
+        "kind": "text",
+        "label": "Nombre plan",
+        "maxLength": 50,
+        "numeric": false,
+        "id": "nombre-plan"
+      }
+    ]
+  },
+  {
+    "id": "00011997",
+    "name": "Prevision Exequial Campo De Pa Cra 27 3501",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Cedula *",
+        "maxLength": 18,
+        "numeric": true,
+        "id": "cedula"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00003438",
+    "name": "Proexequial",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Nit o cc *",
+        "maxLength": 30,
+        "numeric": true,
+        "id": "nit-o-cc"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00016175",
+    "name": "Proteger Integral Sas",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "/convenios/servicios-exequiales/logos/00016175.jpg",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Nit o cedula *",
+        "maxLength": 18,
+        "numeric": true,
+        "id": "nit-o-cedula"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  }
+]

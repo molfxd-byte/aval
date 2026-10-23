@@ -63,6 +63,13 @@ export interface PaymentView {
   helpImage?: string;
   hideLogo?: boolean;
   plainMethods?: boolean;
+  location?: string;
+  methodsLead?: string;
+  submitLabel?: string;
+  secondaryLabel?: string;
+  showDetail?: boolean;
+  showTerms?: boolean;
+  showLogin?: boolean;
   methods: PaymentMethodOption[];
   fields: PaymentField[];
 }

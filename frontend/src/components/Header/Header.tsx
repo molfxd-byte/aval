@@ -9,7 +9,7 @@ import './Header.css';
 function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { pathname } = useLocation();
-  const isPayment = pathname.startsWith('/obligaciones-aval/pagar/');
+  const isPayment = pathname.includes('/pagar/');
 
   const renderNav = (items = navItems) =>
     items.map((item) => (

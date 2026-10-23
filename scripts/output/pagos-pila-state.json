@@ -1,0 +1,15 @@
+{
+  "catalogComplete": true,
+  "catalog": [
+    {
+      "index": 0,
+      "name": "Planilla As Aportes en Linea",
+      "id": "",
+      "logoUrl": "",
+      "acceptsEnrollment": true
+    }
+  ],
+  "forms": {},
+  "errors": [],
+  "listPage": 1
+}

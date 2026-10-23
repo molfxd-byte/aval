@@ -145,6 +145,18 @@
   margin: 0;
 }
 
+.pay-location {
+  margin: 8px 0 0;
+  color: #1f2937;
+  font-family: jakarta-regular, Helvetica, sans-serif;
+  font-size: 16px;
+  line-height: 140%;
+}
+
+.pay-location strong {
+  font-family: jakarta-bold, Helvetica, sans-serif;
+}
+
 .pay-help {
   position: relative;
   margin: 2px;
@@ -674,6 +686,10 @@
   .pay-name h2 {
     font-size: 24px;
     font-family: jost-medium, Helvetica, sans-serif;
+    text-align: center;
+  }
+
+  .pay-location {
     text-align: center;
   }
 

@@ -30,7 +30,7 @@ export const obligacionesContent = {
   floatingLabel: 'Realiza un pago',
   crumbs: [
     { label: 'Inicio', href: '/' },
-    { label: '¿Qué quieres pagar hoy?', href: '/' },
+    { label: '¿Qué quieres pagar hoy?', href: '/que-quieres-pagar' },
     { label: 'Obligaciones Aval' },
   ],
 };

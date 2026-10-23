@@ -1,0 +1,329 @@
+[
+  {
+    "id": "00023594",
+    "name": "Red Hogar Telecomunicaciones",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "/convenios/television/logos/00023594.jpg",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Referente de pago *",
+        "maxLength": 18,
+        "numeric": true,
+        "id": "referente-de-pago"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00000084",
+    "name": "Claro Hogar",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "/convenios/television/logos/00000084.jpg",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": false,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Cuenta o ref de pago *",
+        "maxLength": 10,
+        "numeric": true,
+        "id": "cuenta-o-ref-de-pago"
+      }
+    ]
+  },
+  {
+    "id": "00001649",
+    "name": "Red Hogar Telecomunicaciones Sas",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "/convenios/television/logos/00001649.png",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Referente de pago *",
+        "maxLength": 18,
+        "numeric": true,
+        "id": "referente-de-pago"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00000122",
+    "name": "Directv",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "/convenios/television/logos/00000122.jpg",
+    "helpImage": "",
+    "plainMethods": true,
+    "methodsLead": "",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": false,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Digite referencia unica de pago *",
+        "maxLength": 30,
+        "numeric": true,
+        "id": "digite-referencia-unica-de-pago"
+      }
+    ]
+  },
+  {
+    "id": "00001549",
+    "name": "Hv Television Sas",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "/convenios/television/logos/00001549.jpg",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": false,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Codigo cliente *",
+        "maxLength": 30,
+        "numeric": true,
+        "id": "codigo-cliente"
+      }
+    ]
+  },
+  {
+    "id": "00012780",
+    "name": "Asucap Tv Sanjrge",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "",
+    "helpImage": "",
+    "plainMethods": true,
+    "methodsLead": "",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Digite el codigo de pago *",
+        "maxLength": 18,
+        "numeric": true,
+        "id": "digite-el-codigo-de-pago"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00006294",
+    "name": "Garden Technology",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Digite NIT o cedula *",
+        "maxLength": 30,
+        "numeric": true,
+        "id": "digite-nit-o-cedula"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00014902",
+    "name": "Pse Hv Television Sas",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Codigo cliente *",
+        "maxLength": 18,
+        "numeric": true,
+        "id": "codigo-cliente"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00004224",
+    "name": "Tv Cable San Gil S A S Cra 73 No 52 66",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval",
+      "pse"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Referente de pago *",
+        "maxLength": 10,
+        "numeric": true,
+        "id": "referente-de-pago"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  },
+  {
+    "id": "00007495",
+    "name": "Vendedor Viajero",
+    "department": "",
+    "location": "",
+    "acceptsEnrollment": true,
+    "logo": "/convenios/television/logos/00007495.jpg",
+    "helpImage": "",
+    "plainMethods": false,
+    "methodsLead": "Otros medios de pago:",
+    "submitLabel": "Pagar",
+    "secondaryLabel": "Agiliza tu pago",
+    "showDetail": true,
+    "showTerms": true,
+    "showLogin": true,
+    "methods": [
+      "aval"
+    ],
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Referencia recaudo",
+        "maxLength": 10,
+        "numeric": true,
+        "id": "referencia-recaudo"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
+      }
+    ]
+  }
+]

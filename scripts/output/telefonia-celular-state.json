@@ -1,0 +1,401 @@
+{
+  "catalogComplete": true,
+  "catalog": [
+    {
+      "index": 0,
+      "name": "WOM",
+      "id": "00003771",
+      "logoUrl": "https://www.avalpaycenter.com/imagenes/convenios/logo/00003771.png",
+      "acceptsEnrollment": true
+    },
+    {
+      "index": 1,
+      "name": "CLARO COMCEL",
+      "id": "00000014",
+      "logoUrl": "https://www.avalpaycenter.com/imagenes/convenios/logo/00000014.png",
+      "acceptsEnrollment": true
+    },
+    {
+      "index": 2,
+      "name": "MOVISTAR SERVICIO MOVIL Y FIJO",
+      "id": "00000017",
+      "logoUrl": "https://www.avalpaycenter.com/imagenes/convenios/logo/00000017.png",
+      "acceptsEnrollment": true
+    },
+    {
+      "index": 3,
+      "name": "Team Comunicaciones",
+      "id": "00008614",
+      "logoUrl": "https://www.avalpaycenter.com/imagenes/convenios/logo/00008614.png",
+      "acceptsEnrollment": true
+    },
+    {
+      "index": 4,
+      "name": "CLARO VOLANTE",
+      "id": "00005533",
+      "logoUrl": "",
+      "acceptsEnrollment": true
+    },
+    {
+      "index": 5,
+      "name": "Estemovil SAS",
+      "id": "00031138",
+      "logoUrl": "",
+      "acceptsEnrollment": true
+    },
+    {
+      "index": 6,
+      "name": "SIP ALO SAS",
+      "id": "00002405",
+      "logoUrl": "",
+      "acceptsEnrollment": true
+    },
+    {
+      "index": 7,
+      "name": "TECNOMOVIL BARRAS TARJETA",
+      "id": "00000875",
+      "logoUrl": "https://www.avalpaycenter.com/imagenes/convenios/logo/00000875.png",
+      "acceptsEnrollment": true
+    },
+    {
+      "index": 8,
+      "name": "TECNOMOVIL SA",
+      "id": "00006042",
+      "logoUrl": "https://www.avalpaycenter.com/imagenes/convenios/logo/00006042.png",
+      "acceptsEnrollment": true
+    },
+    {
+      "index": 9,
+      "name": "VIRGIN MOBILE RECARGAS",
+      "id": "00000383",
+      "logoUrl": "",
+      "acceptsEnrollment": true
+    }
+  ],
+  "forms": {
+    "00000014": {
+      "id": "00000014",
+      "name": "Claro Comcel",
+      "department": "",
+      "location": "",
+      "acceptsEnrollment": true,
+      "logo": "/convenios/telefonia-celular/logos/00000014.jpg",
+      "helpImage": "",
+      "plainMethods": true,
+      "methodsLead": "",
+      "submitLabel": "Pagar",
+      "secondaryLabel": "Agiliza tu pago",
+      "showDetail": false,
+      "showTerms": true,
+      "showLogin": true,
+      "methods": [
+        "aval"
+      ],
+      "fields": [
+        {
+          "kind": "text",
+          "label": "Cuenta o ref de pago *",
+          "maxLength": 14,
+          "numeric": true,
+          "id": "cuenta-o-ref-de-pago"
+        }
+      ]
+    },
+    "00000017": {
+      "id": "00000017",
+      "name": "Movistar Servicio Movil Y Fijo",
+      "department": "",
+      "location": "",
+      "acceptsEnrollment": true,
+      "logo": "/convenios/telefonia-celular/logos/00000017.jpg",
+      "helpImage": "",
+      "plainMethods": true,
+      "methodsLead": "",
+      "submitLabel": "Pagar",
+      "secondaryLabel": "Agiliza tu pago",
+      "showDetail": false,
+      "showTerms": true,
+      "showLogin": true,
+      "methods": [
+        "aval"
+      ],
+      "fields": [
+        {
+          "kind": "text",
+          "label": "Digite el codigo de cuenta *",
+          "maxLength": 30,
+          "numeric": true,
+          "id": "digite-el-codigo-de-cuenta"
+        }
+      ]
+    },
+    "00003771": {
+      "id": "00003771",
+      "name": "Wom",
+      "department": "",
+      "location": "",
+      "acceptsEnrollment": true,
+      "logo": "/convenios/telefonia-celular/logos/00003771.jpg",
+      "helpImage": "",
+      "plainMethods": false,
+      "methodsLead": "Otros medios de pago:",
+      "submitLabel": "Pagar",
+      "secondaryLabel": "Agiliza tu pago",
+      "showDetail": false,
+      "showTerms": true,
+      "showLogin": true,
+      "methods": [
+        "aval",
+        "pse"
+      ],
+      "fields": [
+        {
+          "kind": "text",
+          "label": "Numero de celular *",
+          "maxLength": 12,
+          "numeric": true,
+          "id": "numero-de-celular"
+        }
+      ]
+    },
+    "00008614": {
+      "id": "00008614",
+      "name": "Team Comunicaciones",
+      "department": "",
+      "location": "",
+      "acceptsEnrollment": true,
+      "logo": "/convenios/telefonia-celular/logos/00008614.jpg",
+      "helpImage": "",
+      "plainMethods": false,
+      "methodsLead": "Otros medios de pago:",
+      "submitLabel": "Pagar",
+      "secondaryLabel": "Agiliza tu pago",
+      "showDetail": true,
+      "showTerms": true,
+      "showLogin": true,
+      "methods": [
+        "aval",
+        "pse"
+      ],
+      "fields": [
+        {
+          "kind": "text",
+          "label": "Numero de identificacion *",
+          "maxLength": 10,
+          "numeric": true,
+          "id": "numero-de-identificacion"
+        },
+        {
+          "kind": "amount",
+          "label": "Valor a pagar *",
+          "maxLength": 19,
+          "id": "amount"
+        }
+      ]
+    },
+    "00006042": {
+      "id": "00006042",
+      "name": "Tecnomovil Sa",
+      "department": "",
+      "location": "",
+      "acceptsEnrollment": true,
+      "logo": "/convenios/telefonia-celular/logos/00006042.jpg",
+      "helpImage": "",
+      "plainMethods": false,
+      "methodsLead": "Otros medios de pago:",
+      "submitLabel": "Pagar",
+      "secondaryLabel": "Agiliza tu pago",
+      "showDetail": true,
+      "showTerms": true,
+      "showLogin": true,
+      "methods": [
+        "aval"
+      ],
+      "fields": [
+        {
+          "kind": "text",
+          "label": "Numero de cedula de ciudadania *",
+          "maxLength": 30,
+          "numeric": true,
+          "id": "numero-de-cedula-de-ciudadania"
+        },
+        {
+          "kind": "amount",
+          "label": "Valor a pagar *",
+          "maxLength": 19,
+          "id": "amount"
+        }
+      ]
+    },
+    "00000875": {
+      "id": "00000875",
+      "name": "Tecnomovil Barras Tarjeta",
+      "department": "",
+      "location": "",
+      "acceptsEnrollment": true,
+      "logo": "/convenios/telefonia-celular/logos/00000875.jpg",
+      "helpImage": "",
+      "plainMethods": false,
+      "methodsLead": "Otros medios de pago:",
+      "submitLabel": "Pagar",
+      "secondaryLabel": "Agiliza tu pago",
+      "showDetail": true,
+      "showTerms": true,
+      "showLogin": true,
+      "methods": [
+        "aval",
+        "pse"
+      ],
+      "fields": [
+        {
+          "kind": "text",
+          "label": "Digite no identificacion *",
+          "maxLength": 16,
+          "numeric": true,
+          "id": "digite-no-identificacion"
+        },
+        {
+          "kind": "amount",
+          "label": "Valor a pagar *",
+          "maxLength": 19,
+          "id": "amount"
+        }
+      ]
+    },
+    "00005533": {
+      "id": "00005533",
+      "name": "Claro Volante",
+      "department": "",
+      "location": "",
+      "acceptsEnrollment": true,
+      "logo": "",
+      "helpImage": "",
+      "plainMethods": false,
+      "methodsLead": "Otros medios de pago:",
+      "submitLabel": "Pagar",
+      "secondaryLabel": "Agiliza tu pago",
+      "showDetail": true,
+      "showTerms": true,
+      "showLogin": true,
+      "methods": [
+        "aval"
+      ],
+      "fields": [
+        {
+          "kind": "text",
+          "label": "Referencia que inicia por 15 50 o 70 *",
+          "maxLength": 18,
+          "numeric": true,
+          "id": "referencia-que-inicia-por-15-50-o-70"
+        },
+        {
+          "kind": "amount",
+          "label": "Valor a pagar *",
+          "maxLength": 19,
+          "id": "amount"
+        }
+      ]
+    },
+    "00002405": {
+      "id": "00002405",
+      "name": "Sip Alo Sas",
+      "department": "",
+      "location": "",
+      "acceptsEnrollment": true,
+      "logo": "",
+      "helpImage": "",
+      "plainMethods": false,
+      "methodsLead": "Otros medios de pago:",
+      "submitLabel": "Pagar",
+      "secondaryLabel": "Agiliza tu pago",
+      "showDetail": true,
+      "showTerms": true,
+      "showLogin": true,
+      "methods": [
+        "aval",
+        "pse"
+      ],
+      "fields": [
+        {
+          "kind": "text",
+          "label": "Nit *",
+          "maxLength": 18,
+          "numeric": true,
+          "id": "nit"
+        },
+        {
+          "kind": "amount",
+          "label": "Valor a pagar *",
+          "maxLength": 19,
+          "id": "amount"
+        }
+      ]
+    },
+    "00031138": {
+      "id": "00031138",
+      "name": "Estemovil Sas",
+      "department": "",
+      "location": "",
+      "acceptsEnrollment": true,
+      "logo": "",
+      "helpImage": "",
+      "plainMethods": false,
+      "methodsLead": "Otros medios de pago:",
+      "submitLabel": "Pagar",
+      "secondaryLabel": "Agiliza tu pago",
+      "showDetail": true,
+      "showTerms": true,
+      "showLogin": true,
+      "methods": [
+        "aval",
+        "pse"
+      ],
+      "fields": [
+        {
+          "kind": "text",
+          "label": "Cc o NIT *",
+          "maxLength": 18,
+          "numeric": true,
+          "id": "cc-o-nit"
+        },
+        {
+          "kind": "amount",
+          "label": "Valor a pagar *",
+          "maxLength": 19,
+          "id": "amount"
+        }
+      ]
+    },
+    "00000383": {
+      "id": "00000383",
+      "name": "Virgin Mobile Recargas",
+      "department": "",
+      "location": "",
+      "acceptsEnrollment": true,
+      "logo": "",
+      "helpImage": "",
+      "plainMethods": false,
+      "methodsLead": "Otros medios de pago:",
+      "submitLabel": "Pagar",
+      "secondaryLabel": "Agiliza tu pago",
+      "showDetail": false,
+      "showTerms": true,
+      "showLogin": true,
+      "methods": [
+        "aval",
+        "pse"
+      ],
+      "fields": [
+        {
+          "kind": "text",
+          "label": "Digite los 10 digitos del no celular *",
+          "maxLength": 18,
+          "numeric": true,
+          "id": "digite-los-10-digitos-del-no-celular"
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "listPage": 1
+}

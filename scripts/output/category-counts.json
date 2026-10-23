@@ -1,0 +1,178 @@
+[
+  {
+    "slug": "asociaciones",
+    "id": "2",
+    "title": "Asociaciones",
+    "h1": "",
+    "total": 0,
+    "error": ""
+  },
+  {
+    "slug": "centros-comerciales",
+    "id": "3",
+    "title": "Centros Comerciales",
+    "h1": "",
+    "total": 268,
+    "error": ""
+  },
+  {
+    "slug": "comercializadoras",
+    "id": "5",
+    "title": "Comercializadoras",
+    "h1": "",
+    "total": 0,
+    "error": ""
+  },
+  {
+    "slug": "cooperativas",
+    "id": "7",
+    "title": "Cooperativas",
+    "h1": "",
+    "total": 274,
+    "error": ""
+  },
+  {
+    "slug": "empresas-de-seguros",
+    "id": "15",
+    "title": "Empresas de Seguros",
+    "h1": "",
+    "total": 76,
+    "error": ""
+  },
+  {
+    "slug": "fondo-de-empleados",
+    "id": "1",
+    "title": "Fondo de empleados",
+    "h1": "",
+    "total": 78,
+    "error": ""
+  },
+  {
+    "slug": "fundaciones",
+    "id": "9",
+    "title": "Fundaciones",
+    "h1": "",
+    "total": 188,
+    "error": ""
+  },
+  {
+    "slug": "impuestos",
+    "id": "11",
+    "title": "Impuestos",
+    "h1": "",
+    "total": 535,
+    "error": ""
+  },
+  {
+    "slug": "industria",
+    "id": "12",
+    "title": "Industria",
+    "h1": "",
+    "total": 0,
+    "error": ""
+  },
+  {
+    "slug": "instituciones-educativas",
+    "id": "4",
+    "title": "Instituciones Educativas",
+    "h1": "",
+    "total": 874,
+    "error": ""
+  },
+  {
+    "slug": "obligaciones-financieras",
+    "id": "13",
+    "title": "Obligaciones Financieras",
+    "h1": "",
+    "total": 0,
+    "error": ""
+  },
+  {
+    "slug": "otros-servicios",
+    "id": "14",
+    "title": "Otros Servicios",
+    "h1": "",
+    "total": 7422,
+    "error": ""
+  },
+  {
+    "slug": "pagos-pila",
+    "id": "27",
+    "title": "Pagos PILA",
+    "h1": "",
+    "total": 1,
+    "error": ""
+  },
+  {
+    "slug": "servicios-de-seguridad",
+    "id": "8",
+    "title": "Servicios de Seguridad",
+    "h1": "",
+    "total": 105,
+    "error": ""
+  },
+  {
+    "slug": "servicios-de-transporte",
+    "id": "17",
+    "title": "Servicios de Transporte",
+    "h1": "",
+    "total": 197,
+    "error": ""
+  },
+  {
+    "slug": "servicios-exequiales",
+    "id": "10",
+    "title": "Servicios Exequiales",
+    "h1": "",
+    "total": 27,
+    "error": ""
+  },
+  {
+    "slug": "servicios-inmobiliarios",
+    "id": "18",
+    "title": "Servicios Inmobiliarios",
+    "h1": "",
+    "total": 457,
+    "error": ""
+  },
+  {
+    "slug": "tecnologia",
+    "id": "20",
+    "title": "Tecnología",
+    "h1": "",
+    "total": 0,
+    "error": ""
+  },
+  {
+    "slug": "telecomunicacion",
+    "id": "22",
+    "title": "Telecomunicación",
+    "h1": "",
+    "total": 88,
+    "error": ""
+  },
+  {
+    "slug": "telefonia-celular",
+    "id": "21",
+    "title": "Telefonía Celular",
+    "h1": "",
+    "total": 10,
+    "error": ""
+  },
+  {
+    "slug": "television",
+    "id": "23",
+    "title": "Televisión por Suscripción",
+    "h1": "",
+    "total": 10,
+    "error": ""
+  },
+  {
+    "slug": "viajes-y-turismo",
+    "id": "24",
+    "title": "Viajes y Turismo",
+    "h1": "",
+    "total": 112,
+    "error": ""
+  }
+]

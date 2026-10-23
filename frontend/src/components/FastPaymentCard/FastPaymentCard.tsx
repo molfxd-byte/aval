@@ -4,11 +4,20 @@ import './FastPaymentCard.css';
 
 interface FastPaymentCardProps {
   payment: FastPayment;
+  onDelay?: (href: string) => void;
 }
 
-function FastPaymentCard({ payment }: FastPaymentCardProps) {
+function FastPaymentCard({ payment, onDelay }: FastPaymentCardProps) {
   return (
-    <Link to={payment.href} className="fast-payment-card">
+    <Link
+      to={payment.href}
+      className="fast-payment-card"
+      onClick={(event) => {
+        if (!onDelay) return;
+        event.preventDefault();
+        onDelay(payment.href);
+      }}
+    >
       {payment.isNew && (
         <div className="container-new">
           <span className="new">Nuevo</span>
