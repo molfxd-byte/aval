@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import Home from './pages/Home/Home';
 import ObligacionesAval from './pages/ObligacionesAval/ObligacionesAval';
 import PagoConvenio from './pages/PagoConvenio/PagoConvenio';
+import PasarelaPago from './pages/PasarelaPago/PasarelaPago';
 import ConjuntosResidenciales from './pages/ConjuntosResidenciales/ConjuntosResidenciales';
 import Catalogo from './pages/Catalogo/Catalogo';
 import QueQuieresPagar from './pages/QueQuieresPagar/QueQuieresPagar';
@@ -22,6 +23,7 @@ function App() {
       <Route path="/que-quieres-pagar" element={<QueQuieresPagar />} />
       <Route path="/salud-medicina" element={<SaludMedicina />} />
       <Route path="/salud-medicina/pagar/:id" element={<PagoConvenio source="salud" />} />
+      <Route path="/pasarela-pagos" element={<PasarelaPago />} />
       {catalogCategories.map((category) => (
         <Route key={category.slug} path={`/${category.slug}`} element={<Catalogo slug={category.slug} />} />
       ))}

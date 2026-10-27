@@ -146,15 +146,21 @@
 }
 
 .pay-location {
-  margin: 8px 0 0;
+  width: 100%;
+  margin: 1.625em 0 0.5em;
+  padding: 0.65em;
+  border: 1px solid var(--class-secondary);
+  border-radius: 10px;
+  background-color: var(--class-white);
+  box-sizing: border-box;
   color: #1f2937;
   font-family: jakarta-regular, Helvetica, sans-serif;
   font-size: 16px;
-  line-height: 140%;
+  line-height: 1.5;
 }
 
 .pay-location strong {
-  font-family: jakarta-bold, Helvetica, sans-serif;
+  font-weight: 700;
 }
 
 .pay-help {
@@ -491,23 +497,63 @@
   color: var(--class-third);
 }
 
-.pay-methods__card {
+.pay-methods__row {
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  gap: 15px;
   margin-top: 0.938em;
+}
+
+.pay-methods__breb {
+  display: flex;
+  max-width: 120px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 25px;
+  box-shadow: var(--boxshadow-dp5);
+  background: var(--class-white);
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.pay-methods__breb img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 25px;
+}
+
+.pay-methods__breb.is-selected,
+.pay-methods__breb:hover {
+  border-color: var(--class-secondary);
+}
+
+.pay-methods__card {
+  width: fit-content;
+  max-width: 100%;
+  min-width: 0;
   border-radius: 25px;
   box-shadow: var(--boxshadow-dp5);
   background: var(--class-white);
   padding: 10px;
+  box-sizing: border-box;
 }
 
 .pay-methods__logos {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   gap: 0.5em;
   justify-content: center;
   margin-top: 10px;
 }
 
 .pay-methods__logos--plain {
+  width: fit-content;
+  max-width: 100%;
   margin-top: 0.938em;
 }
 
@@ -598,12 +644,14 @@
 
 .pay-actions__buttons {
   display: flex;
+  flex-wrap: wrap;
   margin-top: 1.563em;
   gap: 0.625em;
 }
 
 .pay-actions__buttons .btn {
-  flex: 1;
+  width: auto;
+  flex: 0 1 auto;
 }
 
 @media (min-width: 320px) and (max-width: 744px) {
@@ -690,7 +738,7 @@
   }
 
   .pay-location {
-    text-align: center;
+    text-align: left;
   }
 
   .pay-help__desktop {
@@ -745,6 +793,32 @@
   .pay-actions p {
     font-size: 12px;
     text-align: center;
+  }
+
+  .pay-actions__buttons {
+    justify-content: center;
+  }
+
+  .pay-actions__buttons .btn {
+    flex: 1;
+    width: 100%;
+  }
+
+  .pay-methods__row {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .pay-methods__breb {
+    flex: none;
+    align-self: center;
+    height: 6.25em;
+    max-width: 170px;
+    aspect-ratio: 1 / 1;
+  }
+
+  .pay-methods__card {
+    width: 100%;
   }
 
   .pay-methods__logos {

@@ -22,7 +22,10 @@ import helpPrestamoDinamico from '@/assets/images/Payment/occidente-prestamo-din
 import paySymbol from '@/assets/images/Payment/icon-pay-value.svg';
 import helpIcon from '@/assets/images/Payment/img-active.webp';
 import logoAval from '@/assets/images/Payment/logo-aval.svg';
+import logoBreb from '@/assets/images/Payment/logo-breb.svg';
 import logoPse from '@/assets/images/Payment/logo-pse.svg';
+
+export { logoAval, logoBreb, logoPse };
 
 export const paymentAssets = {
   paySymbol,
@@ -64,6 +67,7 @@ export interface PaymentView {
   hideLogo?: boolean;
   plainMethods?: boolean;
   location?: string;
+  address?: string;
   methodsLead?: string;
   submitLabel?: string;
   secondaryLabel?: string;

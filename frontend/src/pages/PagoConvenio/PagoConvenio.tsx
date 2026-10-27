@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { Navigate, useParams } from 'react-router-dom';
+import { FormEvent, useEffect, useRef, useState } from 'react';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import ElementColors from '@/components/ElementColors/ElementColors';
 import Button from '@/components/Button/Button';
 import MainLayout from '@/layouts/MainLayout/MainLayout';
@@ -10,6 +10,7 @@ import { getConjuntoPayment, conjuntosAgreements } from '@/data/conjuntosResiden
 import { getSaludPayment, saludAgreements } from '@/data/saludMedicina';
 import { getServicioPayment, serviciosAgreements } from '@/data/serviciosPublicos';
 import { getCatalogAgreement, getCatalogPayment, isCatalogSource } from '@/data/catalogStore';
+import { createTransactionId, savePasarelaSession } from '@/data/pasarela';
 import './PagoConvenio.css';
 
 const steps = [
@@ -23,13 +24,14 @@ const steps = [
   { number: '3', title: 'Recibe tu comprobante' },
 ];
 
-function formatMoney(value: string) {
+function formatAmountDigits(value: string) {
   const digits = value.replace(/\D/g, '');
-  if (!digits) return '$ 0';
-  return `$ ${Number(digits).toLocaleString('es-CO')}`;
+  if (!digits) return '';
+  return Number(digits).toLocaleString('es-CO');
 }
 
 function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
+  const navigate = useNavigate();
   const { id = '' } = useParams();
   const catalog = isCatalogSource(source);
   const payment: PaymentView | undefined = catalog
@@ -91,6 +93,42 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
     setValues((current) => ({ ...current, [fieldId]: value }));
   };
 
+  const handlePay = (event: FormEvent) => {
+    event.preventDefault();
+    if (!payment || !agreement) return;
+    if (method !== 'aval' && method !== 'pse') return;
+    if (payment.showTerms !== false && !accepted) return;
+
+    const missing = payment.fields.some((field) => {
+      if (field.kind === 'amount') return !(values[field.id] ?? '').replace(/\D/g, '');
+      return !(values[field.id] ?? '').trim();
+    });
+    if (missing) return;
+
+    const amountField = payment.fields.find((field) => field.kind === 'amount');
+    const amount = amountField ? (values[amountField.id] ?? '').replace(/\D/g, '') : '0';
+    const references = payment.fields
+      .filter((field) => field.kind !== 'amount')
+      .map((field) => ({
+        label: 'label' in field ? field.label.replace(/\s*\*$/, '') : field.id,
+        value: values[field.id] ?? '',
+      }));
+
+    const session = {
+      serviceName: payment.serviceName,
+      logo: payment.hideLogo ? undefined : agreement.logo,
+      amount,
+      references,
+      detail: detailOpen ? detail : undefined,
+      method: method as 'aval' | 'pse',
+      backTo: `${backTo}/pagar/${id}`,
+      agreementId: id,
+      transactionId: createTransactionId(),
+    };
+    savePasarelaSession(session);
+    navigate('/pasarela-pagos', { state: session });
+  };
+
   if (!payment || !agreement) {
     return <Navigate to={backTo} replace />;
   }
@@ -124,16 +162,26 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
             {!payment.hideLogo && <img className="pay-logo" src={agreement.logo} alt={payment.serviceName} />}
           </div>
 
-          <form className="pay-form" onSubmit={(event) => event.preventDefault()}>
+          <form className="pay-form" onSubmit={handlePay}>
             <div className="pay-name">
               <p>Servicio a pagar</p>
               <h2>{payment.serviceName}</h2>
-              {payment.location && (
-                <p className="pay-location">
-                  <strong>Ubicación:</strong> {payment.location}
-                </p>
-              )}
             </div>
+
+            {(payment.location || payment.address) && (
+              <div className="pay-location">
+                {payment.location && (
+                  <div>
+                    <strong>Ubicación:</strong> {payment.location}
+                  </div>
+                )}
+                {payment.address && (
+                  <div>
+                    <strong>Dirección:</strong> {payment.address}
+                  </div>
+                )}
+              </div>
+            )}
 
             {payment.helpImage && (
               <div className="pay-help">
@@ -170,7 +218,7 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
               {payment.fields.some((field) => field.kind === 'amount') && (
                 <div className="pay-cost">
                   <p className="pay-cost__label">Valor de la transacción</p>
-                  <p className="pay-cost__value">{formatMoney(values.amount ?? '')}</p>
+                  <p className="pay-cost__value">$ 0</p>
                 </div>
               )}
 
@@ -205,7 +253,9 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
 
             <div className="pay-methods">
               <p className="pay-methods__lead">
-                {payment.methodsLead ?? 'Selecciona el medio de pago para continuar tu transacción:'}
+                {!payment.methodsLead || payment.methodsLead === 'Otros medios de pago:'
+                  ? 'Selecciona el medio de pago para continuar tu transacción:'
+                  : payment.methodsLead}
               </p>
               {payment.plainMethods ? (
                 <div className="pay-methods__logos pay-methods__logos--plain">
@@ -222,20 +272,37 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
                   ))}
                 </div>
               ) : (
-                <div className="pay-methods__card">
-                  <p>Otros medios de pago:</p>
-                  <div className="pay-methods__logos">
-                    {payment.methods.map((item) => (
+                <div className="pay-methods__row">
+                  {payment.methods
+                    .filter((item) => item.id === 'breb')
+                    .map((item) => (
                       <button
                         key={item.id}
                         type="button"
-                        className={`pay-methods__logo ${method === item.id ? 'is-selected' : ''}`}
+                        className={`pay-methods__breb ${method === item.id ? 'is-selected' : ''}`}
                         title={item.title}
                         onClick={() => setMethod(item.id)}
                       >
                         <img src={item.logo} alt={item.title} />
                       </button>
                     ))}
+                  <div className="pay-methods__card">
+                    <p>Otros medios de pago:</p>
+                    <div className="pay-methods__logos">
+                      {payment.methods
+                        .filter((item) => item.id !== 'breb')
+                        .map((item) => (
+                          <button
+                            key={item.id}
+                            type="button"
+                            className={`pay-methods__logo ${method === item.id ? 'is-selected' : ''}`}
+                            title={item.title}
+                            onClick={() => setMethod(item.id)}
+                          >
+                            <img src={item.logo} alt={item.title} />
+                          </button>
+                        ))}
+                    </div>
                   </div>
                 </div>
               )}
@@ -253,9 +320,13 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
             <div className="pay-actions">
               {payment.showLogin !== false && <p>¡Agiliza tu pago si ya te encuentras registrado en nuestro portal!</p>}
               <div className="pay-actions__buttons">
-                <Button variant="primary">{payment.submitLabel ?? 'Pagar'}</Button>
+                <Button variant="primary" type="submit">
+                  {payment.submitLabel ?? 'Pagar'}
+                </Button>
                 {(payment.secondaryLabel ?? 'Agiliza tu pago') && (
-                  <Button variant="primary">{payment.secondaryLabel ?? 'Agiliza tu pago'}</Button>
+                  <Button variant="primary" type="button">
+                    {payment.secondaryLabel ?? 'Agiliza tu pago'}
+                  </Button>
                 )}
               </div>
             </div>
@@ -353,13 +424,12 @@ function PaymentControl({
     return (
       <FloatField
         label={field.label}
-        value={value}
-        maxLength={field.maxLength}
+        value={formatAmountDigits(value)}
         inputMode="numeric"
         symbol={amountFocused || value.length > 0}
         onFocus={onAmountFocus}
         onBlur={onAmountBlur}
-        onChange={(next) => onChange(next.replace(/\D/g, '').slice(0, field.maxLength ?? next.length))}
+        onChange={(next) => onChange(next.replace(/\D/g, '').slice(0, field.maxLength ?? 19))}
       />
     );
   }

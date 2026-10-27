@@ -1,8 +1,7 @@
 import agreementLogo from '@/assets/images/Agreements/agreement-default.svg';
-import logoAval from '@/assets/images/Payment/logo-aval.svg';
-import logoPse from '@/assets/images/Payment/logo-pse.svg';
 import type { Agreement } from '@/data/agreements';
 import type { PaymentField, PaymentMethodOption, PaymentView } from '@/data/payments';
+import { logoAval, logoBreb, logoPse } from '@/data/payments';
 import records from '@/data/servicios-publicos.json';
 
 export interface ServicioRecord {
@@ -10,6 +9,7 @@ export interface ServicioRecord {
   name: string;
   department: string;
   location: string;
+  address?: string;
   acceptsEnrollment: boolean;
   logo: string;
   helpImage: string;
@@ -25,6 +25,7 @@ export interface ServicioRecord {
 }
 
 const methodCatalog: Record<string, PaymentMethodOption> = {
+  breb: { id: 'breb', title: 'Bre-B', logo: logoBreb },
   aval: { id: 'aval', title: 'Pagos Aval', logo: logoAval },
   pse: { id: 'pse', title: 'PSE', logo: logoPse },
 };
@@ -71,6 +72,7 @@ const payments = new Map<string, PaymentView>(
       helpImage: item.helpImage || undefined,
       plainMethods: item.plainMethods,
       location: item.location,
+      address: item.address || undefined,
       methodsLead: item.methodsLead,
       submitLabel: item.submitLabel,
       secondaryLabel: item.secondaryLabel,

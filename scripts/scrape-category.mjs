@@ -135,20 +135,29 @@ async function downloadImage(url, directory, name) {
 function extractForm() {
   const name = document.querySelector('.name_convenio')?.textContent?.trim() || '';
   const locationLabel = [...document.querySelectorAll('strong')].find((element) =>
-    element.textContent.trim().startsWith('Ubicación'),
+    /^Ubicaci[oó]n/i.test(element.textContent.trim()),
   );
-  const location = locationLabel?.parentElement?.textContent?.replace(/Ubicación:\s*/i, '').trim() || '';
+  const addressLabel = [...document.querySelectorAll('strong')].find((element) =>
+    /^Direcci[oó]n/i.test(element.textContent.trim()),
+  );
+  const location = locationLabel?.parentElement?.textContent?.replace(/Ubicaci[oó]n:\s*/i, '').trim() || '';
+  const address = addressLabel?.parentElement?.textContent?.replace(/Direcci[oó]n:\s*/i, '').trim() || '';
   const images = [...document.querySelectorAll('img')].map((image) => image.src);
   const helpImage = images.find((src) => src.includes('/referencia/')) || '';
   const logo = images.find((src) => /\/convenios\/logo\//.test(src)) || '';
   const methods = [];
+  if (document.querySelector('.container-breb') || images.some((src) => /logo-breb/i.test(src))) methods.push('breb');
   if (images.some((src) => src.includes('logo-aval.svg'))) methods.push('aval');
   if (images.some((src) => src.includes('logo-pse.svg'))) methods.push('pse');
   const plainMethods = !document.querySelector('.container-other');
   const methodsLead =
+    [...document.querySelectorAll('.cnv_content_info-payment_methods > .description, .cnv_content_info-payment_methods > p')]
+      .map((element) => element.textContent.trim())
+      .find((text) => /medios/i.test(text)) ||
     [...document.querySelectorAll('p, .description')]
       .map((element) => element.textContent.trim())
-      .find((text) => /medios/i.test(text)) || '';
+      .find((text) => /Selecciona el medio|puedes realizar/i.test(text)) ||
+    '';
   const buttons = [...document.querySelectorAll('button')].map((button) => button.textContent.trim());
   const body = document.body.innerText;
   const controls = [
@@ -186,6 +195,7 @@ function extractForm() {
   return {
     name,
     location,
+    address,
     helpImage,
     logo,
     methods,
@@ -618,6 +628,7 @@ async function scrapeOne(page, card) {
     name: form.name || card.name,
     department: matchDepartment(form.location),
     location: form.location,
+    address: form.address || '',
     acceptsEnrollment: card.acceptsEnrollment,
     logo,
     helpImage,

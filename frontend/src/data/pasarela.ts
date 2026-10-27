@@ -1,0 +1,119 @@
+import headerLogo from '@/assets/images/Pasarela/aval-pay-grupo-white.png';
+import iconTitular from '@/assets/images/Pasarela/icon-titular2x.png';
+import iconPay from '@/assets/images/Pasarela/icon-pay2x.png';
+import iconCall from '@/assets/images/Pasarela/icon-callclient2x.png';
+import productFrame from '@/assets/images/Pasarela/product-data-frame.png';
+import iconCamera from '@/assets/images/Pasarela/icon-camera.png';
+import iconAval from '@/assets/images/Pasarela/favicon-aval-gris-claro.svg';
+import iconAvalActive from '@/assets/images/Pasarela/favicon-aval-azul-claro.svg';
+import iconBanks from '@/assets/images/Pasarela/icon-banks.png';
+import iconBanksActive from '@/assets/images/Pasarela/icon-banks-hover.png';
+import iconExpand from '@/assets/images/Pasarela/icon-expand.png';
+import bgMain from '@/assets/images/Pasarela/bg-main.png';
+import logoNorton from '@/assets/images/Pasarela/logo-norton.png';
+import logoSecure from '@/assets/images/Pasarela/logo-secure-trust.png';
+import bankBogota from '@/assets/images/Pasarela/logo-v-banco-bogota.svg';
+import bankOccidente from '@/assets/images/Pasarela/logo-v-banco-occidente.svg';
+import bankPopular from '@/assets/images/Pasarela/logo-v-banco-popular.png';
+import bankAvVillas from '@/assets/images/Pasarela/logo-v-banco-avvillas.svg';
+
+export const pasarelaAssets = {
+  headerLogo,
+  iconTitular,
+  iconPay,
+  iconCall,
+  productFrame,
+  iconCamera,
+  iconAval,
+  iconAvalActive,
+  iconBanks,
+  iconBanksActive,
+  iconExpand,
+  bgMain,
+  logoNorton,
+  logoSecure,
+};
+
+export const pasarelaDocumentTypes = [
+  'Cédula de Ciudadanía',
+  'Cédula de Extranjería',
+  'NIT',
+  'Tarjeta de Identidad',
+  'Pasaporte',
+  'Registro Civil',
+];
+
+export const pasarelaAvalBanks = [
+  { id: 'BOGOTA', name: 'Banco de Bogotá', logo: bankBogota },
+  { id: 'OCCIDENTE', name: 'Banco de Occidente', logo: bankOccidente },
+  { id: 'POPULAR', name: 'Banco Popular', logo: bankPopular },
+  { id: 'VILLAS', name: 'Banco AV Villas', logo: bankAvVillas },
+];
+
+export const pasarelaPseBanks = [
+  'Bancolombia',
+  'Banco de Bogotá',
+  'Davivienda',
+  'BBVA Colombia',
+  'Banco de Occidente',
+  'Banco Popular',
+  'Banco AV Villas',
+  'Scotiabank Colpatria',
+  'Banco Caja Social',
+  'Banco Falabella',
+  'Nequi',
+  'Daviplata',
+];
+
+export const pasarelaPersonTypes = [
+  { id: 'NATURAL', label: 'Persona Natural' },
+  { id: 'JURIDICA', label: 'Persona Jurídica' },
+];
+
+export const PASARELA_SESSION_KEY = 'avalpay-pasarela-session';
+
+export interface PasarelaReference {
+  label: string;
+  value: string;
+}
+
+export interface PasarelaSession {
+  serviceName: string;
+  logo?: string;
+  amount: string;
+  references: PasarelaReference[];
+  detail?: string;
+  method: 'aval' | 'pse';
+  backTo: string;
+  agreementId: string;
+  transactionId: string;
+}
+
+export function savePasarelaSession(session: PasarelaSession) {
+  sessionStorage.setItem(PASARELA_SESSION_KEY, JSON.stringify(session));
+}
+
+export function loadPasarelaSession(): PasarelaSession | null {
+  try {
+    const raw = sessionStorage.getItem(PASARELA_SESSION_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as PasarelaSession;
+  } catch {
+    return null;
+  }
+}
+
+export function clearPasarelaSession() {
+  sessionStorage.removeItem(PASARELA_SESSION_KEY);
+}
+
+export function formatPasarelaMoney(value: string) {
+  const digits = value.replace(/\D/g, '');
+  if (!digits) return '$ 0';
+  return `$ ${Number(digits).toLocaleString('es-CO')}`;
+}
+
+export function createTransactionId() {
+  const now = Date.now().toString();
+  return `AP${now.slice(-12)}`;
+}

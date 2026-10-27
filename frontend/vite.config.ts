@@ -14,5 +14,9 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:4000',
     },
+    watch: {
+      // Scrapers/backfills rewrite these catalogs often; HMR would remount the form and wipe inputs.
+      ignored: ['**/src/data/**/*.json'],
+    },
   },
 });

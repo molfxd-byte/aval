@@ -1,0 +1,626 @@
+@font-face {
+  font-family: montserrat-regular;
+  src: url('/fonts/Montserrat-Regular.ttf');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: montserrat-medium;
+  src: url('/fonts/Montserrat-Medium.ttf');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: montserrat-semibold;
+  src: url('/fonts/Montserrat-SemiBold.ttf');
+  font-display: swap;
+}
+
+.pasarela {
+  --gray-one: #f2f7ff;
+  --gray-two: #cfd8e6;
+  --gray-three: #a0a3bd;
+  --blue-one: #f2f7ff;
+  --input-color: #626d81;
+  --hover-color: #d9f8ff;
+  --error-color: #ff3434;
+  --error-light-color: #ff6b6b1a;
+  --primary-font-color: #313b54;
+  --primary-font-color-dark: #000927;
+  --primary-color: #053988;
+  --btn-primary-color: #27abf4;
+  min-height: 100vh;
+  background: var(--blue-one) url('../../assets/images/Pasarela/bg-main.png') center top / auto no-repeat;
+  color: var(--primary-font-color);
+  font-family: montserrat-regular, Montserrat, Helvetica, sans-serif;
+}
+
+.pasarela-header {
+  background: var(--primary-color);
+}
+
+.pasarela-header__brand {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 56px;
+  padding: 8px 0;
+}
+
+.pasarela-header__brand img {
+  max-width: 190px;
+  max-height: 40px;
+}
+
+.pasarela-header__base {
+  position: relative;
+  width: 100%;
+  height: 25px;
+  background: var(--primary-color);
+}
+
+.pasarela-header__curve {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  z-index: 2;
+}
+
+.pasarela-main {
+  position: relative;
+  z-index: 3;
+  width: min(806px, 100%);
+  margin: 0 auto;
+  padding: 24px 0 48px;
+}
+
+.pasarela-product {
+  margin: 0 16px 24px;
+  padding: 32px 0 24px;
+  border-radius: 40px;
+  background: transparent;
+}
+
+.pasarela-product__grid {
+  display: grid;
+  grid-template-areas:
+    'pr-image'
+    'pr-description'
+    'pr-client'
+    'pr-details';
+  row-gap: 1.313rem;
+  margin: 0 1.5rem;
+}
+
+.pasarela-product__image {
+  grid-area: pr-image;
+  width: 96px;
+  height: 96px;
+  margin: 0 auto;
+  padding: 11px;
+  background: url('../../assets/images/Pasarela/product-data-frame.png') 0 0 / cover no-repeat;
+}
+
+.pasarela-product__frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 74px;
+  height: 74px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--gray-one) url('../../assets/images/Pasarela/icon-camera.png') center / 45px 45px no-repeat;
+}
+
+.pasarela-product__frame img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.pasarela-product__camera {
+  width: 45px;
+  opacity: 0.35;
+}
+
+.pasarela-product__description {
+  grid-area: pr-description;
+  padding: 0 1rem;
+}
+
+.pasarela-product__title,
+.pasarela-product__description p,
+.pasarela-product__client p,
+.pasarela-product__details p {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  line-height: 1.188rem;
+  color: var(--primary-font-color);
+}
+
+.pasarela-product__title {
+  font-family: montserrat-semibold, Montserrat, sans-serif;
+  margin-bottom: 8px;
+}
+
+.pasarela-product__client,
+.pasarela-product__details {
+  font-size: 0.75rem;
+  line-height: 0.938rem;
+}
+
+.pasarela-product__client {
+  grid-area: pr-client;
+  padding: 0 1rem;
+}
+
+.pasarela-product__details {
+  grid-area: pr-details;
+  padding: 1rem;
+  color: #fff;
+  background: var(--primary-color);
+  border-radius: 0.75rem;
+}
+
+.pasarela-product__details p {
+  color: #fff;
+  font-family: montserrat-medium, Montserrat, sans-serif;
+  font-size: 12px;
+  line-height: 15px;
+}
+
+.pasarela-product__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.pasarela-product__row:last-child {
+  margin-bottom: 0;
+}
+
+.pasarela-product__price {
+  font-family: montserrat-semibold, Montserrat, sans-serif !important;
+  font-size: 16px !important;
+}
+
+.white-form {
+  background: #fff;
+  border-radius: 12px;
+  margin: 0 16px 16px;
+  padding: 32px 24px;
+  box-shadow: 0 16px 80px #4e4b6626;
+}
+
+.pasarela-icon-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 64px;
+  padding-left: 82px;
+  margin-bottom: 16px;
+  background: transparent none left center / auto 64px no-repeat;
+}
+
+.pasarela-icon-block p {
+  margin: 0 0 4px;
+  color: var(--primary-font-color);
+  font-size: 16px;
+  line-height: 18px;
+  font-family: montserrat-regular, Montserrat, sans-serif;
+}
+
+.pasarela-icon-block strong {
+  font-family: montserrat-semibold, Montserrat, sans-serif;
+  font-size: 16px;
+  line-height: 15px;
+}
+
+.pasarela-icon-block--titular {
+  background-image: url('../../assets/images/Pasarela/icon-titular2x.png');
+}
+
+.pasarela-icon-block--pay {
+  background-image: url('../../assets/images/Pasarela/icon-pay2x.png');
+}
+
+.pasarela-fields,
+.pasarela-pse {
+  display: grid;
+  gap: 1rem;
+}
+
+.pasarela-field label {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  font-family: montserrat-semibold, Montserrat, sans-serif;
+  font-size: 16px;
+  color: var(--primary-font-color);
+}
+
+.pasarela-control {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  appearance: none;
+  border: 2px solid var(--blue-one);
+  border-radius: 12px;
+  background: var(--blue-one);
+  color: var(--input-color);
+  font-family: montserrat-medium, Montserrat, sans-serif;
+  font-size: 16px;
+  line-height: 1.5rem;
+  box-sizing: border-box;
+}
+
+.pasarela-control:focus {
+  outline: 0;
+}
+
+.pasarela-control.is-invalid {
+  border-color: var(--error-color);
+  background-color: var(--error-light-color);
+}
+
+.pasarela-control--select {
+  text-align: left;
+  background-image: url('../../assets/images/Pasarela/icon-expand.png');
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+.pasarela-control--select .is-placeholder {
+  color: var(--input-color);
+  opacity: 0.8;
+}
+
+.pasarela-select {
+  position: relative;
+}
+
+.pasarela-select__options {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  max-height: 280px;
+  overflow: auto;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 5px 10px #00000029;
+}
+
+.pasarela-select__options button {
+  display: block;
+  width: 100%;
+  padding: 10px 21px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: var(--primary-font-color);
+  font-family: montserrat-medium, Montserrat, sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.pasarela-select__options button:hover {
+  background: var(--hover-color);
+}
+
+.pasarela-error {
+  margin: 6px 0 0;
+  color: var(--error-color);
+  font-family: montserrat-medium, Montserrat, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.pasarela-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 16px;
+  cursor: pointer;
+  font-family: montserrat-medium, Montserrat, sans-serif;
+  font-size: 14px;
+}
+
+.pasarela-methods {
+  display: grid;
+  gap: 12px;
+  margin-top: 1rem;
+}
+
+.pasarela-method {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 56px;
+  padding: 1.1rem 0.8rem;
+  border: 1px solid var(--blue-one);
+  border-radius: 12px;
+  background: var(--blue-one);
+  color: var(--primary-font-color);
+  font-family: montserrat-medium, Montserrat, sans-serif;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pasarela-method:hover {
+  background: var(--hover-color);
+  border-color: var(--hover-color);
+}
+
+.pasarela-method.is-active {
+  border-color: var(--gray-two);
+  background: #fff;
+  font-family: montserrat-semibold, Montserrat, sans-serif;
+}
+
+.pasarela-method span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pasarela-method small {
+  font-family: montserrat-regular, Montserrat, sans-serif;
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.pasarela-method__icon {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  background: center / contain no-repeat;
+}
+
+.pasarela-aval {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--gray-two);
+  border-radius: 12px;
+}
+
+.pasarela-aval__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  justify-content: center;
+}
+
+.pasarela-aval__bank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 85px;
+  margin: 0 auto;
+  aspect-ratio: 1 / 1;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  cursor: pointer;
+  padding: 0;
+}
+
+.pasarela-aval__bank:hover,
+.pasarela-aval__bank.is-selected {
+  border-color: #27abf4;
+  background: var(--hover-color);
+}
+
+.pasarela-aval__bank img {
+  width: 100%;
+  max-width: 100px;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  transform: scale(1.1);
+}
+
+.pasarela-pse {
+  margin-top: 16px;
+}
+
+.pasarela-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin: 0 16px;
+  padding: 1rem 8px;
+}
+
+.pasarela-btn {
+  display: inline-block;
+  padding: 1rem 2.813rem;
+  border: 2px solid transparent;
+  border-radius: 28px;
+  font-family: montserrat-semibold, Montserrat, sans-serif;
+  font-size: 16px;
+  line-height: 1.25rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.pasarela-btn--ghost {
+  background: transparent;
+  color: var(--primary-font-color-dark);
+  padding: 1rem 2rem;
+}
+
+.pasarela-btn--primary {
+  color: var(--primary-font-color-dark);
+  background: var(--btn-primary-color);
+  border-color: var(--btn-primary-color);
+}
+
+.pasarela-done {
+  text-align: center;
+}
+
+.pasarela-done__title {
+  font-family: montserrat-semibold, Montserrat, sans-serif;
+  font-size: 1.25rem;
+  margin-bottom: 12px;
+}
+
+.pasarela-done .pasarela-btn {
+  margin-top: 24px;
+}
+
+.pasarela-footer {
+  margin-top: 64px;
+  background: #fff;
+  border-top-left-radius: 42px;
+  border-top-right-radius: 42px;
+  box-shadow: 0 16px 80px #4e4b6626;
+}
+
+.pasarela-footer__top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding: 36px 42px 0;
+}
+
+.pasarela-footer__logos {
+  display: flex;
+  align-items: center;
+  gap: 34px;
+}
+
+.pasarela-footer__logos img {
+  height: 40px;
+  width: auto;
+}
+
+.pasarela-footer__call {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pasarela-footer__call img {
+  width: 58px;
+}
+
+.pasarela-footer__call p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.25rem;
+}
+
+.pasarela-footer__call strong {
+  font-family: montserrat-semibold, Montserrat, sans-serif;
+}
+
+.pasarela-footer__bottom {
+  padding: 48px 29px 35px;
+}
+
+.pasarela-footer__bottom p {
+  margin: 0;
+  color: var(--gray-three);
+  text-align: center;
+  font-family: montserrat-medium, Montserrat, sans-serif;
+  font-size: 0.75rem;
+}
+
+@media (min-width: 429px) {
+  .pasarela-aval__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .pasarela-product__grid {
+    grid-template-areas:
+      'pr-image pr-image'
+      'pr-description pr-details'
+      'pr-client pr-details';
+    grid-template-columns: 2fr 1fr;
+    column-gap: 2.5rem;
+    margin: 0 32px;
+    align-items: center;
+  }
+
+  .pasarela-product__description,
+  .pasarela-product__client {
+    padding: 0;
+  }
+
+  .pasarela-product__row {
+    justify-content: flex-start;
+  }
+
+  .pasarela-product__details .pasarela-product__row {
+    padding: 7px 0;
+  }
+
+  .pasarela-methods {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pasarela-icon-block {
+    min-height: 100px;
+    padding-left: 116px;
+    background-size: auto 100px;
+  }
+}
+
+@media (min-width: 992px) {
+  .pasarela-product {
+    padding: 56px 0 48px;
+  }
+
+  .pasarela-product__grid {
+    grid-template-areas:
+      'pr-image pr-image'
+      'pr-description pr-description'
+      'pr-client pr-details';
+    grid-template-columns: 1fr 1fr;
+    column-gap: 4.5rem;
+  }
+
+  .pasarela-product__client .pasarela-product__row,
+  .pasarela-product__details .pasarela-product__row {
+    justify-content: space-between;
+  }
+
+  .pasarela-fields {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 744px) {
+  .pasarela-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .pasarela-header__curve {
+    top: 20px;
+    height: 100px;
+    border-radius: 40px 40px 0 0;
+  }
+
+  .pasarela-method {
+    font-size: 16px;
+  }
+}
