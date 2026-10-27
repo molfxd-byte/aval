@@ -6,6 +6,7 @@ import {
   loadPasarelaSession,
   pasarelaAssets,
   pasarelaAvalBanks,
+  pasarelaCountries,
   pasarelaDocumentTypes,
   pasarelaPersonTypes,
   pasarelaPseBanks,
@@ -34,6 +35,7 @@ function PasarelaPago() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [emailConfirm, setEmailConfirm] = useState('');
+  const [country, setCountry] = useState(pasarelaCountries[0]);
   const [mobile, setMobile] = useState('');
   const [mobileConfirm, setMobileConfirm] = useState('');
   const [sameClient, setSameClient] = useState(true);
@@ -44,11 +46,11 @@ function PasarelaPago() {
   const [payMethod, setPayMethod] = useState<PayMethod>(session?.method ?? 'aval');
   const [avalBank, setAvalBank] = useState('');
   const [pseBank, setPseBank] = useState('');
-  const [personType, setPersonType] = useState('');
+  const [personType, setPersonType] = useState('NATURAL');
   const [docOpen, setDocOpen] = useState(false);
+  const [countryOpen, setCountryOpen] = useState(false);
   const [clientDocOpen, setClientDocOpen] = useState(false);
   const [pseBankOpen, setPseBankOpen] = useState(false);
-  const [personOpen, setPersonOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
 
@@ -57,7 +59,7 @@ function PasarelaPago() {
   }, []);
 
   const amountLabel = useMemo(
-    () => (session ? formatPasarelaMoney(session.amount) : '$ 0'),
+    () => (session ? formatPasarelaMoney(session.amount) : '$0'),
     [session],
   );
 
@@ -137,35 +139,32 @@ function PasarelaPago() {
 
             <div className="pasarela-product__description">
               <p className="pasarela-product__title">Descripción de tu Transacción</p>
-              <p>{session.serviceName}</p>
+              <p className="pasarela-product__service">PAGO {session.serviceName.toUpperCase()}</p>
               {session.detail && <p>{session.detail}</p>}
             </div>
 
             <div className="pasarela-product__client">
-              <div className="pasarela-product__row">
-                <p>ID Transacción:</p>
-                <p>{session.transactionId}</p>
-              </div>
-              <div className="pasarela-product__row">
-                <p>Referencia:</p>
-                <p>
-                  {session.references.map((item) => item.value).filter(Boolean).join(' / ') ||
-                    session.agreementId}
-                </p>
-              </div>
+              {session.references.map((item) => (
+                <div className="pasarela-product__ref" key={item.label}>
+                  <span className="pasarela-product__ref-label">{item.label.toUpperCase()} :</span>
+                  <span className="pasarela-product__ref-value">{item.value || '—'}</span>
+                </div>
+              ))}
             </div>
 
             <div className="pasarela-product__details">
               <div className="pasarela-product__row">
+                <p>ID Transacción:</p>
+                <p>{session.transactionId.replace(/\D/g, '') || session.transactionId}</p>
+              </div>
+              <div className="pasarela-product__row">
+                <p>Referencia:</p>
+                <p>{session.references[0]?.value || session.agreementId}</p>
+              </div>
+              <div className="pasarela-product__row">
                 <p>Valor:</p>
                 <p className="pasarela-product__price">{amountLabel}</p>
               </div>
-              {session.references.map((item) => (
-                <div className="pasarela-product__row" key={item.label}>
-                  <p>{item.label}:</p>
-                  <p>{item.value || '—'}</p>
-                </div>
-              ))}
             </div>
           </div>
         </section>
@@ -175,8 +174,8 @@ function PasarelaPago() {
             <p className="pasarela-done__title">Transacción en proceso</p>
             <p>
               Estimado cliente, tu pago con{' '}
-              {payMethod === 'aval' ? 'Bancos Aval' : 'PSE'} quedó registrado por {amountLabel}. En un
-              entorno real continuarías en el banco seleccionado.
+              {payMethod === 'aval' ? 'Aval' : 'Otras Entidades'} quedó registrado por {amountLabel}. En
+              un entorno real continuarías en el banco seleccionado.
             </p>
             <button type="button" className="pasarela-btn pasarela-btn--primary" onClick={onCancel}>
               Volver
@@ -201,7 +200,10 @@ function PasarelaPago() {
                   value={docType}
                   open={docOpen}
                   options={pasarelaDocumentTypes}
-                  onToggle={() => setDocOpen((v) => !v)}
+                  onToggle={() => {
+                    setDocOpen((v) => !v);
+                    setCountryOpen(false);
+                  }}
                   onPick={(value) => {
                     setDocType(value);
                     setDocOpen(false);
@@ -215,6 +217,7 @@ function PasarelaPago() {
                   onChange={setDocNumber}
                 />
                 <FieldInput
+                  className="pasarela-field--full"
                   label="Nombre Completo *"
                   value={fullName}
                   placeholder="Ingresa tu nombre completo"
@@ -236,6 +239,21 @@ function PasarelaPago() {
                   placeholder="Ingresa de nuevo tu e-mail"
                   error={errors.emailConfirm}
                   onChange={setEmailConfirm}
+                />
+                <FieldSelect
+                  className="pasarela-field--full"
+                  label="País *"
+                  value={country}
+                  open={countryOpen}
+                  options={pasarelaCountries}
+                  onToggle={() => {
+                    setCountryOpen((v) => !v);
+                    setDocOpen(false);
+                  }}
+                  onPick={(value) => {
+                    setCountry(value);
+                    setCountryOpen(false);
+                  }}
                 />
                 <FieldInput
                   label="Móvil para notificaciones *"
@@ -319,7 +337,6 @@ function PasarelaPago() {
                 <p>
                   <strong>Medio de pago</strong>
                 </p>
-                <p>Selecciona el medio de pago a utilizar</p>
               </div>
 
               <div className="pasarela-methods">
@@ -334,10 +351,7 @@ function PasarelaPago() {
                       backgroundImage: `url(${payMethod === 'aval' ? pasarelaAssets.iconAvalActive : pasarelaAssets.iconAval})`,
                     }}
                   />
-                  <span>
-                    Bancos Aval
-                    <small>(Banca Personal)</small>
-                  </span>
+                  <span>Aval</span>
                 </button>
                 <button
                   type="button"
@@ -350,12 +364,13 @@ function PasarelaPago() {
                       backgroundImage: `url(${payMethod === 'pse' ? pasarelaAssets.iconBanksActive : pasarelaAssets.iconBanks})`,
                     }}
                   />
-                  <span>PSE</span>
+                  <span>Otras Entidades</span>
                 </button>
               </div>
 
               {payMethod === 'aval' && (
                 <div className="pasarela-aval">
+                  <p className="pasarela-aval__label">Selecciona un banco</p>
                   <div className="pasarela-aval__grid">
                     {pasarelaAvalBanks.map((bank) => (
                       <button
@@ -375,26 +390,37 @@ function PasarelaPago() {
 
               {payMethod === 'pse' && (
                 <div className="pasarela-pse">
+                  <p className="pasarela-pse__hint">
+                    <img src={pasarelaAssets.iconInfo} alt="" />
+                    <span>Para pagos con entidades del Grupo, utilizar botón Aval</span>
+                  </p>
+
+                  <div className="pasarela-pse__title">
+                    <img src={pasarelaAssets.logoPse} alt="PSE" />
+                    <strong>Transferencias desde tu banco con PSE</strong>
+                  </div>
+
+                  <div className="pasarela-pse__persons">
+                    {pasarelaPersonTypes.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        className={`pasarela-pse__person ${personType === item.id ? 'is-selected' : ''}`}
+                        onClick={() => setPersonType(item.id)}
+                      >
+                        <span className="pasarela-pse__radio" aria-hidden />
+                        <span>{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                  {errors.personType && <p className="pasarela-error">{errors.personType}</p>}
+
                   <FieldSelect
-                    label="Tipo de persona *"
-                    value={pasarelaPersonTypes.find((item) => item.id === personType)?.label ?? ''}
-                    open={personOpen}
-                    options={pasarelaPersonTypes.map((item) => item.label)}
-                    placeholder="Seleccione el tipo de persona"
-                    onToggle={() => setPersonOpen((v) => !v)}
-                    onPick={(label) => {
-                      const found = pasarelaPersonTypes.find((item) => item.label === label);
-                      setPersonType(found?.id ?? '');
-                      setPersonOpen(false);
-                    }}
-                    error={errors.personType}
-                  />
-                  <FieldSelect
-                    label="Banco *"
+                    label="Seleccione el banco"
                     value={pseBank}
                     open={pseBankOpen}
                     options={pasarelaPseBanks}
-                    placeholder="Seleccione un Banco"
+                    placeholder="A continuación seleccione su banco"
                     onToggle={() => setPseBankOpen((v) => !v)}
                     onPick={(value) => {
                       setPseBank(value);
@@ -451,11 +477,21 @@ interface FieldInputProps {
   type?: string;
   maxLength?: number;
   error?: string;
+  className?: string;
 }
 
-function FieldInput({ label, value, onChange, placeholder, type = 'text', maxLength, error }: FieldInputProps) {
+function FieldInput({
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = 'text',
+  maxLength,
+  error,
+  className = '',
+}: FieldInputProps) {
   return (
-    <div className="pasarela-field">
+    <div className={`pasarela-field ${className}`.trim()}>
       <label>{label}</label>
       <input
         className={`pasarela-control ${error ? 'is-invalid' : ''}`}
@@ -479,6 +515,7 @@ interface FieldSelectProps {
   onPick: (value: string) => void;
   placeholder?: string;
   error?: string;
+  className?: string;
 }
 
 function FieldSelect({
@@ -490,9 +527,10 @@ function FieldSelect({
   onPick,
   placeholder = 'Seleccione',
   error,
+  className = '',
 }: FieldSelectProps) {
   return (
-    <div className="pasarela-field">
+    <div className={`pasarela-field ${className}`.trim()}>
       <label>{label}</label>
       <div className="pasarela-select">
         <button

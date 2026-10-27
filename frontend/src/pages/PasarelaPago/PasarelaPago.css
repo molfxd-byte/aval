@@ -147,6 +147,14 @@
   margin-bottom: 8px;
 }
 
+.pasarela-product__service {
+  font-family: montserrat-semibold, Montserrat, sans-serif !important;
+  font-size: 1rem !important;
+  line-height: 1.25rem !important;
+  color: var(--primary-font-color) !important;
+  text-transform: uppercase;
+}
+
 .pasarela-product__client,
 .pasarela-product__details {
   font-size: 0.75rem;
@@ -156,11 +164,39 @@
 .pasarela-product__client {
   grid-area: pr-client;
   padding: 0 1rem;
+  display: grid;
+  grid-template-columns: fit-content(22rem) minmax(7rem, 1fr);
+  column-gap: 1.5rem;
+  row-gap: 0.625rem;
+  align-content: start;
+}
+
+.pasarela-product__ref {
+  display: contents;
+}
+
+.pasarela-product__ref-label {
+  font-family: montserrat-semibold, Montserrat, sans-serif;
+  font-size: 12px;
+  line-height: 1.125rem;
+  color: var(--primary-font-color);
+  text-transform: uppercase;
+}
+
+.pasarela-product__ref-value {
+  font-family: montserrat-medium, Montserrat, sans-serif;
+  font-size: 11px;
+  line-height: 1.125rem;
+  color: var(--primary-font-color);
+  text-align: left;
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 
 .pasarela-product__details {
   grid-area: pr-details;
-  padding: 1rem;
+  align-self: center;
+  padding: 1.25rem 1.5rem;
   color: #fff;
   background: var(--primary-color);
   border-radius: 0.75rem;
@@ -176,6 +212,7 @@
 .pasarela-product__row {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
   gap: 12px;
   margin-bottom: 8px;
 }
@@ -233,6 +270,10 @@
 .pasarela-pse {
   display: grid;
   gap: 1rem;
+}
+
+.pasarela-field--full {
+  grid-column: 1 / -1;
 }
 
 .pasarela-field label {
@@ -335,29 +376,30 @@
 
 .pasarela-methods {
   display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
 }
 
 .pasarela-method {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  justify-content: center;
+  gap: 12px;
   min-height: 56px;
-  padding: 1.1rem 0.8rem;
-  border: 1px solid var(--blue-one);
+  padding: 0.9rem 1rem;
+  border: 1px solid transparent;
   border-radius: 12px;
   background: var(--blue-one);
   color: var(--primary-font-color);
   font-family: montserrat-medium, Montserrat, sans-serif;
-  font-size: 12px;
-  text-align: left;
+  font-size: 14px;
+  text-align: center;
   cursor: pointer;
 }
 
 .pasarela-method:hover {
   background: var(--hover-color);
-  border-color: var(--hover-color);
 }
 
 .pasarela-method.is-active {
@@ -367,15 +409,7 @@
 }
 
 .pasarela-method span {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.pasarela-method small {
-  font-family: montserrat-regular, Montserrat, sans-serif;
-  font-size: 11px;
-  opacity: 0.8;
+  display: block;
 }
 
 .pasarela-method__icon {
@@ -388,32 +422,35 @@
 
 .pasarela-aval {
   margin-top: 16px;
-  padding: 16px;
-  border: 1px solid var(--gray-two);
-  border-radius: 12px;
+}
+
+.pasarela-aval__label {
+  margin: 0 0 14px;
+  color: var(--primary-font-color);
+  font-family: montserrat-semibold, Montserrat, sans-serif;
+  font-size: 14px;
+  line-height: 1.25rem;
 }
 
 .pasarela-aval__grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
+  gap: 12px;
 }
 
 .pasarela-aval__bank {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  max-width: 85px;
-  margin: 0 auto;
+  width: 85px;
   aspect-ratio: 1 / 1;
   border: 2px solid #ddd;
   border-radius: 8px;
   overflow: hidden;
   background: #fff;
   cursor: pointer;
-  padding: 0;
+  padding: 6px;
 }
 
 .pasarela-aval__bank:hover,
@@ -424,14 +461,88 @@
 
 .pasarela-aval__bank img {
   width: 100%;
-  max-width: 100px;
-  aspect-ratio: 1 / 1;
+  height: 100%;
   object-fit: contain;
-  transform: scale(1.1);
 }
 
 .pasarela-pse {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
   margin-top: 16px;
+}
+
+.pasarela-pse__hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--primary-font-color);
+  font-family: montserrat-medium, Montserrat, sans-serif;
+  font-size: 12px;
+  line-height: 1.25rem;
+}
+
+.pasarela-pse__hint img {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.pasarela-pse__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--primary-font-color);
+}
+
+.pasarela-pse__title img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.pasarela-pse__title strong {
+  font-family: montserrat-semibold, Montserrat, sans-serif;
+  font-size: 14px;
+  line-height: 1.25rem;
+}
+
+.pasarela-pse__persons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.pasarela-pse__person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 0.85rem 1rem;
+  border: 0;
+  border-radius: 12px;
+  background: var(--blue-one);
+  color: var(--primary-font-color);
+  font-family: montserrat-medium, Montserrat, sans-serif;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pasarela-pse__radio {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  border: 2px solid #cfd8e6;
+  border-radius: 50%;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.pasarela-pse__person.is-selected .pasarela-pse__radio {
+  border-color: #27abf4;
+  background: radial-gradient(circle at center, #27abf4 0 45%, #fff 48% 100%);
 }
 
 .pasarela-actions {
@@ -542,11 +653,6 @@
   font-size: 0.75rem;
 }
 
-@media (min-width: 429px) {
-  .pasarela-aval__grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
 
 @media (min-width: 768px) {
   .pasarela-product__grid {
@@ -554,10 +660,11 @@
       'pr-image pr-image'
       'pr-description pr-details'
       'pr-client pr-details';
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.85fr);
     column-gap: 2.5rem;
+    row-gap: 0.75rem;
     margin: 0 32px;
-    align-items: center;
+    align-items: start;
   }
 
   .pasarela-product__description,
@@ -565,16 +672,17 @@
     padding: 0;
   }
 
-  .pasarela-product__row {
-    justify-content: flex-start;
+  .pasarela-product__client {
+    grid-template-columns: fit-content(24rem) minmax(8rem, 1fr);
+    column-gap: 2.5rem;
+  }
+
+  .pasarela-product__details {
+    align-self: center;
   }
 
   .pasarela-product__details .pasarela-product__row {
     padding: 7px 0;
-  }
-
-  .pasarela-methods {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .pasarela-icon-block {
@@ -592,19 +700,26 @@
   .pasarela-product__grid {
     grid-template-areas:
       'pr-image pr-image'
-      'pr-description pr-description'
+      'pr-description pr-details'
       'pr-client pr-details';
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.75fr);
     column-gap: 4.5rem;
   }
 
-  .pasarela-product__client .pasarela-product__row,
+  .pasarela-product__client {
+    column-gap: 3rem;
+  }
+
   .pasarela-product__details .pasarela-product__row {
     justify-content: space-between;
   }
 
   .pasarela-fields {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .pasarela-field--full {
+    grid-column: 1 / -1;
   }
 }
 

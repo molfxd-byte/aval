@@ -100,7 +100,10 @@
       {
         "kind": "select",
         "label": "Tipo de persona *",
-        "options": [],
+        "options": [
+          "Juridica",
+          "Natural"
+        ],
         "id": "tipo-de-persona"
       },
       {
@@ -134,7 +137,20 @@
       {
         "kind": "select",
         "label": "Concepto de pagos *",
-        "options": [],
+        "options": [
+          "Academ artes",
+          "C r napoleon",
+          "Carreras tecnicas",
+          "Cred adelanto cuota monetaria",
+          "Cred libranza",
+          "Deportes",
+          "Diplom cursos talleres",
+          "Escuela de idiomas",
+          "Prog especiales",
+          "Turismo",
+          "Vivienda",
+          "Colegio otros pagos"
+        ],
         "id": "concepto-de-pagos"
       },
       {
@@ -1348,7 +1364,11 @@
       {
         "kind": "select",
         "label": "Tipo de pago *",
-        "options": [],
+        "options": [
+          "Ahorros contractual",
+          "Cdat",
+          "Ahorro a la vista"
+        ],
         "id": "tipo-de-pago"
       },
       {
@@ -1580,7 +1600,24 @@
       {
         "kind": "select",
         "label": "Tipo de pago *",
-        "options": [],
+        "options": [
+          "T.afinidad",
+          "Ah y aportes",
+          "Fidelidad",
+          "Ofic-cons",
+          "Vehículo",
+          "Educativo",
+          "Libre inv",
+          "Seguro e impto",
+          "Promocional",
+          "Sin libranza",
+          "Vacacional",
+          "Vivienda lp",
+          "Vivienda mp",
+          "Ah programado",
+          "Cdat",
+          "Compra de cartera"
+        ],
         "id": "tipo-de-pago"
       },
       {
@@ -1880,7 +1917,12 @@
       {
         "kind": "select",
         "label": "Concepto del pago *",
-        "options": [],
+        "options": [
+          "Crédito",
+          "Aportes",
+          "Tarjeta débito",
+          "Crédito y aporte"
+        ],
         "id": "concepto-del-pago"
       },
       {
@@ -3517,7 +3559,10 @@
       {
         "kind": "select",
         "label": "Concepto del pago *",
-        "options": [],
+        "options": [
+          "Crédito",
+          "Aportes"
+        ],
         "id": "concepto-del-pago"
       },
       {
@@ -4443,7 +4488,13 @@
       {
         "kind": "select",
         "label": "Sede vacacional *",
-        "options": [],
+        "options": [
+          "Cartagena",
+          "Chinauta",
+          "Otros",
+          "Tocaima",
+          "Villeta"
+        ],
         "id": "sede-vacacional"
       },
       {
@@ -4932,7 +4983,14 @@
       {
         "kind": "select",
         "label": "Tipo de pago *",
-        "options": [],
+        "options": [
+          "Anticipos",
+          "Aportes de asociados",
+          "Comercialización de café",
+          "Fertilizantes",
+          "Torrefacción",
+          "Trilla"
+        ],
         "id": "tipo-de-pago"
       },
       {
@@ -5308,7 +5366,11 @@
       {
         "kind": "select",
         "label": "Concepto del pago *",
-        "options": [],
+        "options": [
+          "Crédito",
+          "Aportes",
+          "Tarjeta débito"
+        ],
         "id": "concepto-del-pago"
       },
       {
@@ -7751,7 +7813,12 @@
       {
         "kind": "select",
         "label": "Sede *",
-        "options": [],
+        "options": [
+          "Bogota",
+          "Palmare",
+          "Villavicencio",
+          "Yopal"
+        ],
         "id": "sede"
       },
       {
@@ -8163,7 +8230,11 @@
       {
         "kind": "select",
         "label": "Concepto del pago *",
-        "options": [],
+        "options": [
+          "Crédito",
+          "Aportes",
+          "Tarjeta débito"
+        ],
         "id": "concepto-del-pago"
       },
       {
@@ -8440,7 +8511,13 @@
       {
         "kind": "select",
         "label": "Descripcion del pago *",
-        "options": [],
+        "options": [
+          "Credito",
+          "Aportes",
+          "Fondo mutual",
+          "Convenios",
+          "Actividades"
+        ],
         "id": "descripcion-del-pago"
       },
       {
@@ -8629,7 +8706,11 @@
       {
         "kind": "select",
         "label": "Concepto del pago *",
-        "options": [],
+        "options": [
+          "Crédito",
+          "Aportes",
+          "Tarjeta débito"
+        ],
         "id": "concepto-del-pago"
       },
       {
@@ -8755,7 +8836,40 @@
       {
         "kind": "select",
         "label": "Concepto *",
-        "options": [],
+        "options": [
+          "Evaluación por pgirs",
+          "Evaluación a minería",
+          "Venta de formularios de salvoconductos",
+          "Tasa por aprovechamiento forestal",
+          "Grabación de eot e información geográfica",
+          "Devolución de avances y comisiones",
+          "Certificaciones",
+          "Prestamos de auditorio",
+          "Prestamo de equipos audiovisuales",
+          "Otros",
+          "Sobretasa de impuesto predial",
+          "Publicación",
+          "Análisis fisicoquímicos y microbiológicos",
+          "Tasa retributiva por vertimiento",
+          "Tasa por uso del agua",
+          "Multas y sanciones",
+          "Seguimiento por aprovechamiento forestal",
+          "Seguimiento por conceciones de aguas",
+          "Seguimiento por vertimientos puntuales",
+          "Seguimiento a guías ambientales",
+          "Seguimiento por ocupación de cauce",
+          "Seguimiento por emisores atmosféricas",
+          "Seguimiento por pghirs",
+          "Seguimiento por pgris",
+          "Seguimiento a minería",
+          "Avaluación por aprovechamiento forestal",
+          "Evaluación por concesiones de aguas",
+          "Evaluacion por vertimientos púntuales",
+          "Evaluación por aguas ambientales",
+          "Evaluación por ocupación de cauce",
+          "Evaluación por emisiones atmosféricas",
+          "Evaluación por pghirs"
+        ],
         "id": "concepto"
       },
       {
@@ -8803,7 +8917,30 @@
       {
         "kind": "select",
         "label": "Regional sede *",
-        "options": [],
+        "options": [
+          "Reg atrato bojayá (bellavista)",
+          "Reg atrato carmen de atrato (el siete)",
+          "Reg atrato quibdó",
+          "Reg pacífico bahía solano",
+          "Reg atrato tutunendo",
+          "Reg pacífico bajo baudó (pizarro)",
+          "Reg. pacífico - medio baudó (puerto meluk)",
+          "Reg. pacífico - nuquí",
+          "Reg. san juan - cértegui",
+          "Reg. san juan - condoto",
+          "Reg. san juan - guarato",
+          "Reg. san juan istmina",
+          "Reg. san juan - litoral san juan (isla del mono)",
+          "Reg. san juan - novita",
+          "Reg. san juan - san josé del palmar",
+          "Reg. san juan - tadó",
+          "Reg. san juan - unión panamericana (las ánimas)",
+          "Reg. uraba - acandí",
+          "Reg. urabá - belén de bajirá",
+          "Reg. urabá - carmen del darien",
+          "Reg. uraba - rio sucio",
+          "Reg. urabá - unguía"
+        ],
         "id": "regional-sede"
       },
       {
@@ -9939,7 +10076,14 @@
       {
         "kind": "select",
         "label": "Concepto del pago *",
-        "options": [],
+        "options": [
+          "Crédito",
+          "Aportes",
+          "Ahorros a la vista",
+          "Cdat",
+          "Ahorro contractual",
+          "Otros"
+        ],
         "id": "concepto-del-pago"
       },
       {

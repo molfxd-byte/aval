@@ -361,6 +361,13 @@ function PaymentControl({
   onAmountBlur,
 }: PaymentControlProps) {
   if (field.kind === 'select') {
+    const options =
+      field.options?.length > 0
+        ? field.options
+        : /tipo de persona/i.test(field.label)
+          ? ['Juridica', 'Natural']
+          : [];
+
     return (
       <div className="pay-select">
         <button type="button" className={`pay-select__input ${value ? 'has-value' : ''}`} onClick={onToggle}>
@@ -371,11 +378,14 @@ function PaymentControl({
             <button type="button" onClick={() => onPick('')}>
               Selecciona
             </button>
-            {field.options.map((option) => (
+            {options.map((option) => (
               <button key={option} type="button" onClick={() => onPick(option)}>
                 {option}
               </button>
             ))}
+            {!options.length && (
+              <p className="pay-select__empty">No hay opciones disponibles para este campo.</p>
+            )}
           </div>
         )}
       </div>
@@ -434,14 +444,19 @@ function PaymentControl({
     );
   }
 
+  const isEmail = /correo|e-?mail/i.test(`${field.label} ${field.id}`);
+
   return (
     <FloatField
       label={field.label}
       value={value}
       maxLength={field.maxLength}
-      inputMode={field.numeric ? 'numeric' : 'text'}
+      inputMode={field.numeric ? 'numeric' : isEmail ? 'text' : 'text'}
       onChange={(next) => {
-        const cleaned = field.numeric ? next.replace(/\D/g, '') : next.replace(/[^\dA-Za-z]/g, '');
+        let cleaned = next;
+        if (field.numeric) cleaned = next.replace(/\D/g, '');
+        else if (isEmail) cleaned = next.replace(/[^a-zA-Z0-9.@_+-]/g, '');
+        else cleaned = next.replace(/[^\p{L}\p{N}\s.@_\-+#/]/gu, '');
         onChange(field.maxLength ? cleaned.slice(0, field.maxLength) : cleaned);
       }}
     />

@@ -392,6 +392,14 @@
   background: var(--class-gray-light);
 }
 
+.pay-select__empty {
+  margin: 0;
+  padding: 8px 12px;
+  font-family: jakarta-regular, Helvetica, sans-serif;
+  font-size: 14px;
+  color: var(--class-third);
+}
+
 .pay-cost {
   width: 100%;
   display: grid;

@@ -12,6 +12,8 @@ import iconExpand from '@/assets/images/Pasarela/icon-expand.png';
 import bgMain from '@/assets/images/Pasarela/bg-main.png';
 import logoNorton from '@/assets/images/Pasarela/logo-norton.png';
 import logoSecure from '@/assets/images/Pasarela/logo-secure-trust.png';
+import logoPse from '@/assets/images/Pasarela/logo-pse2x.png';
+import iconInfo from '@/assets/images/Pasarela/icon-trailing-yellow.png';
 import bankBogota from '@/assets/images/Pasarela/logo-v-banco-bogota.svg';
 import bankOccidente from '@/assets/images/Pasarela/logo-v-banco-occidente.svg';
 import bankPopular from '@/assets/images/Pasarela/logo-v-banco-popular.png';
@@ -29,6 +31,8 @@ export const pasarelaAssets = {
   iconBanks,
   iconBanksActive,
   iconExpand,
+  iconInfo,
+  logoPse,
   bgMain,
   logoNorton,
   logoSecure,
@@ -42,6 +46,8 @@ export const pasarelaDocumentTypes = [
   'Pasaporte',
   'Registro Civil',
 ];
+
+export const pasarelaCountries = ['Colombia', 'Otros Países'];
 
 export const pasarelaAvalBanks = [
   { id: 'BOGOTA', name: 'Banco de Bogotá', logo: bankBogota },
@@ -66,8 +72,8 @@ export const pasarelaPseBanks = [
 ];
 
 export const pasarelaPersonTypes = [
-  { id: 'NATURAL', label: 'Persona Natural' },
   { id: 'JURIDICA', label: 'Persona Jurídica' },
+  { id: 'NATURAL', label: 'Persona Natural' },
 ];
 
 export const PASARELA_SESSION_KEY = 'avalpay-pasarela-session';
@@ -109,8 +115,8 @@ export function clearPasarelaSession() {
 
 export function formatPasarelaMoney(value: string) {
   const digits = value.replace(/\D/g, '');
-  if (!digits) return '$ 0';
-  return `$ ${Number(digits).toLocaleString('es-CO')}`;
+  if (!digits) return '$0';
+  return `$${Number(digits).toLocaleString('es-CO')}`;
 }
 
 export function createTransactionId() {

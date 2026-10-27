@@ -346,13 +346,14 @@ async function readSelectOptions(page, fields) {
     index += 1;
     try {
       await input.click({ timeout: 4000 });
-      await page.waitForSelector('.options-background', { timeout: 4000 });
-      const text = await page.locator('.options-background').innerText();
+      await page.waitForSelector('.selectropdown-form.active .options', { timeout: 4000 });
+      const text = await page.locator('.selectropdown-form.active .options').first().innerText();
       field.options = text
         .split('\n')
         .map((line) => line.trim())
         .filter((line) => line && line !== 'Selecciona');
       await page.keyboard.press('Escape');
+      await page.waitForTimeout(150);
     } catch {
       field.options = [];
     }
