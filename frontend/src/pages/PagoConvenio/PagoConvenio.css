@@ -534,9 +534,9 @@
   border-radius: 25px;
 }
 
-.pay-methods__breb.is-selected,
-.pay-methods__breb:hover {
-  border-color: var(--class-secondary);
+.pay-methods__breb.is-selected {
+  background-color: var(--blue-selected);
+  border-color: transparent;
 }
 
 .pay-methods__card {
@@ -548,6 +548,11 @@
   background: var(--class-white);
   padding: 10px;
   box-sizing: border-box;
+  cursor: pointer;
+}
+
+.pay-methods__card.is-selected {
+  background-color: var(--blue-selected);
 }
 
 .pay-methods__logos {
@@ -585,9 +590,10 @@
   object-fit: contain;
 }
 
-.pay-methods__logo.is-selected,
-.pay-methods__logo:hover {
-  border-color: var(--class-secondary);
+.pay-methods__logos--plain .pay-methods__logo.is-selected,
+.pay-methods__logos--plain .pay-methods__logo:hover {
+  background-color: var(--blue-selected);
+  border-color: transparent;
 }
 
 .pay-terms {

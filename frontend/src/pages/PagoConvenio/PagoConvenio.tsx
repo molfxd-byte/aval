@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import ElementColors from '@/components/ElementColors/ElementColors';
 import Button from '@/components/Button/Button';
+import PageLoader from '@/components/PageLoader/PageLoader';
 import MainLayout from '@/layouts/MainLayout/MainLayout';
 import { obligacionesAgreements } from '@/data/agreements';
 import { getPayment, paymentAssets } from '@/data/payments';
@@ -11,6 +12,7 @@ import { getSaludPayment, saludAgreements } from '@/data/saludMedicina';
 import { getServicioPayment, serviciosAgreements } from '@/data/serviciosPublicos';
 import { getCatalogAgreement, getCatalogPayment, isCatalogSource } from '@/data/catalogStore';
 import { createTransactionId, savePasarelaSession } from '@/data/pasarela';
+import type { PasarelaSession } from '@/data/pasarela';
 import './PagoConvenio.css';
 
 const steps = [
@@ -69,7 +71,9 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
   const [method, setMethod] = useState('');
   const [accepted, setAccepted] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const referencesRef = useRef<HTMLDivElement>(null);
+  const loaderTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     setValues({});
@@ -79,6 +83,8 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
     setDetail('');
     setMethod('');
     setAccepted(false);
+    setLoading(false);
+    window.clearTimeout(loaderTimer.current);
   }, [id]);
 
   useEffect(() => {
@@ -89,13 +95,15 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
     return () => document.removeEventListener('mousedown', close);
   }, []);
 
+  useEffect(() => () => window.clearTimeout(loaderTimer.current), []);
+
   const setValue = (fieldId: string, value: string) => {
     setValues((current) => ({ ...current, [fieldId]: value }));
   };
 
   const handlePay = (event: FormEvent) => {
     event.preventDefault();
-    if (!payment || !agreement) return;
+    if (!payment || !agreement || loading) return;
     if (method !== 'aval' && method !== 'pse') return;
     if (payment.showTerms !== false && !accepted) return;
 
@@ -114,7 +122,7 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
         value: values[field.id] ?? '',
       }));
 
-    const session = {
+    const session: PasarelaSession = {
       serviceName: payment.serviceName,
       logo: payment.hideLogo ? undefined : agreement.logo,
       amount,
@@ -126,7 +134,11 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
       transactionId: createTransactionId(),
     };
     savePasarelaSession(session);
-    navigate('/pasarela-pagos', { state: session });
+    window.clearTimeout(loaderTimer.current);
+    setLoading(true);
+    loaderTimer.current = window.setTimeout(() => {
+      navigate('/pasarela-pagos', { state: session });
+    }, 2000);
   };
 
   if (!payment || !agreement) {
@@ -136,6 +148,7 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
   return (
     <MainLayout>
       <section className="pay-view">
+        {loading && <PageLoader />}
         <h1>Realiza tu pago</h1>
         <div className="pay-dots">
           <ElementColors />
@@ -286,7 +299,21 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
                         <img src={item.logo} alt={item.title} />
                       </button>
                     ))}
-                  <div className="pay-methods__card">
+                  <div
+                    className={`pay-methods__card ${method === 'aval' || method === 'pse' ? 'is-selected' : ''}`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => {
+                      const other = payment.methods.find((item) => item.id === 'aval' || item.id === 'pse');
+                      if (other) setMethod(other.id);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key !== 'Enter' && event.key !== ' ') return;
+                      event.preventDefault();
+                      const other = payment.methods.find((item) => item.id === 'aval' || item.id === 'pse');
+                      if (other) setMethod(other.id);
+                    }}
+                  >
                     <p>Otros medios de pago:</p>
                     <div className="pay-methods__logos">
                       {payment.methods
@@ -295,9 +322,12 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
                           <button
                             key={item.id}
                             type="button"
-                            className={`pay-methods__logo ${method === item.id ? 'is-selected' : ''}`}
+                            className="pay-methods__logo"
                             title={item.title}
-                            onClick={() => setMethod(item.id)}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setMethod(item.id);
+                            }}
                           >
                             <img src={item.logo} alt={item.title} />
                           </button>
