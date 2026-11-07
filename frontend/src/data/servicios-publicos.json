@@ -25,6 +25,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "cuenta-contrato"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -54,6 +60,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "digite-el-codigo-de-su-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -83,6 +95,12 @@
         "maxLength": 8,
         "numeric": true,
         "id": "digite-el-codigo-interno"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -112,6 +130,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "numero-de-matricula-o-predio"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -141,6 +165,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "codigo-nuid"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -170,6 +200,12 @@
         "maxLength": 8,
         "numeric": true,
         "id": "digite-el-codigo-interno"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -199,6 +235,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "digite-codigo-interno"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -228,6 +270,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "numero-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -257,6 +305,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "codigo"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -286,6 +340,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "numero-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -350,6 +410,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "digite-su-numero-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -379,6 +445,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "codigo-interno"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -477,6 +549,12 @@
         "maxLength": 8,
         "numeric": true,
         "id": "no-de-cliente"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -506,6 +584,12 @@
         "maxLength": 8,
         "numeric": true,
         "id": "cod-referencia"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -535,6 +619,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "no-factura-fsp"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -564,6 +654,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "numero-de-cuenta-contrato-usuario"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -593,6 +689,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "digitar-referencia-de-pago"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -622,6 +724,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "codigo-suscriptor"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -651,6 +759,12 @@
         "maxLength": 8,
         "numeric": true,
         "id": "numero-de-cuenta"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -679,6 +793,12 @@
         "maxLength": 8,
         "numeric": true,
         "id": "este-servicio-no-aplica-para-el-pago-de-"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -708,6 +828,12 @@
         "maxLength": 7,
         "numeric": true,
         "id": "codigo-interno"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -772,6 +898,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "numero-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -836,6 +968,12 @@
         "maxLength": 8,
         "numeric": true,
         "id": "digite-codigo-de-referencia"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -864,6 +1002,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "nit"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -893,6 +1037,12 @@
         "maxLength": 8,
         "numeric": true,
         "id": "digite-el-codigo-de-referencia"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -922,6 +1072,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "codigo-suscriptor"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -951,6 +1107,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "cuenta-no"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -980,6 +1142,12 @@
         "maxLength": 8,
         "numeric": true,
         "id": "codigo-de-suscriptor"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -1044,6 +1212,12 @@
         "maxLength": 14,
         "numeric": true,
         "id": "numero-de-contrato"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -1072,6 +1246,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "digite-el-numero-de-factura-de-servicios"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -1136,6 +1316,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "cuenta-interna"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -1165,6 +1351,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "cod-suscriptor"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -1194,6 +1386,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "digite-codigo-interno"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -1258,6 +1456,12 @@
         "maxLength": 8,
         "numeric": true,
         "id": "codigo-de-referencia"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -1287,6 +1491,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "digite-numero-factura-o-codigo-usuar"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -1351,6 +1561,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "referencia-de-pago"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -1380,6 +1596,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "numero-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -1633,6 +1855,12 @@
         "maxLength": 8,
         "numeric": true,
         "id": "numero-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -1662,6 +1890,12 @@
         "maxLength": 16,
         "numeric": true,
         "id": "numero-de-pago-electronico-favor-digitar"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -1691,6 +1925,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "digite-factura-servicios-publicos"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -1720,6 +1960,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "nro-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -1748,6 +1994,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "referencia-de-pago"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -1776,6 +2028,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "numero-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -1840,6 +2098,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "cuenta-no"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -1903,6 +2167,12 @@
         "maxLength": 8,
         "numeric": true,
         "id": "numero-de-cuenta-referencia-de-pago"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -1932,6 +2202,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "ref-pago"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -1960,6 +2236,12 @@
         "maxLength": 14,
         "numeric": true,
         "id": "digite-el-numero-de-cuenta"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -1989,6 +2271,12 @@
         "maxLength": 8,
         "numeric": true,
         "id": "numero-de-cuenta-contrato-usuario"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -2018,6 +2306,12 @@
         "maxLength": 14,
         "numeric": true,
         "id": "numero-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -2047,6 +2341,12 @@
         "maxLength": 8,
         "numeric": true,
         "id": "codigo-de-refencia"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -2076,6 +2376,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "identificador-unico"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -2104,6 +2410,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "id-de-cobros"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -2133,6 +2445,12 @@
         "maxLength": 8,
         "numeric": true,
         "id": "numero-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -2162,6 +2480,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "cupon-de-pago"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -2226,6 +2550,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "referencia"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -2290,6 +2620,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "referencia-para-pago-electronico"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -2353,6 +2689,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "numero-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -2381,6 +2723,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "referencia-de-pago"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -2409,6 +2757,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "nit"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -2438,6 +2792,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "referencia-de-pago-pse-baloto"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -2467,6 +2827,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "digite-numero-factura-o-codigo-usuario"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -2495,6 +2861,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "digite-numero-de-cupon"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -2594,6 +2966,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "digite-el-id-interno"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -2657,6 +3035,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "digite-el-numero-de-contrato"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -2686,6 +3070,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "numero-de-cuenta-contrato-usuario"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -2715,6 +3105,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "numero-de-cuenta-contrato-usuario"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -2744,6 +3140,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "numero-de-cuenta-de-contrato-usuario"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -2835,6 +3237,12 @@
         "maxLength": 8,
         "numeric": true,
         "id": "digite-el-numero-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -2933,6 +3341,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "referencia-de-pago"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -2961,6 +3375,12 @@
         "maxLength": 30,
         "numeric": true,
         "id": "digite-el-numero-de-cupon"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3059,6 +3479,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "digite-cuenta-interna"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3088,6 +3514,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "factura-de-venta"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3116,6 +3548,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "matricula-no"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3144,6 +3582,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "nic"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3208,6 +3652,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "codigo-interno"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3272,6 +3722,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "digite-su-referencia-para-pago-electroni"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3300,6 +3756,12 @@
         "maxLength": 8,
         "numeric": true,
         "id": "codigo-referencia"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3329,6 +3791,12 @@
         "maxLength": 9,
         "numeric": true,
         "id": "digitar-el-codigo-de-usuario"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3357,6 +3825,12 @@
         "maxLength": 8,
         "numeric": true,
         "id": "nie-o-contrato"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3386,6 +3860,12 @@
         "maxLength": 14,
         "numeric": true,
         "id": "clave-de-pago"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3414,6 +3894,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "digite-el-codigo-para-recaudo-electronic"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3442,6 +3928,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "numero-de-factura-o-cupon-de-pagos"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3541,6 +4033,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "digite-codigo-de-referencia"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3569,6 +4067,12 @@
         "maxLength": 30,
         "numeric": true,
         "id": "digite-referencia-pago-electronico"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3597,6 +4101,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "codigo-de-usuario"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3625,6 +4135,12 @@
         "maxLength": 14,
         "numeric": true,
         "id": "nic"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3653,6 +4169,12 @@
         "maxLength": 30,
         "numeric": true,
         "id": "digite-el-numero-de-la-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3716,6 +4238,12 @@
         "maxLength": 30,
         "numeric": true,
         "id": "factura-o-contrato"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3780,6 +4308,12 @@
         "maxLength": 30,
         "numeric": true,
         "id": "cod-interno"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3808,6 +4342,12 @@
         "maxLength": 30,
         "numeric": true,
         "id": "digite-la-referencia-suscriptor-numero"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3836,6 +4376,12 @@
         "maxLength": 30,
         "numeric": true,
         "id": "numero-de-cupon"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3864,6 +4410,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "codigo-interno"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3928,6 +4480,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "numero-de-cuenta-contrato-usuario"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -3990,6 +4548,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "digite-el-numero-de-la-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -4018,6 +4582,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -4046,6 +4616,12 @@
         "maxLength": 14,
         "numeric": true,
         "id": "nic"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -4075,6 +4651,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "refencia-de-pago"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -4104,6 +4686,12 @@
         "maxLength": 14,
         "numeric": true,
         "id": "numero-de-contrato"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -4133,6 +4721,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "numero-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -4231,6 +4825,12 @@
         "maxLength": 30,
         "numeric": true,
         "id": "digite-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -4329,6 +4929,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "favor-digite-su-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -4398,6 +5004,12 @@
         "maxLength": 30,
         "numeric": true,
         "id": "ingrese-el-numero-de-usuario"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -4427,6 +5039,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "numero-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -4456,6 +5074,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "numero-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -4484,6 +5108,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "numero-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -4513,6 +5143,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "codigo-de-usuario"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -4611,6 +5247,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "referencia-de-pago"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -4812,6 +5454,12 @@
         "maxLength": 30,
         "numeric": true,
         "id": "factura-o-contrato"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -4841,6 +5489,12 @@
         "maxLength": 17,
         "numeric": true,
         "id": "no-tarjeta-codigo-de-barras"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -4904,6 +5558,12 @@
         "maxLength": 30,
         "numeric": true,
         "id": "digite-el-numero-de-suscriptor"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -5002,6 +5662,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "digite-codigo-de-suscriptor"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -5064,6 +5730,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "numero-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -5197,6 +5869,12 @@
         "maxLength": 16,
         "numeric": true,
         "id": "matricula"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -5302,6 +5980,12 @@
         "maxLength": 7,
         "numeric": true,
         "id": "codigo-interno"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -5330,6 +6014,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "digite-el-codigo-interno"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -5359,6 +6049,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "numero-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -5422,6 +6118,12 @@
         "maxLength": 16,
         "numeric": true,
         "id": "matricula"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -5451,6 +6153,12 @@
         "maxLength": 16,
         "numeric": true,
         "id": "matricula"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -5480,6 +6188,12 @@
         "maxLength": 16,
         "numeric": true,
         "id": "matricula"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -5509,6 +6223,12 @@
         "maxLength": 16,
         "numeric": true,
         "id": "matricula"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -5538,6 +6258,12 @@
         "maxLength": 16,
         "numeric": true,
         "id": "matricula"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -5567,6 +6293,12 @@
         "maxLength": 16,
         "numeric": true,
         "id": "matricula"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -5596,6 +6328,12 @@
         "maxLength": 16,
         "numeric": true,
         "id": "matricula"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -5625,6 +6363,12 @@
         "maxLength": 16,
         "numeric": true,
         "id": "matricula"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -5654,6 +6398,12 @@
         "maxLength": 16,
         "numeric": true,
         "id": "matricula"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -5683,6 +6433,12 @@
         "maxLength": 16,
         "numeric": true,
         "id": "matricula"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -5747,6 +6503,12 @@
         "maxLength": 16,
         "numeric": true,
         "id": "matricula"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -5960,6 +6722,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "digite-el-numero-de-factura-antes-de"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -5988,6 +6756,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "id-de-cobros"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -6142,6 +6916,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "matricula"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -6171,6 +6951,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "digite-el-codigo-de-usuario"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -6199,6 +6985,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "no-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -6228,6 +7020,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "numero-de-contrato"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -6257,6 +7055,12 @@
         "maxLength": 8,
         "numeric": true,
         "id": "matricula"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -6354,6 +7158,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "no-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -6382,6 +7192,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "numero-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -6410,6 +7226,12 @@
         "maxLength": 14,
         "numeric": true,
         "id": "digite-codigo-cuenta-contrato"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -6439,6 +7261,12 @@
         "maxLength": 8,
         "numeric": true,
         "id": "factura-de-venta"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -6503,6 +7331,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "numero-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -6601,6 +7435,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "numero-de-cliente"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -6629,6 +7469,12 @@
         "maxLength": 14,
         "numeric": true,
         "id": "digite-el-numero-de-usuario"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -6657,6 +7503,12 @@
         "maxLength": 11,
         "numeric": true,
         "id": "numero-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -6685,6 +7537,12 @@
         "maxLength": 30,
         "numeric": true,
         "id": "digite-su-numero-de-cuenta-antes-del-gui"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -6803,6 +7661,12 @@
         "maxLength": 30,
         "numeric": true,
         "id": "digite-el-numero-de-suscripcion"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -7003,6 +7867,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "numero-de-cuenta"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -7066,6 +7936,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "cupon-de-pago"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -7094,6 +7970,12 @@
         "maxLength": 30,
         "numeric": true,
         "id": "digite-el-numero-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -7158,6 +8040,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "referencia-de-pago"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -7276,6 +8164,12 @@
         "maxLength": 16,
         "numeric": true,
         "id": "matricula"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -7305,6 +8199,12 @@
         "maxLength": 16,
         "numeric": true,
         "id": "matricula"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -7471,6 +8371,12 @@
         "maxLength": 16,
         "numeric": true,
         "id": "factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -7534,6 +8440,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "numero-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -7667,6 +8579,12 @@
         "maxLength": 16,
         "numeric": true,
         "id": "matricula"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -7766,6 +8684,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "numero-cuenta-interna"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -8002,6 +8926,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "digite-el-nnumero-de-factura"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -8064,6 +8994,12 @@
         "maxLength": 30,
         "numeric": true,
         "id": "digite-el-numero-de-telefono"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -8127,6 +9063,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "factura-o-contrato"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -8155,6 +9097,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "digite-referencia-de-pago"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -8183,6 +9131,12 @@
         "maxLength": 30,
         "numeric": true,
         "id": "digite-referente-para-pago"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -8211,6 +9165,12 @@
         "maxLength": 10,
         "numeric": true,
         "id": "factura-o-contrato"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -8240,6 +9200,12 @@
         "maxLength": 18,
         "numeric": true,
         "id": "factura-o-contrato"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -8268,6 +9234,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "suscriptor-o-cuenta-contrato"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -8297,6 +9269,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "numero-de-cuenta-contrato-usuario"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -8326,6 +9304,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "numero-de-cuenta-contrato-usuario"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   },
@@ -8355,6 +9339,12 @@
         "maxLength": 12,
         "numeric": true,
         "id": "numero-de-cuenta-contrato-usuario"
+      },
+      {
+        "kind": "amount",
+        "label": "Valor a pagar *",
+        "maxLength": 19,
+        "id": "amount"
       }
     ]
   }

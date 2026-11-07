@@ -228,12 +228,17 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
                 />
               ))}
 
-              {payment.fields.some((field) => field.kind === 'amount') && (
-                <div className="pay-cost">
-                  <p className="pay-cost__label">Valor de la transacción</p>
-                  <p className="pay-cost__value">$ 0</p>
-                </div>
-              )}
+              {(() => {
+                const amountField = payment.fields.find((field) => field.kind === 'amount');
+                if (!amountField) return null;
+                const formatted = formatAmountDigits(values[amountField.id] ?? '');
+                return (
+                  <div className="pay-cost">
+                    <p className="pay-cost__label">Valor de la transacción</p>
+                    <p className="pay-cost__value">$ {formatted || '0'}</p>
+                  </div>
+                );
+              })()}
 
               {payment.showDetail !== false && (
                 <div className="pay-detail">
