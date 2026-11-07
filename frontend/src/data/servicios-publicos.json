@@ -800,7 +800,8 @@
         "maxLength": 19,
         "id": "amount"
       }
-    ]
+    ],
+    "balanceCheckUrl": "https://pagosenlinea.grupovanti.com/"
   },
   {
     "id": "00010354",

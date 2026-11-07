@@ -234,6 +234,12 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
               </div>
             )}
 
+            {payment.balanceCheckUrl && (
+              <a className="pay-balance-check" href={payment.balanceCheckUrl} target="_blank" rel="noreferrer">
+                ¿No sabes cuánto debes? Consulta tu factura en el portal oficial de {payment.serviceName}
+              </a>
+            )}
+
             <div className="pay-references" ref={referencesRef}>
               {payment.fields.map((field) => (
                 <PaymentControl

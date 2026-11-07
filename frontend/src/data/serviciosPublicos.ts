@@ -22,6 +22,8 @@ export interface ServicioRecord {
   showLogin: boolean;
   methods: string[];
   fields: PaymentField[];
+  /** Link to the biller's own official portal, so the user can check their real balance before typing it below. */
+  balanceCheckUrl?: string;
 }
 
 const methodCatalog: Record<string, PaymentMethodOption> = {
@@ -81,6 +83,7 @@ const payments = new Map<string, PaymentView>(
       showLogin: item.showLogin,
       methods: item.methods.map((method) => methodCatalog[method]).filter(Boolean),
       fields: item.fields,
+      balanceCheckUrl: item.balanceCheckUrl,
     },
   ]),
 );

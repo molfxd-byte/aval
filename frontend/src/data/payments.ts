@@ -76,6 +76,8 @@ export interface PaymentView {
   showLogin?: boolean;
   methods: PaymentMethodOption[];
   fields: PaymentField[];
+  /** Link to the biller's own official portal, so the user can check their real balance before typing it below. */
+  balanceCheckUrl?: string;
 }
 
 const otrosCreditos: PaymentView = {
