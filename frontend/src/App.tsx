@@ -1,4 +1,6 @@
-import { Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { track } from './services/track';
 import Home from './pages/Home/Home';
 import ObligacionesAval from './pages/ObligacionesAval/ObligacionesAval';
 import PagoConvenio from './pages/PagoConvenio/PagoConvenio';
@@ -10,9 +12,19 @@ import SaludMedicina from './pages/SaludMedicina/SaludMedicina';
 import ServiciosPublicos from './pages/ServiciosPublicos/ServiciosPublicos';
 import { catalogCategories } from './data/catalogCategories';
 
+function RouteTracker() {
+  const location = useLocation();
+  useEffect(() => {
+    track(`Visitó ${location.pathname}`);
+  }, [location.pathname]);
+  return null;
+}
+
 function App() {
   return (
-    <Routes>
+    <>
+      <RouteTracker />
+      <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/obligaciones-aval" element={<ObligacionesAval />} />
       <Route path="/obligaciones-aval/pagar/:id" element={<PagoConvenio />} />
@@ -34,7 +46,8 @@ function App() {
           element={<PagoConvenio source={category.slug} />}
         />
       ))}
-    </Routes>
+      </Routes>
+    </>
   );
 }
 
