@@ -12,7 +12,7 @@ app.use(express.json());
 
 app.use('/api', routes);
 
-// Producción: el mismo servicio sirve el frontend compilado (SPA).
+// Produccion: el mismo servicio sirve el frontend compilado (SPA).
 const webDir = path.resolve(__dirname, '../../frontend/dist');
 app.use(express.static(webDir));
 app.get('*', (_req, res) => res.sendFile(path.join(webDir, 'index.html')));
