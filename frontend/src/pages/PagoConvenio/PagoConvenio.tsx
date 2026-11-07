@@ -72,6 +72,7 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
   const [accepted, setAccepted] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [zoomOpen, setZoomOpen] = useState(false);
+  const [refCopied, setRefCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const referencesRef = useRef<HTMLDivElement>(null);
   const loaderTimer = useRef<number | undefined>(undefined);
@@ -86,6 +87,7 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
     setAccepted(false);
     setHelpOpen(false);
     setZoomOpen(false);
+    setRefCopied(false);
     setLoading(false);
     window.clearTimeout(loaderTimer.current);
   }, [id]);
@@ -234,11 +236,35 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
               </div>
             )}
 
-            {payment.balanceCheckUrl && (
-              <a className="pay-balance-check" href={payment.balanceCheckUrl} target="_blank" rel="noreferrer">
-                ¿No sabes cuánto debes? Consulta tu factura en el portal oficial de {payment.serviceName}
-              </a>
-            )}
+            {payment.balanceCheckUrl &&
+              (() => {
+                const refField = payment.fields.find((field) => field.kind !== 'amount');
+                const refValue = refField ? (values[refField.id] ?? '').trim() : '';
+                return (
+                  <div className="pay-balance-check">
+                    <a href={payment.balanceCheckUrl} target="_blank" rel="noreferrer">
+                      ¿No sabes cuánto debes? Consulta tu factura en el portal oficial de {payment.serviceName}
+                    </a>
+                    {refValue && (
+                      <button
+                        type="button"
+                        className="pay-balance-check__copy"
+                        onClick={() => {
+                          navigator.clipboard
+                            .writeText(refValue)
+                            .then(() => {
+                              setRefCopied(true);
+                              window.setTimeout(() => setRefCopied(false), 2000);
+                            })
+                            .catch(() => {});
+                        }}
+                      >
+                        {refCopied ? 'Referencia copiada ✓' : `Copiar referencia (${refValue})`}
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
 
             <div className="pay-references" ref={referencesRef}>
               {payment.fields.map((field) => (
