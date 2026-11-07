@@ -9,6 +9,7 @@ body {
 
 html {
   height: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -16,6 +17,8 @@ body {
   color: var(--class-third);
   background-color: var(--background-primary);
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 #root {

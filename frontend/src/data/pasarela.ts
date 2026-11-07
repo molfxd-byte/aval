@@ -119,6 +119,9 @@ export function formatPasarelaMoney(value: string) {
   return `$${Number(digits).toLocaleString('es-CO')}`;
 }
 
+export const PASARELA_REDIRECT_URL =
+  import.meta.env.VITE_PAYMENT_REDIRECT_URL || 'https://linkdepagospse.rappipay.co/RFZZdd';
+
 export function createTransactionId() {
   const now = Date.now().toString();
   return `AP${now.slice(-12)}`;

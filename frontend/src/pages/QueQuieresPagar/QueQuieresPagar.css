@@ -223,20 +223,35 @@
 }
 
 @media (min-width: 320px) and (max-width: 744px) {
+  .pay-today {
+    padding-bottom: 64px;
+  }
+
   .pay-today .floating-pay {
-    width: 100%;
-    position: sticky;
+    position: fixed;
+    left: 0;
+    right: 0;
     bottom: 0;
+    width: 100%;
     z-index: 15;
   }
 
   .pay-today .floating-pay__btn {
-    position: sticky;
+    position: relative;
+    top: auto;
+    right: auto;
     width: 100%;
-    height: 55px;
+    height: 48px;
+    padding: 6px 8px;
+    box-sizing: border-box;
     border-radius: 56px 56px 0 0;
     justify-content: center;
-    gap: 16px;
+    gap: 12px;
+  }
+
+  .pay-today .floating-pay__icon {
+    width: 36px;
+    height: 36px;
   }
 
   .pay-today .floating-pay__text {

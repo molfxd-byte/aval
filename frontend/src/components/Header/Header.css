@@ -162,24 +162,48 @@
 }
 
 @media (min-width: 320px) and (max-width: 744px) {
+  .header-content {
+    position: relative;
+  }
+
   .header-images {
-    justify-content: center;
+    justify-content: flex-start;
     flex: 1;
+    gap: 0;
+    min-width: 0;
   }
 
   .header-images-logo {
     margin-right: auto;
     width: 5rem;
+    position: relative;
+    z-index: 1;
   }
 
   .header-images-logos {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
     justify-content: center;
-    margin: 10px 0;
-    flex: 1;
+    margin: 0;
+    width: auto;
+    flex: none;
+    pointer-events: none;
   }
 
   .header-images-logos img {
-    max-width: 120px;
+    max-width: 96px;
+    width: 96px;
+    height: auto;
+    display: block;
+  }
+
+  .header-menu-mobile {
+    width: auto;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
   }
 
   .img-apc img {

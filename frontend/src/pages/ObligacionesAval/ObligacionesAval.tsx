@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AgreementCard from '@/components/AgreementCard/AgreementCard';
 import Button from '@/components/Button/Button';
+import ElementColors from '@/components/ElementColors/ElementColors';
 import InputSearch from '@/components/InputSearch/InputSearch';
 import PageLoader from '@/components/PageLoader/PageLoader';
 import MainLayout from '@/layouts/MainLayout/MainLayout';
@@ -142,6 +143,9 @@ function ObligacionesAval({
             <div className="hero">
               <div className="hero__title">
                 <h1>{content.title}</h1>
+                <div className="hero__colors">
+                  <ElementColors />
+                </div>
               </div>
               <div className="hero__text">
                 <p>{content.paragraph}</p>

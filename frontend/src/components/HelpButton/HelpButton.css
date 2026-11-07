@@ -1,15 +1,21 @@
 .help-button {
-  position: sticky;
+  position: fixed;
+  right: 0;
   bottom: 0;
-  z-index: 2;
+  width: 0;
+  height: 0;
+  z-index: 16;
+  pointer-events: none;
 }
 
 .alter-container {
   width: 0;
   height: 0;
-  position: sticky;
-  bottom: 0;
-  left: 100vw;
+  position: relative;
+}
+
+.container-help-btn {
+  pointer-events: auto;
 }
 
 .container-help-btn .help-btn {
@@ -64,13 +70,14 @@
 
 @media (min-width: 320px) and (max-width: 744px) {
   .container-help-btn .help-btn {
-    z-index: 15;
-    bottom: 60px;
+    z-index: 16;
+    right: 12px;
+    bottom: 68px;
   }
 
   .container-help-btn .help {
-    z-index: 15;
-    bottom: 90px;
-    right: 35px;
+    z-index: 16;
+    bottom: 100px;
+    right: 28px;
   }
 }

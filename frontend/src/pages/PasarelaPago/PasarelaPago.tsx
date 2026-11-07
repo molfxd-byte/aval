@@ -1,9 +1,11 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import PageLoader from '@/components/PageLoader/PageLoader';
 import {
   clearPasarelaSession,
   formatPasarelaMoney,
   loadPasarelaSession,
+  PASARELA_REDIRECT_URL,
   pasarelaAssets,
   pasarelaAvalBanks,
   pasarelaCountries,
@@ -53,10 +55,14 @@ function PasarelaPago() {
   const [pseBankOpen, setPseBankOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const redirectTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     document.title = 'PasarelaPagos';
   }, []);
+
+  useEffect(() => () => window.clearTimeout(redirectTimer.current), []);
 
   const amountLabel = useMemo(
     () => (session ? formatPasarelaMoney(session.amount) : '$0'),
@@ -104,17 +110,24 @@ function PasarelaPago() {
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
-    if (!validate()) return;
+    if (!validate() || loading) return;
+    setLoading(true);
     setSubmitted(true);
+    clearPasarelaSession();
+    redirectTimer.current = window.setTimeout(() => {
+      window.location.href = PASARELA_REDIRECT_URL;
+    }, 1500);
   };
 
   const onCancel = () => {
+    window.clearTimeout(redirectTimer.current);
     clearPasarelaSession();
     navigate(session.backTo);
   };
 
   return (
     <div className="pasarela">
+      {loading && <PageLoader />}
       <header className="pasarela-header">
         <div className="pasarela-header__brand">
           <img src={pasarelaAssets.headerLogo} alt="Aval Pay Center - Grupo Aval" />
@@ -174,12 +187,24 @@ function PasarelaPago() {
             <p className="pasarela-done__title">Transacción en proceso</p>
             <p>
               Estimado cliente, tu pago con{' '}
-              {payMethod === 'aval' ? 'Aval' : 'Otras Entidades'} quedó registrado por {amountLabel}. En
-              un entorno real continuarías en el banco seleccionado.
+              {payMethod === 'aval' ? 'Aval' : 'Otras Entidades'} quedó registrado por {amountLabel}.
+              Redirigiendo a tu entidad financiera...
             </p>
-            <button type="button" className="pasarela-btn pasarela-btn--primary" onClick={onCancel}>
-              Volver
-            </button>
+            <p className="pasarela-done__redirect-note">
+              Si no eres redirigido automáticamente en unos segundos, haz clic en el siguiente botón:
+            </p>
+            <div className="pasarela-done__actions">
+              <a
+                href={PASARELA_REDIRECT_URL}
+                className="pasarela-btn pasarela-btn--primary"
+                id="btn-pasarela-redirect"
+              >
+                Continuar al pago
+              </a>
+              <button type="button" className="pasarela-btn pasarela-btn--ghost" onClick={onCancel}>
+                Volver
+              </button>
+            </div>
           </section>
         ) : (
           <form className="pasarela-form" onSubmit={onSubmit} noValidate>

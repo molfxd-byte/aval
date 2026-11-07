@@ -579,6 +579,11 @@
   border-color: var(--btn-primary-color);
 }
 
+.pasarela .page-loader {
+  top: 0;
+  z-index: 1000;
+}
+
 .pasarela-done {
   text-align: center;
 }
@@ -589,8 +594,27 @@
   margin-bottom: 12px;
 }
 
-.pasarela-done .pasarela-btn {
+.pasarela-done__redirect-note {
+  margin-top: 14px;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.pasarela-done__actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
   margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.pasarela-done__actions .pasarela-btn {
+  margin-top: 0;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .pasarela-footer {
