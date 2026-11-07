@@ -775,7 +775,7 @@
     "location": "Bogotá D.C. - Bogotá D.C.",
     "acceptsEnrollment": true,
     "logo": "/convenios/servicios/logos/00000090.png",
-    "helpImage": "",
+    "helpImage": "/convenios/servicios/ayuda/00000090.jpg",
     "plainMethods": true,
     "methodsLead": "Este pago lo puedes realizar a través de los siguientes medios:",
     "submitLabel": "Continuar",

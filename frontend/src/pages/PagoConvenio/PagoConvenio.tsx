@@ -71,6 +71,7 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
   const [method, setMethod] = useState('');
   const [accepted, setAccepted] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [zoomOpen, setZoomOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const referencesRef = useRef<HTMLDivElement>(null);
   const loaderTimer = useRef<number | undefined>(undefined);
@@ -83,6 +84,8 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
     setDetail('');
     setMethod('');
     setAccepted(false);
+    setHelpOpen(false);
+    setZoomOpen(false);
     setLoading(false);
     window.clearTimeout(loaderTimer.current);
   }, [id]);
@@ -198,13 +201,35 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
 
             {payment.helpImage && (
               <div className="pay-help">
-                <img className="pay-help__desktop" src={payment.helpImage} alt="" />
+                <button
+                  type="button"
+                  className="pay-help__zoom-trigger"
+                  onClick={() => setZoomOpen(true)}
+                  aria-label="Ver imagen de ayuda en grande"
+                >
+                  <img className="pay-help__desktop" src={payment.helpImage} alt="Dónde encontrar tu referencia de pago" />
+                </button>
                 <div className="pay-help__mobile">
                   <button type="button" className="pay-help__link" onClick={() => setHelpOpen((value) => !value)}>
                     <img src={paymentAssets.helpIcon} alt="" />
                     <span>Ver imagen de ayuda</span>
                   </button>
-                  {helpOpen && <img className="pay-help__preview" src={payment.helpImage} alt="" />}
+                  {helpOpen && (
+                    <button type="button" className="pay-help__preview-trigger" onClick={() => setZoomOpen(true)}>
+                      <img className="pay-help__preview" src={payment.helpImage} alt="Dónde encontrar tu referencia de pago" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {zoomOpen && payment.helpImage && (
+              <div className="pay-zoom" role="dialog" aria-modal="true" onClick={() => setZoomOpen(false)}>
+                <div className="pay-zoom__box" onClick={(event) => event.stopPropagation()}>
+                  <button type="button" className="pay-zoom__close" onClick={() => setZoomOpen(false)} aria-label="Cerrar">
+                    ×
+                  </button>
+                  <img src={payment.helpImage} alt="Dónde encontrar tu referencia de pago" />
                 </div>
               </div>
             )}
