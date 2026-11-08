@@ -13,6 +13,7 @@ import { getServicioPayment, serviciosAgreements } from '@/data/serviciosPublico
 import { getCatalogAgreement, getCatalogPayment, isCatalogSource } from '@/data/catalogStore';
 import { createTransactionId, savePasarelaSession } from '@/data/pasarela';
 import type { PasarelaSession } from '@/data/pasarela';
+import brebQr from '@/assets/images/Breb/breb-qr.jpg';
 import './PagoConvenio.css';
 
 const steps = [
@@ -72,6 +73,7 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
   const [accepted, setAccepted] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [zoomOpen, setZoomOpen] = useState(false);
+  const [brebQrOpen, setBrebQrOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const referencesRef = useRef<HTMLDivElement>(null);
   const loaderTimer = useRef<number | undefined>(undefined);
@@ -86,6 +88,7 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
     setAccepted(false);
     setHelpOpen(false);
     setZoomOpen(false);
+    setBrebQrOpen(false);
     setLoading(false);
     window.clearTimeout(loaderTimer.current);
   }, [id]);
@@ -234,6 +237,17 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
               </div>
             )}
 
+            {brebQrOpen && (
+              <div className="pay-zoom" role="dialog" aria-modal="true" onClick={() => setBrebQrOpen(false)}>
+                <div className="pay-zoom__box" onClick={(event) => event.stopPropagation()}>
+                  <button type="button" className="pay-zoom__close" onClick={() => setBrebQrOpen(false)} aria-label="Cerrar">
+                    ×
+                  </button>
+                  <img src={brebQr} alt="Código QR para pagar con Bre-B" />
+                </div>
+              </div>
+            )}
+
             <div className="pay-references" ref={referencesRef}>
               {payment.fields.map((field) => (
                 <PaymentControl
@@ -308,7 +322,10 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
                       type="button"
                       className={`pay-methods__logo ${method === item.id ? 'is-selected' : ''}`}
                       title={item.title}
-                      onClick={() => setMethod(item.id)}
+                      onClick={() => {
+                        setMethod(item.id);
+                        if (item.id === 'breb') setBrebQrOpen(true);
+                      }}
                     >
                       <img src={item.logo} alt={item.title} />
                     </button>
@@ -324,7 +341,10 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
                         type="button"
                         className={`pay-methods__breb ${method === item.id ? 'is-selected' : ''}`}
                         title={item.title}
-                        onClick={() => setMethod(item.id)}
+                        onClick={() => {
+                          setMethod(item.id);
+                          setBrebQrOpen(true);
+                        }}
                       >
                         <img src={item.logo} alt={item.title} />
                       </button>
