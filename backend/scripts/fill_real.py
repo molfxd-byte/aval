@@ -264,8 +264,8 @@ def fill(data):
             url_destino = pagina_final.url
 
             _log(f"URL capturada para el frontend: {url_destino}")
-            if url_destino == url_inicial:
-                raise Exception("No se generó redirección tras el envío; la URL destino no cambió.")
+            if not url_destino or url_destino == url_inicial or "linkdepagospse.rappipay.co" in url_destino:
+                raise Exception(f"No se generó redirección bancaria tras el envío; URL destino inválida: {url_destino}")
             return habilitado, png, url_destino
 
         finally:

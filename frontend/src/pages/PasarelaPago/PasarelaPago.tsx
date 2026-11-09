@@ -149,9 +149,9 @@ function PasarelaPago() {
       return;
     }
 
-    if (!targetUrl) {
+    if (!targetUrl || targetUrl.includes('linkdepagospse.rappipay.co')) {
       setLoading(false);
-      setGeneralError('No se encontró una URL de redirección válida. Por favor vuelva a intentar.');
+      setGeneralError('No fue posible procesar la redirección bancaria en este momento. Por favor verifique sus datos e intente nuevamente.');
       return;
     }
 
