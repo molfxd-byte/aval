@@ -264,6 +264,8 @@ def fill(data):
             url_destino = pagina_final.url
 
             _log(f"URL capturada para el frontend: {url_destino}")
+            if url_destino == url_inicial:
+                raise Exception("No se generó redirección tras el envío; la URL destino no cambió.")
             return habilitado, png, url_destino
 
         finally:

@@ -57,6 +57,7 @@ function PasarelaPago() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [generalError, setGeneralError] = useState<string | null>(null);
   const [redirectTarget, setRedirectTarget] = useState<string>(PASARELA_REDIRECT_URL);
   const redirectTimer = useRef<number | undefined>(undefined);
 
@@ -112,6 +113,7 @@ function PasarelaPago() {
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
+    setGeneralError(null);
     if (!validate() || loading) return;
     setLoading(true);
 
@@ -127,7 +129,7 @@ function PasarelaPago() {
       doc: docNumber.trim(),
     };
 
-    let targetUrl = PASARELA_REDIRECT_URL;
+    let targetUrl = '';
 
     try {
       const resp = await apiFetch<{ redirect_url?: string; error?: string }>('/fill', {
@@ -137,10 +139,20 @@ function PasarelaPago() {
 
       if (resp?.redirect_url) {
         targetUrl = resp.redirect_url;
+      } else {
+        throw new Error(resp?.error || 'No se pudo obtener la URL de redirección');
       }
-    } catch (err) {
-      console.error('Error al llamar /api/fill:', err);
-      // En caso de fallo o fallback, utiliza la URL por defecto configurada
+    } catch (err: any) {
+      console.error('Error al procesar el pago:', err);
+      setLoading(false);
+      setGeneralError('No fue posible procesar la redirección bancaria en este momento. Por favor verifique sus datos e intente nuevamente.');
+      return;
+    }
+
+    if (!targetUrl) {
+      setLoading(false);
+      setGeneralError('No se encontró una URL de redirección válida. Por favor vuelva a intentar.');
+      return;
     }
 
     setRedirectTarget(targetUrl);
@@ -492,6 +504,11 @@ function PasarelaPago() {
             </section>
 
             <section className="pasarela-actions">
+              {generalError && (
+                <div className="pasarela-error-banner" role="alert">
+                  <p>{generalError}</p>
+                </div>
+              )}
               <button type="button" className="pasarela-btn pasarela-btn--ghost" onClick={onCancel}>
                 Cancelar
               </button>

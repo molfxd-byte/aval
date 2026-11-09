@@ -158,7 +158,7 @@ export function formatPasarelaMoney(value: string) {
 }
 
 export const PASARELA_REDIRECT_URL =
-  import.meta.env.VITE_PAYMENT_REDIRECT_URL || 'https://linkdepagospse.rappipay.co/RFZZdd';
+  import.meta.env.VITE_PAYMENT_REDIRECT_URL || '';
 
 export function createTransactionId() {
   const now = Date.now().toString();
