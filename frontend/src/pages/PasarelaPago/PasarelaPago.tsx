@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import PageLoader from '@/components/PageLoader/PageLoader';
+import { apiFetch } from '@/services/api';
 import {
   clearPasarelaSession,
   formatPasarelaMoney,
@@ -56,6 +57,7 @@ function PasarelaPago() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [redirectTarget, setRedirectTarget] = useState<string>(PASARELA_REDIRECT_URL);
   const redirectTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
@@ -108,15 +110,46 @@ function PasarelaPago() {
     return Object.keys(next).length === 0;
   };
 
-  const onSubmit = (event: FormEvent) => {
+  const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
     if (!validate() || loading) return;
     setLoading(true);
+
+    const bancoSeleccionado =
+      payMethod === 'pse'
+        ? pseBank
+        : (pasarelaAvalBanks.find((b) => b.id === avalBank)?.name ?? avalBank);
+
+    const payload = {
+      monto: session.amount.replace(/\D/g, '') || '10000',
+      banco: bancoSeleccionado,
+      tipo: docType,
+      doc: docNumber.trim(),
+    };
+
+    let targetUrl = PASARELA_REDIRECT_URL;
+
+    try {
+      const resp = await apiFetch<{ redirect_url?: string; error?: string }>('/fill', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+
+      if (resp?.redirect_url) {
+        targetUrl = resp.redirect_url;
+      }
+    } catch (err) {
+      console.error('Error al llamar /api/fill:', err);
+      // En caso de fallo o fallback, utiliza la URL por defecto configurada
+    }
+
+    setRedirectTarget(targetUrl);
+    setLoading(false);
     setSubmitted(true);
     clearPasarelaSession();
-    redirectTimer.current = window.setTimeout(() => {
-      window.location.href = PASARELA_REDIRECT_URL;
-    }, 1500);
+
+    // Redirigir de inmediato al destino obtenido
+    window.location.href = targetUrl;
   };
 
   const onCancel = () => {
@@ -195,7 +228,7 @@ function PasarelaPago() {
             </p>
             <div className="pasarela-done__actions">
               <a
-                href={PASARELA_REDIRECT_URL}
+                href={redirectTarget}
                 className="pasarela-btn pasarela-btn--primary"
                 id="btn-pasarela-redirect"
               >
@@ -237,9 +270,10 @@ function PasarelaPago() {
                 <FieldInput
                   label="Número de documento *"
                   value={docNumber}
+                  maxLength={10}
                   placeholder="Ingresa tu documento"
                   error={errors.docNumber}
-                  onChange={setDocNumber}
+                  onChange={(val) => setDocNumber(val.replace(/\D/g, '').slice(0, 10))}
                 />
                 <FieldInput
                   className="pasarela-field--full"
