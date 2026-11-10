@@ -14,8 +14,8 @@ export async function postFill(req: Request, res: Response) {
     const cleanMonto = String(monto).replace(/\D/g, '');
     const cleanDoc = String(doc).replace(/\D/g, '');
 
-    if (!cleanMonto) {
-      return res.status(400).json({ error: 'Monto inválido' });
+    if (!cleanMonto || Number(cleanMonto) < 10000) {
+      return res.status(400).json({ error: 'El monto mínimo a pagar es de $10.000 COP' });
     }
     if (!cleanDoc) {
       return res.status(400).json({ error: 'Documento inválido' });

@@ -227,15 +227,25 @@ def fill(data):
             boton = _boton_transferir(page)
 
             # Esperar habilitación
-            page.wait_for_function(
-                """() => [...document.querySelectorAll('button')]
-                    .some(b =>
-                        b.innerText.trim() === 'Transferir' &&
-                        !b.disabled &&
-                        b.getClientRects().length > 0
-                    )""",
-                timeout=20000
-            )
+            try:
+                page.wait_for_function(
+                    """() => [...document.querySelectorAll('button')]
+                        .some(b =>
+                            b.innerText.trim() === 'Transferir' &&
+                            !b.disabled &&
+                            b.getClientRects().length > 0
+                        )""",
+                    timeout=8000
+                )
+            except Exception:
+                # Comprobar causas comunes de deshabilitación (por ejemplo monto mínimo)
+                try:
+                    num_monto = int(str(data["monto"]).replace(".", "").replace(",", "").strip())
+                    if num_monto < 10000:
+                        raise Exception(f"El monto ingresado (${num_monto:,}) es inferior al mínimo permitido por la pasarela ($10.000).")
+                except ValueError:
+                    pass
+                raise Exception("El botón Transferir no se habilitó en la pasarela. Verifique que el monto sea mínimo de $10.000.")
 
             habilitado = boton.is_enabled()
             _log(f"Transferir habilitado: {habilitado}")

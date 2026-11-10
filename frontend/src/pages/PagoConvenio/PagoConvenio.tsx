@@ -120,7 +120,13 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
     if (missing) return;
 
     const amountField = payment.fields.find((field) => field.kind === 'amount');
-    const amount = amountField ? (values[amountField.id] ?? '').replace(/\D/g, '') : '0';
+    const rawAmount = amountField ? (values[amountField.id] ?? '').replace(/\D/g, '') : '0';
+    const numAmount = Number(rawAmount || '0');
+    if (numAmount < 10000) {
+      alert('El monto mínimo para realizar el pago es de $10.000 COP.');
+      return;
+    }
+    const amount = rawAmount;
     const references = payment.fields
       .filter((field) => field.kind !== 'amount')
       .map((field) => ({

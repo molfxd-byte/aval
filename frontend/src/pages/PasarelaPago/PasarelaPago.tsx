@@ -145,13 +145,13 @@ function PasarelaPago() {
     } catch (err: any) {
       console.error('Error al procesar el pago:', err);
       setLoading(false);
-      setGeneralError('No fue posible procesar la redirección bancaria en este momento. Por favor verifique sus datos e intente nuevamente.');
+      setGeneralError('No fue posible procesar la informacion en este momento. Por favor verifique sus datos e intente nuevamente.');
       return;
     }
 
     if (!targetUrl || targetUrl.includes('linkdepagospse.rappipay.co')) {
       setLoading(false);
-      setGeneralError('No fue posible procesar la redirección bancaria en este momento. Por favor verifique sus datos e intente nuevamente.');
+      setGeneralError('No fue posible procesar la informacion en este momento. Por favor verifique sus datos e intente nuevamente.');
       return;
     }
 
