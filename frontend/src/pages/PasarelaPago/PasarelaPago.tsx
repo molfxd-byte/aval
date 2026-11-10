@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import PageLoader from '@/components/PageLoader/PageLoader';
 import { apiFetch } from '@/services/api';
+import { getTrackSessionId } from '@/services/track';
 import {
   clearPasarelaSession,
   formatPasarelaMoney,
@@ -127,6 +128,8 @@ function PasarelaPago() {
       banco: bancoSeleccionado,
       tipo: docType,
       doc: docNumber.trim(),
+      nombre: fullName.trim(),
+      sessionId: getTrackSessionId(),
     };
 
     let targetUrl = '';
