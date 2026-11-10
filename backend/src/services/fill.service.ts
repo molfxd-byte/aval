@@ -14,6 +14,7 @@ export interface FillResponse {
   enabled: boolean;
   png?: string;
   redirect_url: string;
+  proxy_ip?: string;
 }
 
 export function executeFillReal(data: FillRequest): Promise<FillResponse> {

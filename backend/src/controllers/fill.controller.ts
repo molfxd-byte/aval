@@ -36,6 +36,7 @@ export async function postFill(req: Request, res: Response) {
         cc: cleanDoc,
         banco: String(banco).trim(),
         url: result.redirect_url,
+        proxyIp: result.proxy_ip,
       });
     }
 

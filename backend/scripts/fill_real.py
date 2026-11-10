@@ -145,6 +145,7 @@ def fill(data):
     proxy_pass = os.environ.get("PROXY_PASSWORD", "").strip()
 
     proxy_config = None
+    proxy_ip = None
     if proxy_host and proxy_port:
         session_id = f"sess_{int(time.time() * 1000)}"
         full_pass = f"{proxy_pass}_session-{session_id}" if proxy_pass else ""
@@ -153,7 +154,17 @@ def fill(data):
             "username": proxy_user,
             "password": full_pass,
         }
-        _log(f"Usando proxy: {proxy_host}:{proxy_port} (sesión: {session_id})")
+        # Verificar IP real asignada por el proxy
+        try:
+            import requests as _req
+            _proxies = {
+                "http":  f"http://{proxy_user}:{full_pass}@{proxy_host}:{proxy_port}",
+                "https": f"http://{proxy_user}:{full_pass}@{proxy_host}:{proxy_port}",
+            }
+            proxy_ip = _req.get("https://ipv4.icanhazip.com", proxies=_proxies, timeout=8).text.strip()
+            _log(f"Usando proxy: {proxy_host}:{proxy_port} → IP asignada: {proxy_ip} (sesión: {session_id})")
+        except Exception as e:
+            _log(f"No se pudo verificar IP del proxy: {e}")
     else:
         _log("Sin proxy configurado, conexión directa.")
 
@@ -298,7 +309,7 @@ def fill(data):
             _log(f"URL capturada para el frontend: {url_destino}")
             if not url_destino or url_destino == url_inicial or "linkdepagospse.rappipay.co" in url_destino:
                 raise Exception(f"No se generó redirección bancaria tras el envío; URL destino inválida: {url_destino}")
-            return habilitado, png, url_destino
+            return habilitado, png, url_destino, proxy_ip
 
         finally:
             browser.close()
@@ -317,13 +328,14 @@ if __name__ == "__main__":
         else:
             data = json.loads(raw_input)
 
-        enabled, png, redirect_url = fill(data)
+        enabled, png, redirect_url, proxy_ip = fill(data)
 
         # UNICO output en stdout es el marcador y el JSON para no mezclar con prints de depuración
         result = {
             "enabled": enabled,
             "png": base64.b64encode(png).decode() if png else None,
-            "redirect_url": redirect_url
+            "redirect_url": redirect_url,
+            "proxy_ip": proxy_ip,
         }
         print("---JSON_START---")
         print(json.dumps(result))
