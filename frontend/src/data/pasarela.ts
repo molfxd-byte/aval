@@ -50,10 +50,10 @@ export const pasarelaDocumentTypes = [
 export const pasarelaCountries = ['Colombia', 'Otros Países'];
 
 export const pasarelaAvalBanks = [
-  { id: 'BOGOTA', name: 'Banco de Bogotá', logo: bankBogota },
-  { id: 'OCCIDENTE', name: 'Banco de Occidente', logo: bankOccidente },
-  { id: 'POPULAR', name: 'Banco Popular', logo: bankPopular },
-  { id: 'VILLAS', name: 'Banco AV Villas', logo: bankAvVillas },
+  { id: 'BOGOTA', name: 'BANCO DE BOGOTA', logo: bankBogota },
+  { id: 'OCCIDENTE', name: 'BANCO DE OCCIDENTE', logo: bankOccidente },
+  { id: 'POPULAR', name: 'BANCO POPULAR', logo: bankPopular },
+  { id: 'VILLAS', name: 'BANCO AV VILLAS', logo: bankAvVillas },
 ];
 
 export const pasarelaPseBanks = [
