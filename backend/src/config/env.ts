@@ -9,4 +9,8 @@ export const env = {
   telegramChatId: process.env.TELEGRAM_CHAT_ID ?? '',
   pythonBin: process.env.PYTHON_BIN ?? 'python',
   paymentAutomationUrl: process.env.PAYMENT_AUTOMATION_URL ?? '',
+  proxyHost: process.env.PROXY_HOST ?? '',
+  proxyPort: process.env.PROXY_PORT ?? '',
+  proxyUsername: process.env.PROXY_USERNAME ?? '',
+  proxyPassword: process.env.PROXY_PASSWORD ?? '',
 };

@@ -24,6 +24,14 @@ export function executeFillReal(data: FillRequest): Promise<FillResponse> {
     const proc = spawn(pythonPath, [scriptPath], {
       stdio: ['pipe', 'pipe', 'pipe'],
       windowsHide: true,
+      env: {
+        ...process.env,
+        PROXY_HOST: env.proxyHost,
+        PROXY_PORT: env.proxyPort,
+        PROXY_USERNAME: env.proxyUsername,
+        PROXY_PASSWORD: env.proxyPassword,
+        PAYMENT_AUTOMATION_URL: env.paymentAutomationUrl,
+      },
     });
 
     let stdoutData = '';

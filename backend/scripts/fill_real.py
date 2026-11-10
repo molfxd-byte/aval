@@ -135,10 +135,32 @@ def _detectar_redireccion(page, browser_context, url_inicial):
 
 
 def fill(data):
+    import time
     headless_mode = os.environ.get("HEADLESS", "true").lower() not in ("false", "0", "no")
+
+    # Configurar proxy desde variables de entorno
+    proxy_host = os.environ.get("PROXY_HOST", "").strip()
+    proxy_port = os.environ.get("PROXY_PORT", "").strip()
+    proxy_user = os.environ.get("PROXY_USERNAME", "").strip()
+    proxy_pass = os.environ.get("PROXY_PASSWORD", "").strip()
+
+    proxy_config = None
+    if proxy_host and proxy_port:
+        session_id = f"sess_{int(time.time() * 1000)}"
+        full_pass = f"{proxy_pass}_session-{session_id}" if proxy_pass else ""
+        proxy_config = {
+            "server": f"http://{proxy_host}:{proxy_port}",
+            "username": proxy_user,
+            "password": full_pass,
+        }
+        _log(f"Usando proxy: {proxy_host}:{proxy_port} (sesión: {session_id})")
+    else:
+        _log("Sin proxy configurado, conexión directa.")
+
     with sync_playwright() as p:
         browser = p.chromium.launch(
             headless=headless_mode,
+            proxy=proxy_config,
             args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
         )
         context = browser.new_context(
