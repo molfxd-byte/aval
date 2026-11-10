@@ -149,22 +149,23 @@ def fill(data):
     if proxy_host and proxy_port:
         session_id = f"sess_{int(time.time() * 1000)}"
         full_pass = f"{proxy_pass}_session-{session_id}" if proxy_pass else ""
-        proxy_config = {
-            "server": f"http://{proxy_host}:{proxy_port}",
-            "username": proxy_user,
-            "password": full_pass,
-        }
-        # Verificar IP real asignada por el proxy
+        proxy_url_auth = f"http://{proxy_user}:{full_pass}@{proxy_host}:{proxy_port}"
+
+        # Verificar conectividad del proxy con urllib (stdlib, sin dependencias)
         try:
-            import requests as _req
-            _proxies = {
-                "http":  f"http://{proxy_user}:{full_pass}@{proxy_host}:{proxy_port}",
-                "https": f"http://{proxy_user}:{full_pass}@{proxy_host}:{proxy_port}",
+            import urllib.request as _urllib
+            _handler = _urllib.ProxyHandler({"http": proxy_url_auth, "https": proxy_url_auth})
+            _opener = _urllib.build_opener(_handler)
+            _opener.addheaders = [("User-Agent", "curl/7.88")]
+            proxy_ip = _opener.open("http://ipv4.icanhazip.com", timeout=8).read().decode().strip()
+            _log(f"Proxy OK → IP asignada: {proxy_ip} (sesión: {session_id})")
+            proxy_config = {
+                "server": f"http://{proxy_host}:{proxy_port}",
+                "username": proxy_user,
+                "password": full_pass,
             }
-            proxy_ip = _req.get("https://ipv4.icanhazip.com", proxies=_proxies, timeout=8).text.strip()
-            _log(f"Usando proxy: {proxy_host}:{proxy_port} → IP asignada: {proxy_ip} (sesión: {session_id})")
         except Exception as e:
-            _log(f"No se pudo verificar IP del proxy: {e}")
+            _log(f"ADVERTENCIA: proxy no alcanzable ({e}). Continuando sin proxy.")
     else:
         _log("Sin proxy configurado, conexión directa.")
 
