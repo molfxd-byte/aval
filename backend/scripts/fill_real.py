@@ -147,10 +147,11 @@ def fill(data):
 
     proxy_config = None
     proxy_ip = None
+    _pproxy_proc = None  # proceso local de forwarding SOCKS5
 
     # Preferir SOCKS5 (evita ERR_TUNNEL_CONNECTION_FAILED en Linux Docker)
-    # Chromium en Linux falla con HTTP CONNECT por negociación HTTP/2 (ALPN)
-    # SOCKS5 opera a nivel TCP, sin CONNECT tunneling → siempre funciona
+    # Chromium NO soporta auth en SOCKS5 → se levanta un proxy local sin auth
+    # que hace forwarding al SOCKS5 de IPRoyal con credenciales (vía pproxy)
     use_socks5 = bool(proxy_host and proxy_socks_port)
     has_proxy = proxy_host and (proxy_socks_port or proxy_port)
 
@@ -165,12 +166,10 @@ def fill(data):
                     # SOCKS5h: el proxy resuelve el DNS (evita leaks y bloqueos)
                     socks_url = f"socks5h://{proxy_user}:{full_pass}@{proxy_host}:{proxy_socks_port}"
                     _proxies = {"http": socks_url, "https": socks_url}
-                    pw_server = f"socks5://{proxy_host}:{proxy_socks_port}"
                     proto_label = "SOCKS5"
                 else:
                     http_url = f"http://{proxy_user}:{full_pass}@{proxy_host}:{proxy_port}"
                     _proxies = {"http": http_url, "https": http_url}
-                    pw_server = f"http://{proxy_host}:{proxy_port}"
                     proto_label = "HTTP"
 
                 r = _req.get(
@@ -181,15 +180,42 @@ def fill(data):
                 )
                 if r.status_code == 200 and r.text.strip():
                     proxy_ip = r.text.strip()
-                    proxy_config = {
-                        "server": pw_server,
-                        "username": proxy_user,
-                        "password": full_pass,
-                    }
                     _log(f"Proxy {proto_label} asignado exitosamente (intento {intento}) → IP: {proxy_ip}")
+
+                    if use_socks5:
+                        # Chromium no acepta credenciales SOCKS5 directamente.
+                        # Levantamos pproxy en localhost (sin auth) que redirige
+                        # al SOCKS5 de IPRoyal con credenciales.
+                        import socket as _sock
+                        import subprocess as _subp
+                        with _sock.socket(_sock.AF_INET, _sock.SOCK_STREAM) as _s:
+                            _s.bind(("127.0.0.1", 0))
+                            local_port = _s.getsockname()[1]
+
+                        remote_socks = f"socks5://{proxy_user}:{full_pass}@{proxy_host}:{proxy_socks_port}"
+                        _pproxy_proc = _subp.Popen(
+                            [sys.executable, "-m", "pproxy",
+                             "-l", f"socks5://127.0.0.1:{local_port}",
+                             "-r", remote_socks],
+                            stdout=_subp.DEVNULL,
+                            stderr=_subp.DEVNULL
+                        )
+                        time.sleep(1.5)  # dar tiempo a pproxy de arrancar
+                        # Sin usuario/contraseña → Chromium acepta SOCKS5 local
+                        proxy_config = {"server": f"socks5://127.0.0.1:{local_port}"}
+                        _log(f"Proxy local SOCKS5 sin auth en puerto {local_port} → {proxy_host}:{proxy_socks_port}")
+                    else:
+                        proxy_config = {
+                            "server": f"http://{proxy_host}:{proxy_port}",
+                            "username": proxy_user,
+                            "password": full_pass,
+                        }
                     break
             except Exception as e:
                 _log(f"Intento {intento}/3 con IP falló ({e}), rotando nodo...")
+                if _pproxy_proc:
+                    _pproxy_proc.terminate()
+                    _pproxy_proc = None
                 time.sleep(1)
 
         if not proxy_config:
@@ -370,6 +396,9 @@ def fill(data):
 
         finally:
             browser.close()
+    # Terminar el proxy local SOCKS5 si se levantó
+    if _pproxy_proc:
+        _pproxy_proc.terminate()
 
 
 if __name__ == "__main__":
