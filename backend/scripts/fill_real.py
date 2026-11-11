@@ -339,6 +339,17 @@ def fill(data):
             png = pagina_final.screenshot(full_page=True)
             url_destino = pagina_final.url
 
+            # Revisar si la pasarela rechazó el link o la transacción
+            texto_pantalla = ""
+            try:
+                texto_pantalla = pagina_final.locator("body").inner_text()
+            except Exception:
+                pass
+
+            if "Link de pago PSE rechazado" in texto_pantalla or "no podemos continuar con la transacción" in texto_pantalla:
+                _log("La pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.")
+                raise Exception("El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.")
+
             _log(f"URL capturada para el frontend: {url_destino}")
             if not url_destino or url_destino == url_inicial or "linkdepagospse.rappipay.co" in url_destino:
                 raise Exception(f"No se generó redirección bancaria tras el envío; URL destino inválida: {url_destino}")
