@@ -209,11 +209,20 @@ def fill(data):
                 raise ValueError("No se configuró la URL de pago (PAYMENT_AUTOMATION_URL no encontrada en entorno ni en los datos de entrada).")
 
             _log(f"Navegando a: {target_url}")
-            page.goto(
-                target_url,
-                wait_until="networkidle",
-                timeout=45000
-            )
+            for intento_nav in range(1, 4):
+                try:
+                    page.goto(
+                        target_url,
+                        wait_until="domcontentloaded",
+                        timeout=30000
+                    )
+                    break
+                except Exception as e_nav:
+                    if "ERR_TUNNEL_CONNECTION_FAILED" in str(e_nav) and intento_nav < 3:
+                        _log(f"Túnel intermitente en intento {intento_nav}, reintentando carga en 2s...")
+                        time.sleep(2)
+                    else:
+                        raise e_nav
 
             # Monto
             monto = _input(page, "text")
