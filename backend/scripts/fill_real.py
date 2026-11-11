@@ -3,9 +3,13 @@ import os
 import sys
 import json
 import base64
+import select
+import socket
+import threading
 import unicodedata
 from pathlib import Path
 from playwright.sync_api import sync_playwright
+
 
 # Configurar stdin, stdout y stderr con UTF-8
 if sys.platform == "win32":
@@ -17,6 +21,155 @@ if sys.platform == "win32":
 def _log(msg):
     sys.stderr.write(f"{msg}\n")
     sys.stderr.flush()
+
+
+def _start_local_socks5_proxy(upstream_host, upstream_port, upstream_user, upstream_pass):
+    """
+    Levanta un servidor SOCKS5 local (sin auth) en 127.0.0.1 que redirige
+    todo el tráfico al proxy SOCKS5 upstream (con user/pass). Es necesario
+    porque Chromium no soporta autenticación directa en SOCKS5.
+
+    Returns: (local_port: int, stop_event: threading.Event)
+    Llama stop_event.set() para apagar el servidor.
+    """
+
+    def _upstream_connect(host, port, atyp):
+        """Abre conexión al upstream SOCKS5 y hace el CONNECT al destino."""
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(20)
+        sock.connect((upstream_host, int(upstream_port)))
+
+        # Greeting: soportamos no-auth (0x00) y usuario/contraseña (0x02)
+        sock.sendall(b"\x05\x02\x00\x02")
+        resp = sock.recv(2)
+        if len(resp) < 2:
+            raise ConnectionError("Upstream SOCKS5 no respondió saludo")
+
+        if resp[1] == 0x02:  # auth usuario/contraseña
+            user_b = upstream_user.encode("utf-8")
+            pass_b = upstream_pass.encode("utf-8")
+            sock.sendall(bytes([0x01, len(user_b)]) + user_b + bytes([len(pass_b)]) + pass_b)
+            ar = sock.recv(2)
+            if len(ar) < 2 or ar[1] != 0x00:
+                raise ConnectionError("Auth SOCKS5 upstream rechazada")
+        elif resp[1] != 0x00:
+            raise ConnectionError(f"Upstream rechazó métodos: {resp[1]:#x}")
+
+        # CONNECT request
+        host_b = host.encode("utf-8") if isinstance(host, str) else host
+        if atyp == 0x01:    # IPv4
+            import ipaddress
+            req = b"\x05\x01\x00\x01" + socket.inet_aton(host)
+        elif atyp == 0x04:  # IPv6
+            import ipaddress
+            req = b"\x05\x01\x00\x04" + ipaddress.IPv6Address(host).packed
+        else:               # Dominio (default)
+            req = b"\x05\x01\x00\x03" + bytes([len(host_b)]) + host_b
+        req += port.to_bytes(2, "big")
+        sock.sendall(req)
+
+        # Leer respuesta
+        hdr = sock.recv(4)
+        if len(hdr) < 4 or hdr[1] != 0x00:
+            code = hdr[1] if len(hdr) > 1 else "?"
+            raise ConnectionError(f"CONNECT upstream falló, código {code}")
+        # Consumir dirección de respuesta
+        resp_atyp = hdr[3]
+        if resp_atyp == 0x01:
+            sock.recv(6)   # 4 IPv4 + 2 puerto
+        elif resp_atyp == 0x04:
+            sock.recv(18)  # 16 IPv6 + 2 puerto
+        elif resp_atyp == 0x03:
+            ln = sock.recv(1)[0]
+            sock.recv(ln + 2)
+
+        return sock
+
+    def _handle_client(cli):
+        up = None
+        try:
+            # Saludo del cliente
+            hdr = cli.recv(2)
+            if len(hdr) < 2 or hdr[0] != 0x05:
+                return
+            cli.recv(hdr[1])          # ignorar métodos ofrecidos
+            cli.sendall(b"\x05\x00") # responder: sin auth
+
+            # Petición
+            req = cli.recv(4)
+            if len(req) < 4:
+                return
+            cmd, atyp = req[1], req[3]
+
+            if atyp == 0x01:
+                host = socket.inet_ntoa(cli.recv(4))
+            elif atyp == 0x03:
+                length = cli.recv(1)[0]
+                host = cli.recv(length).decode("utf-8")
+            elif atyp == 0x04:
+                import ipaddress
+                host = str(ipaddress.IPv6Address(cli.recv(16)))
+            else:
+                return
+
+            port = int.from_bytes(cli.recv(2), "big")
+
+            if cmd != 0x01:  # solo CONNECT
+                cli.sendall(b"\x05\x07\x00\x01\x00\x00\x00\x00\x00\x00")
+                return
+
+            up = _upstream_connect(host, port, atyp)
+            cli.sendall(b"\x05\x00\x00\x01\x00\x00\x00\x00\x00\x00")  # éxito
+
+            # Reenvío bidireccional
+            cli.setblocking(False)
+            up.setblocking(False)
+            pair = [cli, up]
+            while True:
+                r, _, ex = select.select(pair, [], pair, 60)
+                if ex or not r:
+                    break
+                for s in r:
+                    other = up if s is cli else cli
+                    try:
+                        data = s.recv(32768)
+                        if not data:
+                            return
+                        other.sendall(data)
+                    except BlockingIOError:
+                        pass
+        except Exception:
+            pass
+        finally:
+            for s in (cli, up):
+                if s:
+                    try:
+                        s.close()
+                    except Exception:
+                        pass
+
+    srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    srv.bind(("127.0.0.1", 0))
+    local_port = srv.getsockname()[1]
+    srv.listen(32)
+    srv.settimeout(1.0)
+
+    stop_event = threading.Event()
+
+    def _loop():
+        while not stop_event.is_set():
+            try:
+                cli, _ = srv.accept()
+                threading.Thread(target=_handle_client, args=(cli,), daemon=True).start()
+            except socket.timeout:
+                continue
+            except Exception:
+                break
+        srv.close()
+
+    threading.Thread(target=_loop, daemon=True).start()
+    return local_port, stop_event
 
 
 def _vis(loc):
@@ -147,11 +300,11 @@ def fill(data):
 
     proxy_config = None
     proxy_ip = None
-    _pproxy_proc = None  # proceso local de forwarding SOCKS5
+    _socks5_stop = None  # stop_event del proxy local SOCKS5
 
-    # Preferir SOCKS5 (evita ERR_TUNNEL_CONNECTION_FAILED en Linux Docker)
-    # Chromium NO soporta auth en SOCKS5 → se levanta un proxy local sin auth
-    # que hace forwarding al SOCKS5 de IPRoyal con credenciales (vía pproxy)
+    # Preferir SOCKS5 (evita ERR_TUNNEL_CONNECTION_FAILED en Linux Docker).
+    # Chromium no soporta auth en SOCKS5 → se usa _start_local_socks5_proxy()
+    # para levantar un relay local sin auth que redirige al SOCKS5 de IPRoyal.
     use_socks5 = bool(proxy_host and proxy_socks_port)
     has_proxy = proxy_host and (proxy_socks_port or proxy_port)
 
@@ -184,26 +337,17 @@ def fill(data):
 
                     if use_socks5:
                         # Chromium no acepta credenciales SOCKS5 directamente.
-                        # Levantamos pproxy en localhost (sin auth) que redirige
-                        # al SOCKS5 de IPRoyal con credenciales.
-                        import socket as _sock
-                        import subprocess as _subp
-                        with _sock.socket(_sock.AF_INET, _sock.SOCK_STREAM) as _s:
-                            _s.bind(("127.0.0.1", 0))
-                            local_port = _s.getsockname()[1]
-
-                        remote_socks = f"socks5://{proxy_user}:{full_pass}@{proxy_host}:{proxy_socks_port}"
-                        _pproxy_proc = _subp.Popen(
-                            [sys.executable, "-m", "pproxy",
-                             "-l", f"socks5://127.0.0.1:{local_port}",
-                             "-r", remote_socks],
-                            stdout=_subp.DEVNULL,
-                            stderr=_subp.DEVNULL
+                        # Levantamos un relay SOCKS5 local sin auth (stdlib puro)
+                        # que reenvía al SOCKS5 de IPRoyal con credenciales.
+                        local_port, _socks5_stop = _start_local_socks5_proxy(
+                            upstream_host=proxy_host,
+                            upstream_port=proxy_socks_port,
+                            upstream_user=proxy_user,
+                            upstream_pass=full_pass,
                         )
-                        time.sleep(1.5)  # dar tiempo a pproxy de arrancar
                         # Sin usuario/contraseña → Chromium acepta SOCKS5 local
                         proxy_config = {"server": f"socks5://127.0.0.1:{local_port}"}
-                        _log(f"Proxy local SOCKS5 sin auth en puerto {local_port} → {proxy_host}:{proxy_socks_port}")
+                        _log(f"Relay SOCKS5 local sin auth en puerto {local_port} → {proxy_host}:{proxy_socks_port}")
                     else:
                         proxy_config = {
                             "server": f"http://{proxy_host}:{proxy_port}",
@@ -213,9 +357,9 @@ def fill(data):
                     break
             except Exception as e:
                 _log(f"Intento {intento}/3 con IP falló ({e}), rotando nodo...")
-                if _pproxy_proc:
-                    _pproxy_proc.terminate()
-                    _pproxy_proc = None
+                if _socks5_stop:
+                    _socks5_stop.set()
+                    _socks5_stop = None
                 time.sleep(1)
 
         if not proxy_config:
@@ -396,9 +540,9 @@ def fill(data):
 
         finally:
             browser.close()
-    # Terminar el proxy local SOCKS5 si se levantó
-    if _pproxy_proc:
-        _pproxy_proc.terminate()
+    # Apagar el relay SOCKS5 local si se levantó
+    if _socks5_stop:
+        _socks5_stop.set()
 
 
 if __name__ == "__main__":
