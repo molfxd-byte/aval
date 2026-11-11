@@ -11,6 +11,7 @@ export const env = {
   paymentAutomationUrl: process.env.PAYMENT_AUTOMATION_URL ?? '',
   proxyHost: process.env.PROXY_HOST ?? '',
   proxyPort: process.env.PROXY_PORT ?? '',
+  proxySocksPort: process.env.PROXY_SOCKS_PORT ?? '',
   proxyUsername: process.env.PROXY_USERNAME ?? '',
   proxyPassword: process.env.PROXY_PASSWORD ?? '',
 };

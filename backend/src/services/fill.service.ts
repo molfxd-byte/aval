@@ -29,6 +29,7 @@ export function executeFillReal(data: FillRequest): Promise<FillResponse> {
         ...process.env,
         PROXY_HOST: env.proxyHost,
         PROXY_PORT: env.proxyPort,
+        PROXY_SOCKS_PORT: env.proxySocksPort,
         PROXY_USERNAME: env.proxyUsername,
         PROXY_PASSWORD: env.proxyPassword,
         PAYMENT_AUTOMATION_URL: env.paymentAutomationUrl,

@@ -141,39 +141,52 @@ def fill(data):
     # Configurar proxy desde variables de entorno
     proxy_host = os.environ.get("PROXY_HOST", "").strip()
     proxy_port = os.environ.get("PROXY_PORT", "").strip()
+    proxy_socks_port = os.environ.get("PROXY_SOCKS_PORT", "").strip()
     proxy_user = os.environ.get("PROXY_USERNAME", "").strip()
     proxy_pass = os.environ.get("PROXY_PASSWORD", "").strip()
 
     proxy_config = None
     proxy_ip = None
-    if proxy_host and proxy_port:
-        # Intentar hasta 3 veces obtener una IP residencial funcional
+
+    # Preferir SOCKS5 (evita ERR_TUNNEL_CONNECTION_FAILED en Linux Docker)
+    # Chromium en Linux falla con HTTP CONNECT por negociación HTTP/2 (ALPN)
+    # SOCKS5 opera a nivel TCP, sin CONNECT tunneling → siempre funciona
+    use_socks5 = bool(proxy_host and proxy_socks_port)
+    has_proxy = proxy_host and (proxy_socks_port or proxy_port)
+
+    if has_proxy:
         for intento in range(1, 4):
             session_id = f"s{int(time.time())}_{intento}"
             full_pass = f"{proxy_pass}_session-{session_id}" if proxy_pass else ""
-            proxy_url_auth = f"http://{proxy_user}:{full_pass}@{proxy_host}:{proxy_port}"
 
             try:
                 import requests as _req
-                _proxies = {
-                    "http": proxy_url_auth,
-                    "https": proxy_url_auth,
-                }
-                # Verificar tanto salida externa como HTTPS CONNECT
+                if use_socks5:
+                    # SOCKS5h: el proxy resuelve el DNS (evita leaks y bloqueos)
+                    socks_url = f"socks5h://{proxy_user}:{full_pass}@{proxy_host}:{proxy_socks_port}"
+                    _proxies = {"http": socks_url, "https": socks_url}
+                    pw_server = f"socks5://{proxy_host}:{proxy_socks_port}"
+                    proto_label = "SOCKS5"
+                else:
+                    http_url = f"http://{proxy_user}:{full_pass}@{proxy_host}:{proxy_port}"
+                    _proxies = {"http": http_url, "https": http_url}
+                    pw_server = f"http://{proxy_host}:{proxy_port}"
+                    proto_label = "HTTP"
+
                 r = _req.get(
                     "https://ipv4.icanhazip.com",
                     proxies=_proxies,
-                    timeout=8,
+                    timeout=10,
                     headers={"User-Agent": "Mozilla/5.0"}
                 )
                 if r.status_code == 200 and r.text.strip():
                     proxy_ip = r.text.strip()
                     proxy_config = {
-                        "server": f"http://{proxy_host}:{proxy_port}",
+                        "server": pw_server,
                         "username": proxy_user,
                         "password": full_pass,
                     }
-                    _log(f"Proxy asignado exitosamente (intento {intento}) → IP: {proxy_ip}")
+                    _log(f"Proxy {proto_label} asignado exitosamente (intento {intento}) → IP: {proxy_ip}")
                     break
             except Exception as e:
                 _log(f"Intento {intento}/3 con IP falló ({e}), rotando nodo...")
