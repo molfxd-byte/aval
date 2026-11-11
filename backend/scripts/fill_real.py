@@ -151,21 +151,28 @@ def fill(data):
         full_pass = f"{proxy_pass}_session-{session_id}" if proxy_pass else ""
         proxy_url_auth = f"http://{proxy_user}:{full_pass}@{proxy_host}:{proxy_port}"
 
-        # Verificar conectividad del proxy con urllib (stdlib, sin dependencias)
+        # Verificar con HTTPS para confirmar que el CONNECT tunnel funciona
+        # (urllib HTTP no prueba tunneling; requests con https sí)
         try:
-            import urllib.request as _urllib
-            _handler = _urllib.ProxyHandler({"http": proxy_url_auth, "https": proxy_url_auth})
-            _opener = _urllib.build_opener(_handler)
-            _opener.addheaders = [("User-Agent", "curl/7.88")]
-            proxy_ip = _opener.open("http://ipv4.icanhazip.com", timeout=8).read().decode().strip()
-            _log(f"Proxy OK → IP asignada: {proxy_ip} (sesión: {session_id})")
+            import requests as _req
+            _proxies = {
+                "http":  proxy_url_auth,
+                "https": proxy_url_auth,
+            }
+            proxy_ip = _req.get(
+                "https://ipv4.icanhazip.com",
+                proxies=_proxies,
+                timeout=10,
+                verify=True,
+            ).text.strip()
             proxy_config = {
                 "server": f"http://{proxy_host}:{proxy_port}",
                 "username": proxy_user,
                 "password": full_pass,
             }
+            _log(f"Proxy CONNECT OK → IP asignada: {proxy_ip} (sesión: {session_id})")
         except Exception as e:
-            _log(f"ADVERTENCIA: proxy no alcanzable ({e}). Continuando sin proxy.")
+            _log(f"ADVERTENCIA: proxy HTTPS no alcanzable ({e}). Continuando sin proxy.")
     else:
         _log("Sin proxy configurado, conexión directa.")
 
