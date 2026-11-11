@@ -185,13 +185,21 @@ def fill(data):
         _log("Sin proxy configurado, conexión directa.")
 
     with sync_playwright() as p:
+        launch_args = [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--ignore-certificate-errors",
+            "--disable-blink-features=AutomationControlled",
+        ]
         browser = p.chromium.launch(
             headless=headless_mode,
             proxy=proxy_config,
-            args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
+            args=launch_args
         )
         context = browser.new_context(
-            viewport={"width": 1100, "height": 1000}
+            viewport={"width": 1100, "height": 1000},
+            ignore_https_errors=True
         )
         page = context.new_page()
 
