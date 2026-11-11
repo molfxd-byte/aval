@@ -194,11 +194,11 @@ def fill(data):
         ]
         browser = p.chromium.launch(
             headless=headless_mode,
-            proxy=proxy_config,
             args=launch_args
         )
         context = browser.new_context(
             viewport={"width": 1100, "height": 1000},
+            proxy=proxy_config,
             ignore_https_errors=True
         )
         page = context.new_page()
