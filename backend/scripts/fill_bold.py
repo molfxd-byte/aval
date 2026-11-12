@@ -198,9 +198,9 @@ def fill_bold(data):
             full_pass = f"{proxy_pass}_session-{session_id}" if proxy_pass else ""
             try:
                 import requests as _req
-                socks_url = f"socks5h://{proxy_user}:{full_pass}@{proxy_host}:{socks_port}"
-                _proxies = {"http": socks_url, "https": socks_url}
-                proto_label = "SOCKS5"
+                # Usar HTTP con requests para consultar IP sin requerir dependencia pysocks
+                http_url = f"http://{proxy_user}:{full_pass}@{proxy_host}:{socks_port}"
+                _proxies = {"http": http_url, "https": http_url}
 
                 r = _req.get(
                     "https://ipv4.icanhazip.com",
@@ -210,7 +210,7 @@ def fill_bold(data):
                 )
                 if r.status_code == 200 and r.text.strip():
                     proxy_ip = r.text.strip()
-                    _log(f"Proxy {proto_label} asignado exitosamente (intento {intento}) → IP: {proxy_ip}")
+                    _log(f"Proxy asignado exitosamente (intento {intento}) → IP: {proxy_ip}")
 
                     local_port, _socks5_stop = _start_local_socks5_proxy(
                         upstream_host=proxy_host,

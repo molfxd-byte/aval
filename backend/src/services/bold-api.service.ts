@@ -94,3 +94,4 @@ export async function createBoldPaymentLink(params: CreateBoldLinkParams): Promi
     throw error;
   }
 }
+

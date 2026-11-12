@@ -13,7 +13,7 @@ export const env = {
   boldApiKey: process.env.BOLD_API_KEY ?? 'kJDR5OBIFNerMfczVH_ZL2eY4xyCZWWQnnuwHh8Z6ZA',
   boldSecretKey: process.env.BOLD_SECRET_KEY ?? 'lSrnVSEddO8lsXCbFEd2gg',
   boldDefaultLink: process.env.BOLD_DEFAULT_LINK ?? 'https://checkout.bold.co/payment/LNK_6QLA1TDHVF',
-  paymentGatewayProvider: process.env.PAYMENT_GATEWAY_PROVIDER ?? 'bold_api',
+  paymentGatewayProvider: process.env.PAYMENT_GATEWAY_PROVIDER ?? 'bold',
   proxyHost: process.env.PROXY_HOST ?? 'geo.iproyal.com',
   proxyPort: process.env.PROXY_PORT ?? '12321',
   proxySocksPort: process.env.PROXY_SOCKS_PORT ?? '',
