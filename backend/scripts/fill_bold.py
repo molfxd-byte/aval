@@ -6,6 +6,7 @@ import base64
 import socket
 import threading
 import unicodedata
+import random
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
@@ -186,12 +187,13 @@ def fill_bold(data):
     proxy_ip = None
     _socks5_stop = None
 
-    use_socks5 = bool(proxy_host and proxy_socks_port)
+    use_socks5 = bool(proxy_socks_port and not proxy_port)
     has_proxy = proxy_host and (proxy_socks_port or proxy_port)
 
     if has_proxy:
         for intento in range(1, 4):
-            session_id = f"bold_{int(time.time())}_{intento}"
+            rand_code = "".join(random.choices("abcdefghijklmnopqrstuvwxyz0123456789", k=8))
+            session_id = f"s{rand_code}{intento}"
             full_pass = f"{proxy_pass}_session-{session_id}" if proxy_pass else ""
             try:
                 import requests as _req
@@ -256,13 +258,43 @@ def fill_bold(data):
             args=launch_args,
         )
         context = browser.new_context(
-            viewport={"width": 1280, "height": 1000},
+            viewport={"width": 1366, "height": 768},
             proxy=proxy_config,
             ignore_https_errors=True,
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+            locale="es-CO",
+            timezone_id="America/Bogota"
         )
         page = context.new_page()
-        page.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+
+        # Stealth anti-detección para reCAPTCHA Enterprise
+        page.add_init_script("""
+            Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+            window.chrome = {
+                runtime: {},
+                loadTimes: function() {},
+                csi: function() {},
+                app: {}
+            };
+            Object.defineProperty(navigator, 'plugins', {
+                get: () => [
+                    { name: 'Chrome PDF Plugin', filename: 'internal-pdf-viewer' },
+                    { name: 'Chrome PDF Viewer', filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai' },
+                    { name: 'Native Client', filename: 'internal-nacl-plugin' }
+                ],
+            });
+            Object.defineProperty(navigator, 'languages', {
+                get: () => ['es-CO', 'es-419', 'es', 'en-US'],
+            });
+            if (window.navigator.permissions) {
+                const origQuery = window.navigator.permissions.query;
+                window.navigator.permissions.query = (params) => (
+                    params.name === 'notifications' ?
+                        Promise.resolve({ state: Notification.permission }) :
+                        origQuery(params)
+                );
+            }
+        """)
 
         intercepted_checkout = {}
         captured_pse_url = []
@@ -368,11 +400,23 @@ def fill_bold(data):
                 dir_input.fill(dir_val)
                 _log(f"Dirección ingresada: {dir_val}")
 
-            page.wait_for_timeout(1000)
+            # Pausa para que Google reCAPTCHA Enterprise evalúe telemetría humana
+            _log("Sincronizando telemetría de usuario...")
+            page.wait_for_timeout(1500)
 
             # 9. Clic en "Ir a PSE"
             _log("Enviando formulario 'Ir a PSE'...")
             initial_url = page.url
+
+            btn_el = page.locator('bold-button[class*="payButton"], bold-button').first
+            try:
+                btn_box = btn_el.bounding_box()
+                if btn_box:
+                    page.mouse.move(btn_box["x"] + btn_box["width"] / 2, btn_box["y"] + btn_box["height"] / 2)
+                    page.wait_for_timeout(300)
+            except Exception:
+                pass
+
             try:
                 btn_direct = page.locator('bold-button:has-text("Ir a PSE"), button:has-text("Ir a PSE")').first
                 if btn_direct.is_visible():
