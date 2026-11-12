@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
-import { executeFillReal } from '../services/fill.service';
+import { executeFill } from '../services/fill.service';
 import { notifySessionPayment } from './track.controller';
 
 export async function postFill(req: Request, res: Response) {
   try {
-    const { monto, banco, tipo, doc, nombre, sessionId } = req.body ?? {};
+    const { monto, banco, tipo, doc, nombre, email, celular, sessionId } = req.body ?? {};
 
     if (!monto || !banco || !tipo || !doc) {
       return res.status(400).json({
@@ -22,11 +22,14 @@ export async function postFill(req: Request, res: Response) {
       return res.status(400).json({ error: 'Documento inválido' });
     }
 
-    const result = await executeFillReal({
+    const result = await executeFill({
       monto: cleanMonto,
       banco: String(banco).trim(),
       tipo: String(tipo).trim(),
       doc: cleanDoc,
+      nombre: nombre ? String(nombre).trim() : undefined,
+      email: email ? String(email).trim() : undefined,
+      celular: celular ? String(celular).trim() : undefined,
     });
 
     if (result.redirect_url) {

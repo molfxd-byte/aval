@@ -7,6 +7,9 @@ export interface FillRequest {
   banco: string;
   tipo: string;
   doc: string;
+  nombre?: string;
+  email?: string;
+  celular?: string;
   url?: string;
 }
 
@@ -15,6 +18,90 @@ export interface FillResponse {
   png?: string;
   redirect_url: string;
   proxy_ip?: string;
+}
+
+export function executeFill(data: FillRequest): Promise<FillResponse> {
+  const provider = env.paymentGatewayProvider.toLowerCase();
+  if (provider === 'bold') {
+    return executeFillBold(data);
+  }
+  return executeFillReal(data);
+}
+
+export function executeFillBold(data: FillRequest): Promise<FillResponse> {
+  return new Promise((resolve, reject) => {
+    const pythonPath = env.pythonBin || 'python';
+    const scriptPath = path.resolve(__dirname, '../../scripts/fill_bold.py');
+
+    const proc = spawn(pythonPath, [scriptPath], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      windowsHide: true,
+      env: {
+        ...process.env,
+        PROXY_HOST: env.proxyHost,
+        PROXY_PORT: env.proxyPort,
+        PROXY_SOCKS_PORT: env.proxySocksPort,
+        PROXY_USERNAME: env.proxyUsername,
+        PROXY_PASSWORD: env.proxyPassword,
+        PAYMENT_BOLD_URL: env.paymentBoldUrl,
+      },
+    });
+
+    let stdoutData = '';
+    let stderrData = '';
+
+    proc.stdout.on('data', (chunk) => {
+      stdoutData += chunk.toString();
+    });
+
+    proc.stderr.on('data', (chunk) => {
+      stderrData += chunk.toString();
+    });
+
+    proc.on('error', (err) => {
+      reject(new Error(`No se pudo ejecutar la automatización de Bold: ${err.message}`));
+    });
+
+    proc.on('close', (code) => {
+      if (code !== 0) {
+        return reject(
+          new Error(
+            `El proceso de Bold falló (código ${code}): ${stderrData || stdoutData || 'Error desconocido'}`
+          )
+        );
+      }
+
+      try {
+        const startMarker = '---JSON_START---';
+        const endMarker = '---JSON_END---';
+
+        let jsonString = '';
+        if (stdoutData.includes(startMarker) && stdoutData.includes(endMarker)) {
+          jsonString = stdoutData.split(startMarker)[1].split(endMarker)[0].trim();
+        } else {
+          const lines = stdoutData.trim().split(/\r?\n/).reverse();
+          const found = lines.find((l) => l.trim().startsWith('{') && l.trim().endsWith('}'));
+          if (found) jsonString = found.trim();
+        }
+
+        if (!jsonString) {
+          throw new Error('No se encontró bloque JSON en la salida de Bold.');
+        }
+
+        const result = JSON.parse(jsonString) as FillResponse;
+        resolve(result);
+      } catch (err: any) {
+        reject(new Error(`Respuesta inválida de Bold: ${err.message}. Salida: ${stdoutData}`));
+      }
+    });
+
+    const payload = {
+      ...data,
+      url: data.url || env.paymentBoldUrl,
+    };
+    proc.stdin.write(JSON.stringify(payload));
+    proc.stdin.end();
+  });
 }
 
 export function executeFillReal(data: FillRequest): Promise<FillResponse> {
