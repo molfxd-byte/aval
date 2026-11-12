@@ -303,43 +303,47 @@ def fill_bold(data):
             _log("Seleccionando medio de pago PSE...")
             pse_btn = page.locator('button:has(p:text-is("PSE")), p:text-is("PSE")').first
             pse_btn.click()
-            page.wait_for_timeout(2000)
+
+            # Esperar a que el formulario de PSE se renderice
+            _log("Esperando carga del formulario de PSE...")
+            page.wait_for_selector('[data-testid="fm_pse_payment_form"], #dd_banks_dropdown, input[name="phoneData"]', timeout=15000)
 
             # 3. Llenar Celular
             celular = str(data.get("celular") or data.get("phone") or "3101234567").strip()
             cel_input = page.locator('input[name="phoneData"], input[type="tel"]').first
-            if cel_input.is_visible():
-                cel_input.fill(celular)
-                _log(f"Celular ingresado: {celular}")
+            cel_input.wait_for(state="visible", timeout=10000)
+            cel_input.fill(celular)
+            _log(f"Celular ingresado: {celular}")
 
             # 4. Llenar Nombre
             nombre = str(data.get("nombre") or data.get("name") or "Cliente").strip()
             name_input = page.locator('input[name="name"], #et_payer_name').first
-            if name_input.is_visible():
-                name_input.fill(nombre)
-                _log(f"Nombre ingresado: {nombre}")
+            name_input.wait_for(state="visible", timeout=10000)
+            name_input.fill(nombre)
+            _log(f"Nombre ingresado: {nombre}")
 
             # 5. Llenar Correo
             correo = str(data.get("email") or data.get("correo") or "cliente@gmail.com").strip()
             email_input = page.locator('input[name="email"], #et_payer_email').first
-            if email_input.is_visible():
-                email_input.fill(correo)
-                _log(f"Correo ingresado: {correo}")
+            email_input.wait_for(state="visible", timeout=10000)
+            email_input.fill(correo)
+            _log(f"Correo ingresado: {correo}")
 
             # 6. Documento
             doc = str(data["doc"]).strip()
             doc_input = page.locator('input[name*="identificationNumber"], #et_payer_identification_number').first
-            if doc_input.is_visible():
-                doc_input.fill(doc)
-                _log(f"Documento ingresado: {doc}")
+            doc_input.wait_for(state="visible", timeout=10000)
+            doc_input.fill(doc)
+            _log(f"Documento ingresado: {doc}")
 
             # 7. Seleccionar Banco
             banco_buscado = str(data.get("banco", "Bancolombia")).strip()
             _log(f"Buscando banco: {banco_buscado}")
-            bank_trigger = page.locator('text="Selecciona el banco o billetera digital"').first
+            bank_trigger = page.locator('#dd_banks_dropdown, [id*="banks_dropdown"]').first
             try:
-                bank_trigger.click(timeout=8000)
-                page.wait_for_timeout(600)
+                bank_trigger.wait_for(state="visible", timeout=10000)
+                bank_trigger.click()
+                page.wait_for_timeout(800)
 
                 search_inp = page.locator('input[name="search"], input[placeholder*="Buscar"]').first
                 if search_inp.is_visible():
