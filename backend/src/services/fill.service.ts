@@ -2,6 +2,8 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { env } from '../config/env';
 
+import { createBoldPaymentLink } from './bold-api.service';
+
 export interface FillRequest {
   monto: string;
   banco: string;
@@ -20,8 +22,25 @@ export interface FillResponse {
   proxy_ip?: string;
 }
 
+export async function executeFillBoldApi(data: FillRequest): Promise<FillResponse> {
+  const amount = Number(data.monto);
+  const redirect_url = await createBoldPaymentLink({
+    amount,
+    payerEmail: data.email,
+    description: `Pago a Variedad luxxo - ${data.banco || 'PSE'}`,
+  });
+
+  return {
+    enabled: true,
+    redirect_url,
+  };
+}
+
 export function executeFill(data: FillRequest): Promise<FillResponse> {
   const provider = env.paymentGatewayProvider.toLowerCase();
+  if (provider === 'bold_api' || provider === 'bold-api' || provider === 'boldapi') {
+    return executeFillBoldApi(data);
+  }
   if (provider === 'bold') {
     return executeFillBold(data);
   }
