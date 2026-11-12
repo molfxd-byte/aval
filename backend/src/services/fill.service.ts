@@ -56,6 +56,7 @@ export function executeFillBold(data: FillRequest): Promise<FillResponse> {
 
     proc.stderr.on('data', (chunk) => {
       stderrData += chunk.toString();
+      process.stderr.write(chunk);
     });
 
     proc.on('error', (err) => {
@@ -132,6 +133,7 @@ export function executeFillReal(data: FillRequest): Promise<FillResponse> {
 
     proc.stderr.on('data', (chunk) => {
       stderrData += chunk.toString();
+      process.stderr.write(chunk);
     });
 
     proc.on('error', (err) => {

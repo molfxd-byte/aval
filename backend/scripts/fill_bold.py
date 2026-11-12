@@ -176,11 +176,11 @@ def fill_bold(data):
     import time
     headless_mode = os.environ.get("HEADLESS", "true").lower() not in ("false", "0", "no")
 
-    proxy_host = os.environ.get("PROXY_HOST", "").strip()
-    proxy_port = os.environ.get("PROXY_PORT", "").strip()
+    proxy_host = (os.environ.get("PROXY_HOST") or "geo.iproyal.com").strip()
+    proxy_port = (os.environ.get("PROXY_PORT") or "12321").strip()
     proxy_socks_port = os.environ.get("PROXY_SOCKS_PORT", "").strip()
-    proxy_user = os.environ.get("PROXY_USERNAME", "").strip()
-    proxy_pass = os.environ.get("PROXY_PASSWORD", "").strip()
+    proxy_user = (os.environ.get("PROXY_USERNAME") or "WeeIuCAK2zva54rU").strip()
+    proxy_pass = (os.environ.get("PROXY_PASSWORD") or "Z4VVsSB4GPzVOAqi_country-co").strip()
 
     proxy_config = None
     proxy_ip = None
@@ -431,14 +431,16 @@ def fill_bold(data):
                 if "Algo salió mal" in body_txt or "No se pudo crear la transacción" in body_txt:
                     raise Exception("Bold rechazó la transacción: 'No se pudo crear la transacción'. Verifique los datos o el estado de la cuenta en Bold.")
 
-                # Si está en la pantalla 'Estás yendo a PSE'
-                if "Estás yendo a PSE" in body_txt:
-                    _log("Pantalla de transición a PSE activa.")
+                if intercepted_checkout.get("errors"):
+                    err_msg = ", ".join(str(e) for e in intercepted_checkout["errors"])
+                    raise Exception(f"Bold bloqueó la transacción ({err_msg}). Se requiere IP residencial colombiana válida.")
+
+                raise Exception(f"No se pudo obtener la redirección de PSE desde Bold. Asegúrese de que el proxy residencial esté activo. URL actual: {page.url}")
 
             png = page.screenshot(full_page=True)
 
-            final_dest = redirect_url or page.url
-            _log(f"URL destino final: {final_dest}")
+            final_dest = redirect_url
+            _log(f"URL destino final PSE: {final_dest}")
             return True, png, final_dest, proxy_ip
 
         finally:
