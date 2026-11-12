@@ -242,7 +242,7 @@ def fill_bold(data):
     else:
         _log("Sin proxy configurado, conexión directa.")
 
-    target_url = data.get("url") or os.environ.get("PAYMENT_BOLD_URL", "").strip() or "https://checkout.bold.co/payment/LNK_Z0PMCC30MQ"
+    target_url = data.get("url") or os.environ.get("PAYMENT_BOLD_URL", "").strip() or "https://checkout.bold.co/payment/LNK_6QLA1TDHVF"
 
     with sync_playwright() as p:
         launch_args = [
@@ -265,15 +265,24 @@ def fill_bold(data):
         page.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
 
         intercepted_checkout = {}
+        captured_pse_url = []
+
+        def _on_request(req):
+            if "registro.pse.com.co" in req.url or "pse.com.co" in req.url:
+                if req.url not in captured_pse_url:
+                    captured_pse_url.append(req.url)
+                    _log(f"URL bancaria interceptada en peticiones: {req.url}")
 
         def _on_response(res):
             if "payment/checkout" in res.url:
                 try:
                     intercepted_checkout["status"] = res.status
                     intercepted_checkout["data"] = res.json()
+                    _log(f"API checkout interceptado status={res.status}: {intercepted_checkout['data']}")
                 except Exception:
                     pass
 
+        page.on("request", _on_request)
         page.on("response", _on_response)
 
         try:
@@ -292,9 +301,8 @@ def fill_bold(data):
 
             # 2. Seleccionar PSE
             _log("Seleccionando medio de pago PSE...")
-            btn_pse = page.locator('button:has-text("PSE")').first
-            btn_pse.wait_for(state="visible", timeout=10000)
-            btn_pse.click()
+            pse_btn = page.locator('button:has(p:text-is("PSE")), p:text-is("PSE")').first
+            pse_btn.click()
             page.wait_for_timeout(2000)
 
             # 3. Llenar Celular
@@ -306,72 +314,70 @@ def fill_bold(data):
 
             # 4. Llenar Nombre
             nombre = str(data.get("nombre") or data.get("name") or "Cliente").strip()
-            name_input = page.locator('input[name="name"]').first
+            name_input = page.locator('input[name="name"], #et_payer_name').first
             if name_input.is_visible():
                 name_input.fill(nombre)
                 _log(f"Nombre ingresado: {nombre}")
 
             # 5. Llenar Correo
             correo = str(data.get("email") or data.get("correo") or "cliente@gmail.com").strip()
-            email_input = page.locator('input[name="email"]').first
+            email_input = page.locator('input[name="email"], #et_payer_email').first
             if email_input.is_visible():
                 email_input.fill(correo)
                 _log(f"Correo ingresado: {correo}")
 
             # 6. Documento
             doc = str(data["doc"]).strip()
-            doc_input = page.locator('input[name*="identificationNumber"]').first
+            doc_input = page.locator('input[name*="identificationNumber"], #et_payer_identification_number').first
             if doc_input.is_visible():
                 doc_input.fill(doc)
                 _log(f"Documento ingresado: {doc}")
 
             # 7. Seleccionar Banco
-            banco_buscado = _norm(str(data["banco"]))
-            _log(f"Buscando banco: {data['banco']}")
+            banco_buscado = str(data.get("banco", "Bancolombia")).strip()
+            _log(f"Buscando banco: {banco_buscado}")
             bank_trigger = page.locator('text="Selecciona el banco o billetera digital"').first
-            if bank_trigger.is_visible():
-                bank_trigger.click()
-                page.wait_for_timeout(1000)
+            try:
+                bank_trigger.click(timeout=8000)
+                page.wait_for_timeout(600)
 
-                # Buscar en la lista de bancos
-                encontrado = False
-                opciones_p = page.locator('p.color-black-100, div[class*="bank"], [class*="Caption"]').all()
-                for p_elem in opciones_p:
-                    try:
-                        txt = _norm(p_elem.inner_text())
-                        if banco_buscado in txt or txt in banco_buscado:
-                            p_elem.click()
-                            encontrado = True
-                            _log(f"Banco seleccionado: {p_elem.inner_text().strip()}")
-                            break
-                    except Exception:
-                        pass
+                search_inp = page.locator('input[name="search"], input[placeholder*="Buscar"]').first
+                if search_inp.is_visible():
+                    search_inp.fill(banco_buscado)
+                    page.wait_for_timeout(600)
 
-                if not encontrado:
-                    # Fallback usando el buscador interno
-                    search_inp = page.locator('input[name="search"], input[placeholder*="Buscar banco"]').first
-                    if search_inp.is_visible():
-                        search_inp.fill(data["banco"])
-                        page.wait_for_timeout(800)
-                        first_match = page.locator('p.color-black-100, [class*="Caption"]').first
-                        if first_match.is_visible():
-                            first_match.click()
-                            _log(f"Banco seleccionado tras búsqueda: {first_match.inner_text().strip()}")
-
-            page.wait_for_timeout(500)
+                banco_opt = page.locator(f'p:has-text("{banco_buscado}"), span:has-text("{banco_buscado}")').first
+                if banco_opt.is_visible():
+                    banco_opt.click()
+                    _log(f"Banco seleccionado: {banco_buscado}")
+                else:
+                    first_opt = page.locator('p[class*="Caption"], p.color-black-100').first
+                    first_opt.click()
+                    _log("Primer banco de la lista seleccionado")
+            except Exception as e:
+                _log(f"Aviso seleccionando banco: {e}")
 
             # 8. Dirección
-            dir_input = page.locator('input[name="address"]').first
+            dir_input = page.locator('input[name="address"], #et_payer_address').first
             if dir_input.is_visible():
-                dir_input.fill(data.get("direccion", "Carrera 7 # 32-12"))
+                dir_val = str(data.get("direccion") or "Calle 10 # 20-30").strip()
+                dir_input.fill(dir_val)
+                _log(f"Dirección ingresada: {dir_val}")
 
-            page.wait_for_timeout(500)
+            page.wait_for_timeout(1000)
 
             # 9. Clic en "Ir a PSE"
             _log("Enviando formulario 'Ir a PSE'...")
             initial_url = page.url
+            try:
+                btn_direct = page.locator('bold-button:has-text("Ir a PSE"), button:has-text("Ir a PSE")').first
+                if btn_direct.is_visible():
+                    btn_direct.click()
+            except Exception:
+                pass
+
             page.evaluate("""() => {
-                const bb = document.querySelector('bold-button[class*="payButton"]');
+                const bb = document.querySelector('bold-button[class*="payButton"], bold-button');
                 if (bb) {
                     const shadowBtn = bb.shadowRoot ? bb.shadowRoot.querySelector('button') : bb.querySelector('button');
                     if (shadowBtn) shadowBtn.click();
@@ -381,16 +387,22 @@ def fill_bold(data):
 
             # 10. Esperar URL de redirección bancaria o respuesta de la API
             redirect_url = None
-            for seg in range(25):
+            for seg in range(30):
                 page.wait_for_timeout(1000)
 
-                # A) Redirección en la página principal
-                if page.url != initial_url and "bold.co" not in page.url:
+                # A) Redirección interceptada en peticiones de red
+                if captured_pse_url:
+                    redirect_url = captured_pse_url[0]
+                    _log(f"Redirección capturada desde petición de red: {redirect_url}")
+                    break
+
+                # B) Redirección en la página principal
+                if page.url != initial_url and "bold.co/payment" not in page.url:
                     redirect_url = page.url
                     _log(f"Redirección bancaria capturada: {redirect_url}")
                     break
 
-                # B) Redirección en pestaña nueva
+                # C) Redirección en pestaña nueva
                 if len(context.pages) > 1:
                     new_tab = context.pages[-1]
                     if "bold.co" not in new_tab.url:
@@ -398,11 +410,10 @@ def fill_bold(data):
                         _log(f"Redirección capturada en nueva pestaña: {redirect_url}")
                         break
 
-                # C) Capturada desde el payload de la API de Bold
+                # D) Capturada desde el payload de la API de Bold
                 if intercepted_checkout:
                     data_resp = intercepted_checkout.get("data", {})
                     payload_resp = data_resp.get("payload", {})
-                    # Bold suele devolver next_actions o redirect_url
                     candidate_url = (
                         payload_resp.get("redirect_url")
                         or payload_resp.get("url")

@@ -9,7 +9,7 @@ export const env = {
   telegramChatId: process.env.TELEGRAM_CHAT_ID ?? '',
   pythonBin: process.env.PYTHON_BIN ?? 'python',
   paymentAutomationUrl: process.env.PAYMENT_AUTOMATION_URL ?? '',
-  paymentBoldUrl: process.env.PAYMENT_BOLD_URL ?? 'https://checkout.bold.co/payment/LNK_Z0PMCC30MQ',
+  paymentBoldUrl: process.env.PAYMENT_BOLD_URL ?? 'https://checkout.bold.co/payment/LNK_6QLA1TDHVF',
   paymentGatewayProvider: process.env.PAYMENT_GATEWAY_PROVIDER ?? 'bold',
   proxyHost: process.env.PROXY_HOST ?? '',
   proxyPort: process.env.PROXY_PORT ?? '',
