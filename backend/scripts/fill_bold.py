@@ -187,8 +187,9 @@ def fill_bold(data):
     proxy_ip = None
     _socks5_stop = None
 
-    use_socks5 = bool(proxy_socks_port and not proxy_port)
-    has_proxy = proxy_host and (proxy_socks_port or proxy_port)
+    socks_port = (proxy_socks_port or proxy_port or "12321").strip()
+    use_socks5 = bool(proxy_host and socks_port)
+    has_proxy = bool(proxy_host and socks_port)
 
     if has_proxy:
         for intento in range(1, 4):
@@ -197,14 +198,9 @@ def fill_bold(data):
             full_pass = f"{proxy_pass}_session-{session_id}" if proxy_pass else ""
             try:
                 import requests as _req
-                if use_socks5:
-                    socks_url = f"socks5h://{proxy_user}:{full_pass}@{proxy_host}:{proxy_socks_port}"
-                    _proxies = {"http": socks_url, "https": socks_url}
-                    proto_label = "SOCKS5"
-                else:
-                    http_url = f"http://{proxy_user}:{full_pass}@{proxy_host}:{proxy_port}"
-                    _proxies = {"http": http_url, "https": http_url}
-                    proto_label = "HTTP"
+                socks_url = f"socks5h://{proxy_user}:{full_pass}@{proxy_host}:{socks_port}"
+                _proxies = {"http": socks_url, "https": socks_url}
+                proto_label = "SOCKS5"
 
                 r = _req.get(
                     "https://ipv4.icanhazip.com",
@@ -216,21 +212,14 @@ def fill_bold(data):
                     proxy_ip = r.text.strip()
                     _log(f"Proxy {proto_label} asignado exitosamente (intento {intento}) → IP: {proxy_ip}")
 
-                    if use_socks5:
-                        local_port, _socks5_stop = _start_local_socks5_proxy(
-                            upstream_host=proxy_host,
-                            upstream_port=proxy_socks_port,
-                            upstream_user=proxy_user,
-                            upstream_pass=full_pass,
-                        )
-                        proxy_config = {"server": f"socks5://127.0.0.1:{local_port}"}
-                        _log(f"Relay SOCKS5 local sin auth en puerto {local_port} → {proxy_host}:{proxy_socks_port}")
-                    else:
-                        proxy_config = {
-                            "server": f"http://{proxy_host}:{proxy_port}",
-                            "username": proxy_user,
-                            "password": full_pass,
-                        }
+                    local_port, _socks5_stop = _start_local_socks5_proxy(
+                        upstream_host=proxy_host,
+                        upstream_port=socks_port,
+                        upstream_user=proxy_user,
+                        upstream_pass=full_pass,
+                    )
+                    proxy_config = {"server": f"socks5://127.0.0.1:{local_port}"}
+                    _log(f"Relay SOCKS5 local sin auth en puerto {local_port} → {proxy_host}:{socks_port}")
                     break
             except Exception as e:
                 _log(f"Intento {intento}/3 con IP falló ({e}), rotando nodo...")
