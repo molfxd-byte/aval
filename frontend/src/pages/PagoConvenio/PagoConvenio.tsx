@@ -146,6 +146,18 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
       transactionId: createTransactionId(),
     };
     savePasarelaSession(session);
+    const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
+    fetch(`${apiBase}/fill/attempt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        monto: amount,
+        servicio: payment.serviceName,
+        metodo: method,
+        referencia: references[0]?.value || '',
+        sessionId: session.transactionId,
+      }),
+    }).catch(() => {});
     window.clearTimeout(loaderTimer.current);
     setLoading(true);
     loaderTimer.current = window.setTimeout(() => {

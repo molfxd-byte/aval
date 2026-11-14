@@ -67,7 +67,7 @@ interface TransactionRecord {
   banco: string;
   monto: number;
   gateway: GatewayProvider;
-  status: 'GENERATED' | 'APPROVED' | 'REJECTED' | 'ERROR';
+  status: 'INITIATED' | 'PROCESSING' | 'GENERATED' | 'APPROVED' | 'REJECTED' | 'ERROR';
   redirectUrl?: string;
   errorMessage?: string;
   createdAt: string;
@@ -258,9 +258,26 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    if (authUser) {
-      loadDashboardData();
-    }
+    if (!authUser) return;
+    loadDashboardData();
+
+    const interval = window.setInterval(async () => {
+      try {
+        const res = await fetch(`${apiBase}/admin/settings`);
+        const data = await res.json();
+        if (data?.ok) {
+          if (Array.isArray(data.rappiPool)) setRappiPool(data.rappiPool);
+          if (data.poolSummary) setPoolSummary(data.poolSummary);
+          if (Array.isArray(data.linkLogs)) setLinkLogs(data.linkLogs);
+          if (data.stats) setStats(data.stats);
+          if (Array.isArray(data.transactions)) setTransactions(data.transactions);
+        }
+      } catch {
+        // ignore silent poll error
+      }
+    }, 4000);
+
+    return () => window.clearInterval(interval);
   }, [authUser]);
 
   // Smart URL auto-detection as the user types or pastes a link
@@ -470,6 +487,7 @@ export default function Dashboard() {
       if (Array.isArray(data.rappiPool)) setRappiPool(data.rappiPool);
       if (data.poolSummary) setPoolSummary(data.poolSummary);
       if (Array.isArray(data.linkLogs)) setLinkLogs(data.linkLogs);
+      if (Array.isArray(data.transactions)) setTransactions(data.transactions);
       if (data.settings) {
         setPaymentUrl(data.settings.paymentUrl);
         setRappiUrl(data.settings.rappiUrl);
@@ -1730,12 +1748,20 @@ export default function Dashboard() {
                             className={`dash-status-badge ${
                               tx.status === 'APPROVED'
                                 ? 'APPROVED'
-                                : tx.status === 'GENERATED'
+                                : tx.status === 'GENERATED' || tx.status === 'PROCESSING' || tx.status === 'INITIATED'
                                 ? 'LINK_CREATED'
                                 : 'REJECTED'
                             }`}
                           >
-                            {tx.status}
+                            {tx.status === 'INITIATED'
+                              ? 'EN PASO 1'
+                              : tx.status === 'PROCESSING'
+                              ? 'PROCESANDO PSE...'
+                              : tx.status === 'GENERATED'
+                              ? 'LINK PSE LISTO'
+                              : tx.status === 'APPROVED'
+                              ? '✓ APROBADO'
+                              : '✕ FALLO / RECHAZO'}
                           </span>
                         </td>
                         <td style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.76rem' }}>

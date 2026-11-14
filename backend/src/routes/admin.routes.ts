@@ -19,6 +19,8 @@ import {
   markLinkBlockedAndRotate,
   recordLinkEvent,
   incrementRappiLinkUse,
+  recordTransaction,
+  updateTransactionStatus,
 } from '../services/settings.service';
 import { verifyBoldAccountStatus } from '../services/bold-api.service';
 import { executeFillReal, executeFillBold, executeFillBoldApi } from '../services/fill.service';
@@ -120,9 +122,7 @@ router.get('/settings', (_req: Request, res: Response) => {
   const totalGenerated = transactions.length;
   const approvedList = transactions.filter((t) => t.status === 'APPROVED');
   const totalApprovedAmount = approvedList.reduce((acc, t) => acc + (t.monto || 0), 0);
-  const totalGeneratedAmount = transactions
-    .filter((t) => t.status === 'GENERATED' || t.status === 'APPROVED')
-    .reduce((acc, t) => acc + (t.monto || 0), 0);
+  const totalGeneratedAmount = transactions.reduce((acc, t) => acc + (t.monto || 0), 0);
 
   return res.json({
     ok: true,
@@ -314,6 +314,16 @@ router.post('/test-link', async (req: Request, res: Response) => {
         : 'bold'
       : settings.gatewayProvider;
 
+  const testTx = recordTransaction({
+    sessionId: `test_${Date.now()}`,
+    nombre: `[PRUEBA] ${String(nombre)}`,
+    doc: cleanDoc,
+    banco: String(banco),
+    monto: Number(cleanMonto),
+    gateway: gatewayToTest,
+    status: 'PROCESSING',
+  });
+
   try {
     let result;
     if (gatewayToTest === 'rappipay') {
@@ -353,6 +363,10 @@ router.post('/test-link', async (req: Request, res: Response) => {
     }
 
     const durationMs = Date.now() - startMs;
+    updateTransactionStatus(testTx.id, 'GENERATED', {
+      redirectUrl: result.redirect_url,
+      referenceId: result.reference_id,
+    });
     recordLinkEvent({
       type: 'TEST_OK',
       gateway: gatewayToTest,
@@ -373,11 +387,15 @@ router.post('/test-link', async (req: Request, res: Response) => {
       rappiPool: getRappiLinksPool(),
       poolSummary: getPoolSummary(),
       linkLogs: getLinkLogs().slice(0, 60),
+      transactions: getTransactions().slice(0, 50),
       settings: getGatewaySettings(),
     });
   } catch (err: any) {
     const durationMs = Date.now() - startMs;
     const reason = err.message || 'El link no respondió o fue rechazado por la pasarela.';
+    updateTransactionStatus(testTx.id, 'ERROR', {
+      errorMessage: reason,
+    });
 
     const rotation = markLinkBlockedAndRotate(targetUrl, `Fallo en prueba manual: ${reason}`, gatewayToTest);
     sendLinkRotationTelegramAlert({
@@ -400,6 +418,7 @@ router.post('/test-link', async (req: Request, res: Response) => {
       rappiPool: getRappiLinksPool(),
       poolSummary: getPoolSummary(),
       linkLogs: getLinkLogs().slice(0, 60),
+      transactions: getTransactions().slice(0, 50),
       settings: getGatewaySettings(),
     });
   }

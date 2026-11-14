@@ -1,0 +1,14 @@
+[
+  {
+    "id": "TX_1794685601146_PS7C",
+    "sessionId": "test_1794685601146",
+    "nombre": "[PRUEBA] Carlos Rodriguez",
+    "doc": "1032456789",
+    "banco": "NEQUI",
+    "monto": 15000,
+    "gateway": "rappipay",
+    "status": "GENERATED",
+    "redirectUrl": "https://api.kushkipagos.com/transfer/v1/agent?token=2b18a4234e3943738b561607edfa5745&mid=20000000102117147000&rg=002",
+    "createdAt": "2026-11-14T19:46:41.146Z"
+  }
+]

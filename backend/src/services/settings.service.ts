@@ -28,7 +28,7 @@ export interface TransactionRecord {
   banco: string;
   monto: number;
   gateway: GatewayProvider;
-  status: 'GENERATED' | 'APPROVED' | 'REJECTED' | 'ERROR';
+  status: 'INITIATED' | 'PROCESSING' | 'GENERATED' | 'APPROVED' | 'REJECTED' | 'ERROR';
   redirectUrl?: string;
   errorMessage?: string;
   createdAt: string;
@@ -202,7 +202,6 @@ export function updateGatewaySettings(patch: Partial<GatewaySettings>): GatewayS
 }
 
 export function getTransactions(): TransactionRecord[] {
-  if (cachedTransactions) return cachedTransactions;
   ensureDataDir();
   if (fs.existsSync(TX_FILE)) {
     try {
@@ -244,7 +243,9 @@ export function updateTransactionStatus(
   extra?: Partial<TransactionRecord>
 ): void {
   const list = getTransactions();
-  const found = list.find((t) => t.referenceId === referenceOrId || t.id === referenceOrId);
+  const found = list.find(
+    (t) => t.referenceId === referenceOrId || t.id === referenceOrId || t.sessionId === referenceOrId
+  );
   if (found) {
     found.status = status;
     if (status === 'APPROVED') {

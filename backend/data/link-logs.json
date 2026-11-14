@@ -1,0 +1,13 @@
+[
+  {
+    "type": "TEST_OK",
+    "gateway": "rappipay",
+    "url": "https://linkdepagospse.rappipay.co/v9eMyD",
+    "nextUrl": "https://api.kushkipagos.com/transfer/v1/agent?token=2b18a4234e3943738b561607edfa5745&mid=20000000102117147000&rg=002",
+    "reason": "Prueba exitosa (41.2s) -> Redirección generada correctamente.",
+    "id": "LOG_1794685601146_PS7C",
+    "activeRemaining": 1,
+    "blockedTotal": 0,
+    "createdAt": "2026-11-14T19:46:41.146Z"
+  }
+]
