@@ -86,9 +86,22 @@ function detectUrlClientSide(rawUrl: string): {
 }
 
 export default function Dashboard() {
+  // ==================== THEME & VIEW STATE ====================
+  const [theme, setTheme] = useState<'editorial' | 'obsidian'>(() => {
+    return (localStorage.getItem('avalpay_dash_theme') as 'editorial' | 'obsidian') || 'editorial';
+  });
+  const [activeTab, setActiveTab] = useState<'all' | 'gateways' | 'transactions' | 'users'>('all');
+
+  const toggleTheme = () => {
+    const next = theme === 'editorial' ? 'obsidian' : 'editorial';
+    setTheme(next);
+    localStorage.setItem('avalpay_dash_theme', next);
+  };
+
   // ==================== AUTH STATE (PASSWORD ONLY) ====================
   const [authUser, setAuthUser] = useState<FirebaseAuthUser | null>(() => getCurrentAuthUser());
   const [password, setPassword] = useState('');
+  const [showPass, setShowPass] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
@@ -260,7 +273,7 @@ export default function Dashboard() {
 
       setSaveMessage({
         type: 'success',
-        text: `Pasarela actualizada en caliente a ${data.settings.gatewayProvider.toUpperCase()} (${data.settings.paymentUrl})`,
+        text: `Pasarela activa sincronizada a ${data.settings.gatewayProvider.toUpperCase()} (${data.settings.paymentUrl})`,
       });
     } catch (err: any) {
       setSaveMessage({
@@ -335,7 +348,7 @@ export default function Dashboard() {
       }
       setUserActionMsg({
         type: 'success',
-        text: `Usuario "${newUserName}" creado. Ya puede ingresar con la contraseña: ${newUserPassword}`,
+        text: `Acceso creado para "${newUserName}" con clave: ${newUserPassword}`,
       });
       setNewUserName('');
       setNewUserPassword('');
@@ -350,7 +363,7 @@ export default function Dashboard() {
   };
 
   const handleUpdateUserPassword = async (u: PanelUserRecord) => {
-    const nextPass = window.prompt(`Ingresa la nueva contraseña para "${u.name}":`, u.password);
+    const nextPass = window.prompt(`Nueva contraseña para "${u.name}":`, u.password);
     if (!nextPass || nextPass.trim() === u.password) return;
     setUserActionMsg(null);
     try {
@@ -390,7 +403,7 @@ export default function Dashboard() {
       setUsersList(data.users);
       setUserActionMsg({
         type: 'success',
-        text: `Acceso de "${u.name}" eliminado correctamente.`,
+        text: `Acceso de "${u.name}" revocado.`,
       });
     } catch (err: any) {
       setUserActionMsg({
@@ -400,54 +413,104 @@ export default function Dashboard() {
     }
   };
 
-  // ==================== RENDER LOGIN SCREEN (SOLO CONTRASEÑA) ====================
+  // ==================== RENDER VAULT LOGIN VIEW ====================
   if (!authUser) {
     const currentFbCfg = getFirebaseConfig();
     return (
-      <div className="dash-root">
-        <div className="dash-login-wrap">
-          <div className="dash-login-card">
-            <div className="dash-login-brand">
-              <div className="dash-brand-orb">AP</div>
-              <div>
-                <h1>AvalPay Control Center</h1>
-                <p>ACCESO PRIVADO // BOLD + RAPPIPAY</p>
+      <div className={`dash-root ${theme === 'obsidian' ? 'theme-obsidian' : ''}`}>
+        <div className="vault-wrap">
+          {/* LEFT EDITORIAL SHOWCASE */}
+          <aside className="vault-showcase">
+            <div className="vault-showcase-top">
+              <div className="vault-monogram">
+                <div className="vault-crest">A</div>
+                <span className="vault-monogram-text">AvalPay Private Suite</span>
+              </div>
+              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.75rem', color: '#8a847c' }}>
+                v3.4 // {currentFbCfg.projectId}
+              </span>
+            </div>
+
+            <div className="vault-hero-quote">
+              <div className="vault-hero-tag">
+                <span>✦</span> Orquestador Ejecutivo de Pasarelas
+              </div>
+              <h1>Control unificado para cobros en tiempo real.</h1>
+              <p>
+                Conmutación instantánea entre enlaces de <strong>RappiPay PSE</strong> y credenciales de{' '}
+                <strong>Bold API Oficial</strong> con rotación residencial colombiana y respaldo en Firebase.
+              </p>
+            </div>
+
+            <div className="vault-feature-pills">
+              <div className="vault-feature-item">
+                <strong>Auto-Detector Inteligente</strong>
+                <span>Reconoce links de RappiPay y Bold al pegarlos.</span>
+              </div>
+              <div className="vault-feature-item">
+                <strong>Rotación Residencial</strong>
+                <span>Sesiones limpias IPRoyal Colombia por cada cobro.</span>
+              </div>
+              <div className="vault-feature-item">
+                <strong>Acceso por Llave</strong>
+                <span>Credenciales administradas únicamente por el Admin.</span>
               </div>
             </div>
+          </aside>
 
-            <div className="dash-firebase-badge is-ready">
-              <span>●</span>
-              {`Seguridad Firebase Activa (${currentFbCfg.projectId})`}
+          {/* RIGHT VAULT AUTH PANE */}
+          <section className="vault-auth-pane">
+            <div style={{ position: 'absolute', top: '24px', right: '28px' }}>
+              <button type="button" className="atelier-icon-btn" onClick={toggleTheme}>
+                {theme === 'editorial' ? '☾ Modo Obsidiana' : '☀ Modo Marfil'}
+              </button>
             </div>
 
-            <p className="dash-login-desc">
-              Ingresa la <strong>contraseña de acceso</strong> asignada por el Administrador para entrar al panel de control de pasarelas.
-            </p>
-
-            {authError && <div className="dash-alert error">{authError}</div>}
-
-            <form onSubmit={handlePasswordLogin}>
-              <div className="dash-form-group">
-                <label className="dash-label">CONTRASEÑA DE ACCESO *</label>
-                <input
-                  type="password"
-                  className="dash-input mono"
-                  placeholder="Ingresa tu contraseña..."
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoFocus
-                  required
-                />
-                <p className="dash-hint">
-                  Solo usuarios autorizados por el Administrador pueden ingresar.
+            <div className="vault-card">
+              <div className="vault-card-header">
+                <div className="vault-status-chip">
+                  <span className="vault-status-dot" />
+                  Bóveda Firebase Conectada ({currentFbCfg.projectId})
+                </div>
+                <h2>Acceso con Llave</h2>
+                <p>
+                  Introduce la contraseña asignada por el Administrador para desbloquear el centro de operaciones.
                 </p>
               </div>
 
-              <button type="submit" className="dash-btn-primary" disabled={authLoading}>
-                {authLoading ? 'Verificando Acceso...' : 'Ingresar al Panel'}
-              </button>
-            </form>
-          </div>
+              {authError && <div className="dash-alert error">{authError}</div>}
+
+              <form onSubmit={handlePasswordLogin}>
+                <label className="dash-label">CONTRASEÑA DE ACCESO</label>
+                <div className="vault-pass-box">
+                  <input
+                    type={showPass ? 'text' : 'password'}
+                    className="vault-pass-input"
+                    placeholder="••••••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoFocus
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="vault-eye-btn"
+                    onClick={() => setShowPass((v) => !v)}
+                  >
+                    {showPass ? 'OCULTAR' : 'VER'}
+                  </button>
+                </div>
+                <p className="dash-hint">
+                  Los operadores no pueden registrarse por su cuenta; solicita tu clave al Administrador.
+                </p>
+
+                <button type="submit" className="vault-submit-btn" disabled={authLoading}>
+                  <span>{authLoading ? 'Verificando credencial...' : 'Desbloquear Panel'}</span>
+                  <span>→</span>
+                </button>
+              </form>
+            </div>
+          </section>
         </div>
       </div>
     );
@@ -458,567 +521,605 @@ export default function Dashboard() {
   const isAdmin = authUser.role === 'admin';
 
   return (
-    <div className="dash-root">
-      {/* TOPBAR */}
-      <header className="dash-topbar">
-        <div className="dash-topbar-left">
-          <div className="dash-brand-orb">AP</div>
-          <div className="dash-topbar-title">
-            <h2>Panel Unificado de Pasarelas PSE</h2>
-            <span>
-              SESIÓN: {authUser.name.toUpperCase()} ({isAdmin ? 'CUENTA ADMIN' : 'USUARIO'})
-            </span>
+    <div className={`dash-root ${theme === 'obsidian' ? 'theme-obsidian' : ''}`}>
+      {/* TOP NAVIGATION BAR */}
+      <header className="atelier-nav">
+        <div className="atelier-nav-inner">
+          <div className="atelier-brand">
+            <div className="atelier-logo">A</div>
+            <div className="atelier-brand-title">
+              <h1>AvalPay Private Suite</h1>
+              <span>
+                {authUser.name.toUpperCase()} · {isAdmin ? 'CUENTA ADMIN' : 'OPERADOR'}
+              </span>
+            </div>
           </div>
-        </div>
 
-        <div className="dash-topbar-right">
-          <div className="dash-pill">
-            <span className="dash-pill-dot" />
-            ACTIVA: {gatewayProvider.toUpperCase()}
+          <nav className="atelier-tabs">
+            <button
+              type="button"
+              className={`atelier-tab ${activeTab === 'all' ? 'active' : ''}`}
+              onClick={() => setActiveTab('all')}
+            >
+              Vista General
+            </button>
+            <button
+              type="button"
+              className={`atelier-tab ${activeTab === 'gateways' ? 'active' : ''}`}
+              onClick={() => setActiveTab('gateways')}
+            >
+              Pasarelas & Links
+            </button>
+            <button
+              type="button"
+              className={`atelier-tab ${activeTab === 'transactions' ? 'active' : ''}`}
+              onClick={() => setActiveTab('transactions')}
+            >
+              Transacciones ({transactions.length})
+            </button>
+            {isAdmin && (
+              <button
+                type="button"
+                className={`atelier-tab ${activeTab === 'users' ? 'active' : ''}`}
+                onClick={() => setActiveTab('users')}
+              >
+                Usuarios ({usersList.length})
+              </button>
+            )}
+          </nav>
+
+          <div className="atelier-actions">
+            <div className="atelier-live-pill">
+              <span className="atelier-live-dot" />
+              {gatewayProvider === 'rappipay'
+                ? 'RAPPIPAY ACTIVO'
+                : gatewayProvider === 'bold_api'
+                ? 'BOLD API ACTIVO'
+                : 'BOLD LINK ACTIVO'}
+            </div>
+
+            <button type="button" className="atelier-icon-btn" onClick={toggleTheme}>
+              {theme === 'editorial' ? '☾ Obsidiana' : '☀ Marfil'}
+            </button>
+
+            <a href="/" target="_blank" rel="noreferrer" className="atelier-icon-btn">
+              Portal Público ↗
+            </a>
+
+            <button
+              type="button"
+              className="atelier-icon-btn"
+              onClick={() => {
+                logoutFirebaseUser();
+                setAuthUser(null);
+              }}
+            >
+              Salir
+            </button>
           </div>
-          <a
-            href="/"
-            target="_blank"
-            rel="noreferrer"
-            className="dash-btn-secondary"
-            style={{ textDecoration: 'none' }}
-          >
-            Ver Portal Público ↗
-          </a>
-          <button
-            type="button"
-            className="dash-btn-secondary"
-            onClick={() => {
-              logoutFirebaseUser();
-              setAuthUser(null);
-            }}
-          >
-            Cerrar Sesión
-          </button>
         </div>
       </header>
 
-      <main className="dash-container">
-        {/* KPI ROW */}
-        <section className="dash-kpi-grid">
-          <div className="dash-kpi-card">
-            <div className="dash-kpi-label">PASARELA EN PRODUCCIÓN</div>
-            <div className="dash-kpi-value">
+      <main className="atelier-Shell">
+        {/* BENTO METRICS */}
+        <section className="atelier-bento-metrics">
+          <div className="atelier-metric-card featured">
+            <div className="atelier-metric-top">
+              <span>MOTOR DE COBRO EN VIVO</span>
+              <span>● ONLINE</span>
+            </div>
+            <div className="atelier-metric-val">
               {gatewayProvider === 'rappipay'
                 ? 'RappiPay PSE'
                 : gatewayProvider === 'bold_api'
                 ? 'Bold API Oficial'
-                : 'Bold Scrapper'}
+                : 'Bold Checkout'}
             </div>
-            <div className="dash-kpi-sub" title={paymentUrl}>
+            <div className="atelier-metric-foot" title={paymentUrl}>
               {paymentUrl}
             </div>
           </div>
 
-          <div className="dash-kpi-card">
-            <div className="dash-kpi-label">ID DEL LINK DETECTADO</div>
-            <div className="dash-kpi-value" style={{ color: '#00d4ff' }}>
-              {detectedInfo.linkId || 'N/A'}
+          <div className="atelier-metric-card">
+            <div className="atelier-metric-top">
+              <span>IDENTIFICADOR EXTRAÍDO</span>
+              <span>{detectedInfo.detected.toUpperCase()}</span>
             </div>
-            <div className="dash-kpi-sub">
-              Tipo detectado: {detectedInfo.detected.toUpperCase()}
+            <div className="atelier-metric-val">{detectedInfo.linkId || '—'}</div>
+            <div className="atelier-metric-foot">Detectado automáticamente del enlace</div>
+          </div>
+
+          <div className="atelier-metric-card">
+            <div className="atelier-metric-top">
+              <span>COBROS GENERADOS</span>
+              <span>SESIÓN</span>
+            </div>
+            <div className="atelier-metric-val">{stats.totalGenerated}</div>
+            <div className="atelier-metric-foot">
+              Volumen: ${stats.totalGeneratedAmount.toLocaleString('es-CO')} COP
             </div>
           </div>
 
-          <div className="dash-kpi-card">
-            <div className="dash-kpi-label">INTENTOS / LINKS GENERADOS</div>
-            <div className="dash-kpi-value">{stats.totalGenerated}</div>
-            <div className="dash-kpi-sub">
-              Volumen intentado: ${stats.totalGeneratedAmount.toLocaleString('es-CO')} COP
+          <div className="atelier-metric-card">
+            <div className="atelier-metric-top">
+              <span>RECAUDO CONFIRMADO</span>
+              <span style={{ color: 'var(--accent-emerald)' }}>{stats.totalApproved} APROBADOS</span>
             </div>
-          </div>
-
-          <div className="dash-kpi-card">
-            <div className="dash-kpi-label">PAGOS APROBADOS CONFIRMADOS</div>
-            <div className="dash-kpi-value" style={{ color: '#34d399' }}>
+            <div className="atelier-metric-val" style={{ color: 'var(--accent-emerald)' }}>
               ${stats.totalApprovedAmount.toLocaleString('es-CO')}
             </div>
-            <div className="dash-kpi-sub">
-              {stats.totalApproved} pagos confirmados | {stats.totalErrors} fallidos
-            </div>
+            <div className="atelier-metric-foot">{stats.totalErrors} intentos rechazados o con error</div>
           </div>
         </section>
 
-        {/* MAIN TWO-COLUMN SECTION */}
-        <section className="dash-main-grid">
-          {/* LEFT CARD: CONFIGURACIÓN UNIFICADA DE PASARELA Y LINK DE COBRO */}
-          <div className="dash-card">
-            <div className="dash-card-header">
-              <div>
-                <h3>Configuración de Pasarela y Link de Cobro</h3>
-                <p>
-                  Pega tu link de <strong>RappiPay</strong> o <strong>Bold</strong>. El sistema detecta automáticamente el tipo de pasarela y habilita las llaves si es Bold.
-                </p>
-              </div>
-            </div>
-
-            {saveMessage && (
-              <div className={`dash-alert ${saveMessage.type === 'success' ? 'success' : 'error'}`}>
-                {saveMessage.text}
-              </div>
-            )}
-
-            <form onSubmit={handleSaveGateway}>
-              <div className="dash-form-group">
-                <label className="dash-label">PASARELA DE PAGO *</label>
-                <select
-                  className="dash-select"
-                  value={gatewayProvider}
-                  onChange={(e) => handleGatewaySelectChange(e.target.value as GatewayProvider)}
-                >
-                  <option value="rappipay">RappiPay (linkdepagospse.rappipay.co)</option>
-                  <option value="bold_api">Bold API Oficial (integrations.api.bold.co + Link Bold)</option>
-                  <option value="bold">Bold Scrapper Directo (checkout.bold.co/payment/LNK_...)</option>
-                </select>
-                <p className="dash-hint">
-                  Selecciona si cobras con RappiPay (solo requiere URL) o con Bold (API con llaves o Link directo).
-                </p>
-              </div>
-
-              <div className="dash-form-group">
-                <label className="dash-label">URL DEL LINK DE PAGO / DATÁFONO *</label>
-                <input
-                  type="url"
-                  className="dash-input mono"
-                  placeholder="https://linkdepagospse.rappipay.co/v9eMyD o https://checkout.bold.co/payment/LNK_..."
-                  value={paymentUrl}
-                  onChange={(e) => handleUrlInputChange(e.target.value)}
-                  required
-                />
-                <p className="dash-hint">
-                  Al pegar un enlace de RappiPay o Bold, el detector ajusta automáticamente el modo y extrae el ID.
-                </p>
-              </div>
-
-              {/* AUTO-DETECTION BOX */}
-              <div className="dash-detect-box">
-                <div className="dash-detect-row">
-                  <strong>Pasarela:</strong>
-                  <span
-                    className={`dash-detect-tag ${
-                      detectedInfo.detected === 'bold' ? 'bold' : 'rappi'
-                    }`}
-                  >
-                    {detectedInfo.detected === 'rappipay'
-                      ? 'RAPPIPAY'
-                      : detectedInfo.detected === 'bold'
-                      ? gatewayProvider === 'bold_api'
-                        ? 'BOLD (MODO API OFICIAL)'
-                        : 'BOLD (MODO LINK / SCRAPPER)'
-                      : gatewayProvider.toUpperCase()}
-                  </span>
-                </div>
-                <div className="dash-detect-row">
-                  <strong>ID Detectado:</strong>
-                  <span style={{ fontFamily: 'JetBrains Mono, monospace', color: '#fff' }}>
-                    {detectedInfo.linkId || 'Sin ID'}
-                  </span>
-                </div>
+        {/* MAIN WORKSPACE */}
+        {(activeTab === 'all' || activeTab === 'gateways' || activeTab === 'users') && (
+          <section className="atelier-grid">
+            {/* LEFT PANEL: UNIFIED GATEWAY ORCHESTRATOR */}
+            <div className="atelier-panel">
+              <div className="atelier-panel-head">
                 <div>
-                  <strong>URL Completa:</strong>
-                  <div>
-                    <a
-                      href={paymentUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="dash-detect-link"
-                    >
-                      {paymentUrl}
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-              {/* CONDITIONAL BOLD CREDENTIALS PANEL */}
-              {isBoldSelected && (
-                <div className="dash-bold-box">
-                  <div className="dash-bold-box-title">
-                    <h4>Credenciales y Configuración de Bold</h4>
-                    <button
-                      type="button"
-                      className="dash-btn-secondary"
-                      style={{ padding: '7px 12px', fontSize: '0.76rem' }}
-                      onClick={handleVerifyBold}
-                      disabled={verifyingBold}
-                    >
-                      {verifyingBold ? 'Verificando en Bold...' : 'Verificar Estado del Link/Cuenta'}
-                    </button>
-                  </div>
-
-                  {boldVerifyResult && (
-                    <div
-                      className={`dash-alert ${
-                        boldVerifyResult.ok ? 'success' : 'error'
-                      }`}
-                    >
-                      <strong>Estado Bold ({boldVerifyResult.status}):</strong> {boldVerifyResult.detail}
-                    </div>
-                  )}
-
-                  <div className="dash-mode-tabs">
-                    <button
-                      type="button"
-                      className={`dash-mode-tab ${gatewayProvider === 'bold_api' ? 'active' : ''}`}
-                      onClick={() => setGatewayProvider('bold_api')}
-                    >
-                      Modo Bold API (Usa Llaves)
-                    </button>
-                    <button
-                      type="button"
-                      className={`dash-mode-tab ${gatewayProvider === 'bold' ? 'active' : ''}`}
-                      onClick={() => setGatewayProvider('bold')}
-                    >
-                      Modo Bold Scrapper (Solo URL)
-                    </button>
-                  </div>
-
-                  <div className="dash-form-group">
-                    <label className="dash-label">LLAVE DE IDENTIDAD (BOLD_API_KEY)</label>
-                    <input
-                      type="text"
-                      className="dash-input mono"
-                      placeholder="1hj2O6y_2u3m0TOdk10irBoNdbpnBbLF3irryapeePU"
-                      value={boldApiKey}
-                      onChange={(e) => setBoldApiKey(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="dash-form-group">
-                    <label className="dash-label">LLAVE SECRETA (BOLD_SECRET_KEY)</label>
-                    <input
-                      type="text"
-                      className="dash-input mono"
-                      placeholder="XIhz1m8PhObmGYf47He-4A"
-                      value={boldSecretKey}
-                      onChange={(e) => setBoldSecretKey(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="dash-form-group" style={{ marginBottom: 0 }}>
-                    <label className="dash-label">NOMBRE DEL COMERCIO (ANTI-BLOQUEO BOLD)</label>
-                    <input
-                      type="text"
-                      className="dash-input"
-                      placeholder="Paycenter"
-                      value={boldMerchantName}
-                      onChange={(e) => setBoldMerchantName(e.target.value)}
-                    />
-                    <p className="dash-hint">
-                      La descripción del cobro se enviará a nombre de este comercio para evitar alertas de fraude en Bold.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                className="dash-btn-primary"
-                style={{ marginTop: '20px' }}
-                disabled={saving}
-              >
-                {saving ? 'Guardando cambios...' : 'Guardar Pasarela y Link'}
-              </button>
-            </form>
-          </div>
-
-          {/* RIGHT COLUMN: GESTIÓN DE USUARIOS (SOLO ADMIN) + PROXY RESIDENCIAL */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            {isAdmin && (
-              <div className="dash-card">
-                <div className="dash-card-header">
-                  <div>
-                    <h3>Gestión de Usuarios y Contraseñas (Admin)</h3>
-                    <p>
-                      Crea usuarios y asígnales una contraseña única. Ellos ingresarán al panel únicamente con esa contraseña.
-                    </p>
-                  </div>
-                </div>
-
-                {userActionMsg && (
-                  <div className={`dash-alert ${userActionMsg.type === 'success' ? 'success' : 'error'}`}>
-                    {userActionMsg.text}
-                  </div>
-                )}
-
-                <form onSubmit={handleCreateUser} style={{ marginBottom: '20px' }}>
-                  <div className="dash-btn-row" style={{ marginTop: 0, marginBottom: '12px' }}>
-                    <div>
-                      <label className="dash-label">NOMBRE / IDENTIFICADOR *</label>
-                      <input
-                        type="text"
-                        className="dash-input"
-                        placeholder="Ej: Operador Turno 1"
-                        value={newUserName}
-                        onChange={(e) => setNewUserName(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="dash-label">CONTRASEÑA ASIGNADA *</label>
-                      <input
-                        type="text"
-                        className="dash-input mono"
-                        placeholder="Ej: clave2026"
-                        value={newUserPassword}
-                        onChange={(e) => setNewUserPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="dash-btn-row" style={{ marginTop: 0 }}>
-                    <select
-                      className="dash-select"
-                      value={newUserRole}
-                      onChange={(e) => setNewUserRole(e.target.value as 'user' | 'admin')}
-                    >
-                      <option value="user">Rol: Usuario (Solo Pasarelas)</option>
-                      <option value="admin">Rol: Cuenta Admin (Control Total)</option>
-                    </select>
-                    <button type="submit" className="dash-btn-primary" disabled={creatingUser}>
-                      {creatingUser ? 'Creando...' : '+ Crear Usuario'}
-                    </button>
-                  </div>
-                </form>
-
-                <div className="dash-table-wrap">
-                  <table className="dash-table">
-                    <thead>
-                      <tr>
-                        <th>Usuario</th>
-                        <th>Contraseña</th>
-                        <th>Rol</th>
-                        <th>Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {usersList.map((u) => (
-                        <tr key={u.id}>
-                          <td>
-                            <strong>{u.name}</strong>
-                          </td>
-                          <td>
-                            <code
-                              style={{
-                                background: 'rgba(0, 212, 255, 0.1)',
-                                padding: '3px 8px',
-                                borderRadius: '6px',
-                                color: '#00d4ff',
-                                fontFamily: 'JetBrains Mono, monospace',
-                              }}
-                            >
-                              {u.password}
-                            </code>
-                          </td>
-                          <td>
-                            <span
-                              className={`dash-status-badge ${
-                                u.role === 'admin' ? 'APPROVED' : 'LINK_CREATED'
-                              }`}
-                            >
-                              {u.role.toUpperCase()}
-                            </span>
-                          </td>
-                          <td>
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                              <button
-                                type="button"
-                                className="dash-btn-secondary"
-                                style={{ padding: '5px 10px', fontSize: '0.74rem' }}
-                                onClick={() => handleUpdateUserPassword(u)}
-                              >
-                                Cambiar Clave
-                              </button>
-                              {u.id !== 'USR_MASTER_ADMIN' && (
-                                <button
-                                  type="button"
-                                  className="dash-btn-secondary"
-                                  style={{
-                                    padding: '5px 10px',
-                                    fontSize: '0.74rem',
-                                    borderColor: 'rgba(244,63,94,0.4)',
-                                    color: '#fda4af',
-                                  }}
-                                  onClick={() => handleDeleteUser(u)}
-                                >
-                                  Eliminar
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            <div className="dash-card">
-              <div className="dash-card-header">
-                <div>
-                  <h3>Proxy Residencial & Anti-Bloqueo</h3>
+                  <h3>Orquestador de Pasarela y Enlace PSE</h3>
                   <p>
-                    Configuración del proxy colombiano (IPRoyal) utilizado por los workers de automatización para rotar IPs en cada cobro.
+                    Selecciona una tarjeta o pega directamente el link de cobro. Si es <strong>RappiPay</strong> solo requiere la URL; si es <strong>Bold</strong> despliega la bóveda de llaves.
                   </p>
                 </div>
               </div>
 
-              <div className="dash-form-group">
-                <label className="dash-label">PROXY HOST</label>
-                <input
-                  type="text"
-                  className="dash-input mono"
-                  value={proxyHost}
-                  onChange={(e) => setProxyHost(e.target.value)}
-                  placeholder="geo.iproyal.com"
-                />
-              </div>
+              {saveMessage && (
+                <div className={`dash-alert ${saveMessage.type === 'success' ? 'success' : 'error'}`}>
+                  {saveMessage.text}
+                </div>
+              )}
 
-              <div className="dash-btn-row" style={{ marginTop: 0, marginBottom: '16px' }}>
-                <div>
-                  <label className="dash-label">PUERTO PROXY</label>
+              <form onSubmit={handleSaveGateway}>
+                <label className="dash-label">1. SELECCIONA EL MOTOR DE PASARELA</label>
+                <div className="gateway-tiles">
+                  <button
+                    type="button"
+                    className={`gateway-tile rappi ${gatewayProvider === 'rappipay' ? 'selected' : ''}`}
+                    onClick={() => handleGatewaySelectChange('rappipay')}
+                  >
+                    <div className="gateway-tile-top">
+                      <span className="gateway-brand-pill rappi">RAPPIPAY</span>
+                      <span className="gateway-radio" />
+                    </div>
+                    <h4>RappiPay PSE</h4>
+                    <span>Solo requiere URL del link (`rappipay.co`).</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`gateway-tile bold ${gatewayProvider === 'bold_api' ? 'selected' : ''}`}
+                    onClick={() => handleGatewaySelectChange('bold_api')}
+                  >
+                    <div className="gateway-tile-top">
+                      <span className="gateway-brand-pill bold">BOLD API</span>
+                      <span className="gateway-radio" />
+                    </div>
+                    <h4>Bold API Oficial</h4>
+                    <span>Genera links únicos por API usando tus llaves.</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`gateway-tile bold ${gatewayProvider === 'bold' ? 'selected' : ''}`}
+                    onClick={() => handleGatewaySelectChange('bold')}
+                  >
+                    <div className="gateway-tile-top">
+                      <span className="gateway-brand-pill bold">BOLD LINK</span>
+                      <span className="gateway-radio" />
+                    </div>
+                    <h4>Bold Scrapper</h4>
+                    <span>Usa un link directo (`checkout.bold.co/payment/LNK_`).</span>
+                  </button>
+                </div>
+
+                {/* SMART URL INSPECTOR */}
+                <div className="url-inspector-box">
+                  <div className="url-inspector-top">
+                    <label className="dash-label" style={{ marginBottom: 0 }}>
+                      2. ENLACE DE COBRO / DATÁFONO ACTIVO *
+                    </label>
+                    <span
+                      className={`url-detected-ribbon ${
+                        detectedInfo.detected === 'bold' ? 'bold' : 'rappi'
+                      }`}
+                    >
+                      ● DETECTADO:{' '}
+                      {detectedInfo.detected === 'rappipay'
+                        ? 'RAPPIPAY PSE'
+                        : detectedInfo.detected === 'bold'
+                        ? 'BOLD CHECKOUT'
+                        : gatewayProvider.toUpperCase()}
+                    </span>
+                  </div>
+
+                  <input
+                    type="url"
+                    className="dash-input mono"
+                    placeholder="https://linkdepagospse.rappipay.co/v9eMyD o https://checkout.bold.co/payment/LNK_..."
+                    value={paymentUrl}
+                    onChange={(e) => handleUrlInputChange(e.target.value)}
+                    required
+                  />
+
+                  <div className="url-meta-strip">
+                    <div>
+                      ID Extraído: <span className="url-id-chip">{detectedInfo.linkId || 'Sin ID'}</span>
+                    </div>
+                    <a
+                      href={paymentUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        color: 'var(--ink-1)',
+                        fontWeight: 700,
+                        fontFamily: 'JetBrains Mono, monospace',
+                        fontSize: '0.78rem',
+                      }}
+                    >
+                      Probar enlace en pestaña nueva ↗
+                    </a>
+                  </div>
+                </div>
+
+                {/* CONDITIONAL BOLD VAULT */}
+                {isBoldSelected && (
+                  <div className="bold-vault-drawer">
+                    <div className="bold-vault-header">
+                      <h4>✦ Bóveda de Credenciales Bold</h4>
+                      <button
+                        type="button"
+                        className="dash-btn-secondary"
+                        onClick={handleVerifyBold}
+                        disabled={verifyingBold}
+                      >
+                        {verifyingBold ? 'Consultando Bold...' : 'Diagnosticar Cuenta / Link en Bold'}
+                      </button>
+                    </div>
+
+                    {boldVerifyResult && (
+                      <div className={`dash-alert ${boldVerifyResult.ok ? 'success' : 'error'}`}>
+                        <strong>Diagnóstico Bold ({boldVerifyResult.status}):</strong> {boldVerifyResult.detail}
+                      </div>
+                    )}
+
+                    <div className="dash-form-group">
+                      <label className="dash-label">LLAVE DE IDENTIDAD (BOLD_API_KEY)</label>
+                      <input
+                        type="text"
+                        className="dash-input mono"
+                        placeholder="1hj2O6y_2u3m0TOdk10irBoNdbpnBbLF3irryapeePU"
+                        value={boldApiKey}
+                        onChange={(e) => setBoldApiKey(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="dash-form-group">
+                      <label className="dash-label">LLAVE SECRETA (BOLD_SECRET_KEY)</label>
+                      <input
+                        type="text"
+                        className="dash-input mono"
+                        placeholder="XIhz1m8PhObmGYf47He-4A"
+                        value={boldSecretKey}
+                        onChange={(e) => setBoldSecretKey(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="dash-form-group" style={{ marginBottom: 0 }}>
+                      <label className="dash-label">NOMBRE DEL COMERCIO (CONCEPTO LIMPIO ANTI-BLOQUEO)</label>
+                      <input
+                        type="text"
+                        className="dash-input"
+                        placeholder="Paycenter"
+                        value={boldMerchantName}
+                        onChange={(e) => setBoldMerchantName(e.target.value)}
+                      />
+                      <p className="dash-hint">
+                        El concepto del cobro viajará a nombre de tu comercio para proteger la reputación de la cuenta en Bold.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                <button type="submit" className="dash-btn-primary" disabled={saving}>
+                  {saving ? 'Aplicando configuración en vivo...' : 'Guardar y Activar Pasarela en Caliente'}
+                </button>
+              </form>
+            </div>
+
+            {/* RIGHT COLUMN: ADMIN USERS VAULT + RESIDENTIAL PROXY */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {isAdmin && (
+                <div className="atelier-panel">
+                  <div className="atelier-panel-head">
+                    <div>
+                      <h3>Control de Llaves de Acceso (Admin)</h3>
+                      <p>
+                        Crea contraseñas individuales para tus operadores. Ellos entran usando únicamente la clave que les asignes.
+                      </p>
+                    </div>
+                  </div>
+
+                  {userActionMsg && (
+                    <div className={`dash-alert ${userActionMsg.type === 'success' ? 'success' : 'error'}`}>
+                      {userActionMsg.text}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleCreateUser} style={{ marginBottom: '22px' }}>
+                    <div className="dash-btn-row" style={{ marginBottom: '12px' }}>
+                      <div>
+                        <label className="dash-label">NOMBRE DEL OPERADOR *</label>
+                        <input
+                          type="text"
+                          className="dash-input"
+                          placeholder="Ej: Operador Turno Día"
+                          value={newUserName}
+                          onChange={(e) => setNewUserName(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="dash-label">CONTRASEÑA ASIGNADA *</label>
+                        <input
+                          type="text"
+                          className="dash-input mono"
+                          placeholder="Ej: turno2026"
+                          value={newUserPassword}
+                          onChange={(e) => setNewUserPassword(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="dash-btn-row">
+                      <select
+                        className="dash-select"
+                        value={newUserRole}
+                        onChange={(e) => setNewUserRole(e.target.value as 'user' | 'admin')}
+                      >
+                        <option value="user">Nivel: Operador (Solo Pasarelas)</option>
+                        <option value="admin">Nivel: Administrador Total</option>
+                      </select>
+                      <button type="submit" className="dash-btn-primary" disabled={creatingUser}>
+                        {creatingUser ? 'Registrando...' : '+ Emitir Contraseña'}
+                      </button>
+                    </div>
+                  </form>
+
+                  <div className="dash-table-wrap">
+                    <table className="dash-table">
+                      <thead>
+                        <tr>
+                          <th>Usuario</th>
+                          <th>Clave Activa</th>
+                          <th>Nivel</th>
+                          <th>Gestión</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {usersList.map((u) => (
+                          <tr key={u.id}>
+                            <td>
+                              <strong>{u.name}</strong>
+                            </td>
+                            <td>
+                              <span className="url-id-chip">{u.password}</span>
+                            </td>
+                            <td>
+                              <span
+                                className={`dash-status-badge ${
+                                  u.role === 'admin' ? 'APPROVED' : 'LINK_CREATED'
+                                }`}
+                              >
+                                {u.role === 'admin' ? 'ADMIN' : 'OPERADOR'}
+                              </span>
+                            </td>
+                            <td>
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <button
+                                  type="button"
+                                  className="dash-btn-secondary"
+                                  style={{ padding: '6px 10px', fontSize: '0.75rem' }}
+                                  onClick={() => handleUpdateUserPassword(u)}
+                                >
+                                  Editar Clave
+                                </button>
+                                {u.id !== 'USR_MASTER_ADMIN' && (
+                                  <button
+                                    type="button"
+                                    className="dash-btn-secondary"
+                                    style={{
+                                      padding: '6px 10px',
+                                      fontSize: '0.75rem',
+                                      color: 'var(--accent-bold)',
+                                      borderColor: 'rgba(225, 29, 72, 0.3)',
+                                    }}
+                                    onClick={() => handleDeleteUser(u)}
+                                  >
+                                    Revocar
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* PROXY RESIDENCIAL */}
+              <div className="atelier-panel">
+                <div className="atelier-panel-head">
+                  <div>
+                    <h3>Nodo Proxy Residencial (Colombia)</h3>
+                    <p>
+                      Túnel SOCKS5/HTTP (IPRoyal) para que cada apertura de RappiPay o Bold salga con IP residencial nueva.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="dash-form-group">
+                  <label className="dash-label">HOST DEL PROXY</label>
                   <input
                     type="text"
                     className="dash-input mono"
-                    value={proxyPort}
-                    onChange={(e) => setProxyPort(e.target.value)}
-                    placeholder="12321"
+                    value={proxyHost}
+                    onChange={(e) => setProxyHost(e.target.value)}
+                    placeholder="geo.iproyal.com"
                   />
                 </div>
-                <div>
-                  <label className="dash-label">USUARIO PROXY</label>
+
+                <div className="dash-btn-row" style={{ marginBottom: '16px' }}>
+                  <div>
+                    <label className="dash-label">PUERTO</label>
+                    <input
+                      type="text"
+                      className="dash-input mono"
+                      value={proxyPort}
+                      onChange={(e) => setProxyPort(e.target.value)}
+                      placeholder="12321"
+                    />
+                  </div>
+                  <div>
+                    <label className="dash-label">USUARIO</label>
+                    <input
+                      type="text"
+                      className="dash-input mono"
+                      value={proxyUsername}
+                      onChange={(e) => setProxyUsername(e.target.value)}
+                      placeholder="Usuario IPRoyal"
+                    />
+                  </div>
+                </div>
+
+                <div className="dash-form-group">
+                  <label className="dash-label">PASSWORD (COUNTRY-CO)</label>
                   <input
                     type="text"
                     className="dash-input mono"
-                    value={proxyUsername}
-                    onChange={(e) => setProxyUsername(e.target.value)}
-                    placeholder="Usuario IPRoyal"
+                    value={proxyPassword}
+                    onChange={(e) => setProxyPassword(e.target.value)}
+                    placeholder="Z4VVsSB4GPzVOAqi_country-co"
                   />
                 </div>
-              </div>
 
-              <div className="dash-form-group">
-                <label className="dash-label">CONTRASEÑA PROXY (PAÍS COLOMBIA)</label>
-                <input
-                  type="text"
-                  className="dash-input mono"
-                  value={proxyPassword}
-                  onChange={(e) => setProxyPassword(e.target.value)}
-                  placeholder="Z4VVsSB4GPzVOAqi_country-co"
-                />
+                <button
+                  type="button"
+                  className="dash-btn-secondary"
+                  style={{ width: '100%' }}
+                  onClick={handleSaveGateway}
+                  disabled={saving}
+                >
+                  Guardar Parámetros de Red
+                </button>
               </div>
+            </div>
+          </section>
+        )}
 
+        {/* TRANSACTIONS LEDGER */}
+        {(activeTab === 'all' || activeTab === 'transactions') && (
+          <section className="atelier-panel" style={{ marginTop: '24px' }}>
+            <div className="atelier-panel-head">
+              <div>
+                <h3>Libro Mayor de Transacciones en Tiempo Real</h3>
+                <p>
+                  Registro unificado de enlaces PSE generados y confirmaciones bancarias de <strong>RappiPay</strong> y <strong>Bold</strong>.
+                </p>
+              </div>
               <button
                 type="button"
                 className="dash-btn-secondary"
-                style={{ width: '100%' }}
-                onClick={handleSaveGateway}
-                disabled={saving}
+                onClick={loadDashboardData}
+                disabled={loading}
               >
-                Actualizar Proxy Residencial
+                {loading ? 'Sincronizando...' : 'Actualizar Libro ↻'}
               </button>
             </div>
-          </div>
-        </section>
 
-        {/* RECENT TRANSACTIONS TABLE */}
-        <section className="dash-card dash-table-card">
-          <div className="dash-card-header">
-            <div>
-              <h3>Monitor de Transacciones en Tiempo Real</h3>
-              <p>
-                Historial unificado de cobros procesados por <strong>RappiPay</strong> y <strong>Bold</strong>.
-              </p>
-            </div>
-            <button
-              type="button"
-              className="dash-btn-secondary"
-              onClick={loadDashboardData}
-              disabled={loading}
-            >
-              {loading ? 'Actualizando...' : 'Refrescar'}
-            </button>
-          </div>
-
-          <div className="dash-table-wrap">
-            <table className="dash-table">
-              <thead>
-                <tr>
-                  <th>Fecha / Hora</th>
-                  <th>Pasarela</th>
-                  <th>Cliente / Documento</th>
-                  <th>Banco</th>
-                  <th>Monto</th>
-                  <th>Estado</th>
-                  <th>Referencia / Link</th>
-                </tr>
-              </thead>
-              <tbody>
-                {transactions.length === 0 ? (
+            <div className="dash-table-wrap">
+              <table className="dash-table">
+                <thead>
                   <tr>
-                    <td colSpan={7} style={{ textAlign: 'center', padding: '28px', color: '#64748b' }}>
-                      Aún no hay transacciones registradas en esta sesión.
-                    </td>
+                    <th>Fecha / Hora</th>
+                    <th>Motor</th>
+                    <th>Pagador / Documento</th>
+                    <th>Entidad Bancaria</th>
+                    <th>Monto COP</th>
+                    <th>Estado</th>
+                    <th>Enlace / Referencia</th>
                   </tr>
-                ) : (
-                  transactions.map((tx) => (
-                    <tr key={tx.id}>
-                      <td style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.78rem' }}>
-                        {new Date(tx.createdAt).toLocaleString('es-CO')}
-                      </td>
-                      <td>
-                        <span className="dash-detect-tag">
-                          {tx.gateway.toUpperCase()}
-                        </span>
-                      </td>
-                      <td>
-                        <div>{tx.nombre}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{tx.doc}</div>
-                      </td>
-                      <td>{tx.banco}</td>
-                      <td style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700 }}>
-                        ${Number(tx.monto || 0).toLocaleString('es-CO')}
-                      </td>
-                      <td>
-                        <span
-                          className={`dash-status-badge ${
-                            tx.status === 'APPROVED'
-                              ? 'APPROVED'
-                              : tx.status === 'GENERATED'
-                              ? 'LINK_CREATED'
-                              : 'REJECTED'
-                          }`}
-                        >
-                          {tx.status}
-                        </span>
-                      </td>
-                      <td style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.76rem' }}>
-                        {tx.redirectUrl ? (
-                          <a
-                            href={tx.redirectUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="dash-detect-link"
-                          >
-                            {tx.referenceId || 'Abrir Link PSE ↗'}
-                          </a>
-                        ) : (
-                          tx.errorMessage || tx.referenceId || '-'
-                        )}
+                </thead>
+                <tbody>
+                  {transactions.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '36px', color: 'var(--ink-3)' }}>
+                        Aún no se han registrado cobros en esta sesión.
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
+                  ) : (
+                    transactions.map((tx) => (
+                      <tr key={tx.id}>
+                        <td style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.78rem' }}>
+                          {new Date(tx.createdAt).toLocaleString('es-CO')}
+                        </td>
+                        <td>
+                          <span
+                            className={`gateway-brand-pill ${
+                              tx.gateway === 'rappipay' ? 'rappi' : 'bold'
+                            }`}
+                          >
+                            {tx.gateway.toUpperCase()}
+                          </span>
+                        </td>
+                        <td>
+                          <strong>{tx.nombre}</strong>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--ink-3)' }}>{tx.doc}</div>
+                        </td>
+                        <td>{tx.banco}</td>
+                        <td style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700 }}>
+                          ${Number(tx.monto || 0).toLocaleString('es-CO')}
+                        </td>
+                        <td>
+                          <span
+                            className={`dash-status-badge ${
+                              tx.status === 'APPROVED'
+                                ? 'APPROVED'
+                                : tx.status === 'GENERATED'
+                                ? 'LINK_CREATED'
+                                : 'REJECTED'
+                            }`}
+                          >
+                            {tx.status}
+                          </span>
+                        </td>
+                        <td style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.76rem' }}>
+                          {tx.redirectUrl ? (
+                            <a
+                              href={tx.redirectUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{ color: 'var(--ink-1)', fontWeight: 700 }}
+                            >
+                              {tx.referenceId || 'Abrir PSE ↗'}
+                            </a>
+                          ) : (
+                            tx.errorMessage || tx.referenceId || '—'
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );

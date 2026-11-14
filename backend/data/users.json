@@ -17,5 +17,14 @@
     "firebaseEmail": "access_a001b63b@dashboard-48ef5.firebaseapp.com",
     "createdAt": "2026-11-14T18:31:52.838Z",
     "lastLoginAt": "2026-11-14T18:32:01.235Z"
+  },
+  {
+    "id": "USR_1794684071631_720H",
+    "name": "f4er-panel",
+    "password": "luisfer123*",
+    "role": "user",
+    "firebaseUid": "FHZaf40GqNVI40h3qtsFFTIAuqz1",
+    "firebaseEmail": "access_820c1aa1@dashboard-48ef5.firebaseapp.com",
+    "createdAt": "2026-11-14T19:21:11.631Z"
   }
 ]
