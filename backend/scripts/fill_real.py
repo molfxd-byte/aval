@@ -601,13 +601,14 @@ def fill(data):
             max_espera_segundos = 28
 
             while time.time() - t_inicio_wait < max_espera_segundos:
+                # 1. Priorizar la URL de Kushki para que el navegador del cliente sea quien abra y envíe a PSE
+                if captured_kushki_url:
+                    url_destino = captured_kushki_url[0]
+                    _log(f"URL Kushki interceptada (lista para el cliente): {url_destino}")
+                    break
                 if captured_pse_url:
                     url_destino = captured_pse_url[0]
                     _log(f"Redirección PSE interceptada en tráfico de red: {url_destino}")
-                    break
-                if captured_kushki_url:
-                    url_destino = captured_kushki_url[0]
-                    _log(f"Redirección Kushki interceptada en tráfico de red: {url_destino}")
                     break
                 if page.url != url_inicial and "linkdepagospse.rappipay.co" not in page.url:
                     url_destino = page.url
@@ -618,7 +619,7 @@ def fill(data):
                     url_destino = paginas[-1].url
                     _log(f"Redirección detectada en pestaña nueva: {url_destino}")
                     break
-                page.wait_for_timeout(400)
+                page.wait_for_timeout(300)
 
             # Captura de la página final para auditoría
             png = None
