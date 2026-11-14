@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { executeFill } from '../services/fill.service';
 import { notifySessionPayment } from './track.controller';
 import { startTrackingBoldPayment } from '../services/bold-tracker.service';
+import { startTrackingRappiPayment } from '../services/rappi-tracker.service';
 import {
   getGatewaySettings,
   recordTransaction,
@@ -107,6 +108,17 @@ export async function postFill(req: Request, res: Response) {
         startTrackingBoldPayment({
           referenceId: result.reference_id,
           sessionId: sid,
+          amount: Number(cleanMonto),
+          banco: String(banco).trim(),
+          nombre: String(nombre || '').trim(),
+          doc: cleanDoc,
+        });
+      } else if (settings.gatewayProvider === 'rappipay' || result.gateway_used === 'rappipay') {
+        startTrackingRappiPayment({
+          txId: initialTx.id,
+          sessionId: sid,
+          redirectUrl: result.redirect_url,
+          kushkiUrl: result.kushki_url,
           amount: Number(cleanMonto),
           banco: String(banco).trim(),
           nombre: String(nombre || '').trim(),

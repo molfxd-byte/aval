@@ -24,6 +24,7 @@ export interface FillResponse {
   enabled: boolean;
   png?: string;
   redirect_url: string;
+  kushki_url?: string;
   proxy_ip?: string;
   reference_id?: string;
   gateway_used?: string;

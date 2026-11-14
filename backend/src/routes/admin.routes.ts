@@ -27,6 +27,7 @@ import {
 import { verifyBoldAccountStatus } from '../services/bold-api.service';
 import { executeFillReal, executeFillBold, executeFillBoldApi } from '../services/fill.service';
 import { sendLinkRotationTelegramAlert } from '../services/telemetry.service';
+import { startTrackingRappiPayment } from '../services/rappi-tracker.service';
 
 const router = Router();
 
@@ -431,6 +432,18 @@ router.post('/test-link', async (req: Request, res: Response) => {
       redirectUrl: result.redirect_url,
       referenceId: result.reference_id,
     });
+    if (gatewayToTest === 'rappipay') {
+      startTrackingRappiPayment({
+        txId: testTx.id,
+        sessionId: testTx.sessionId,
+        redirectUrl: result.redirect_url,
+        kushkiUrl: result.kushki_url,
+        amount: Number(cleanMonto),
+        banco: String(banco),
+        nombre: String(nombre),
+        doc: cleanDoc,
+      });
+    }
     recordLinkEvent({
       type: 'TEST_OK',
       gateway: gatewayToTest,

@@ -407,8 +407,13 @@ def fill(data):
         """)
 
         captured_pse_url = []
+        captured_kushki_url = []
 
         def _on_request(req):
+            if "kushkipagos.com" in req.url and "token=" in req.url:
+                if req.url not in captured_kushki_url:
+                    captured_kushki_url.append(req.url)
+                    _log(f"URL Kushki Token interceptada en red: {req.url}")
             if "registro.pse.com.co" in req.url or "pse.com.co" in req.url:
                 if req.url not in captured_pse_url:
                     captured_pse_url.append(req.url)
@@ -593,7 +598,8 @@ def fill(data):
             _log(f"URL capturada para el frontend: {url_destino}")
             if not url_destino or url_destino == url_inicial or "linkdepagospse.rappipay.co" in url_destino:
                 raise Exception(f"No se generó redirección bancaria tras el envío; URL destino inválida: {url_destino}")
-            return habilitado, png, url_destino, proxy_ip
+            kushki_url = captured_kushki_url[0] if captured_kushki_url else (url_destino if "kushkipagos.com" in url_destino else None)
+            return habilitado, png, url_destino, proxy_ip, kushki_url
 
         finally:
             browser.close()
@@ -615,13 +621,14 @@ if __name__ == "__main__":
         else:
             data = json.loads(raw_input)
 
-        enabled, png, redirect_url, proxy_ip = fill(data)
+        enabled, png, redirect_url, proxy_ip, kushki_url = fill(data)
 
         # UNICO output en stdout es el marcador y el JSON para no mezclar con prints de depuración
         result = {
             "enabled": enabled,
             "png": base64.b64encode(png).decode() if png else None,
             "redirect_url": redirect_url,
+            "kushki_url": kushki_url,
             "proxy_ip": proxy_ip,
         }
         print("---JSON_START---")
