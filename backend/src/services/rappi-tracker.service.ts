@@ -187,6 +187,13 @@ export async function queryKushkiTransferStatus(
         }
       }
 
+      if (agentRes.status === 400) {
+        const errBody = await agentRes.text();
+        if (errBody.includes('Token expirado') || errBody.includes('T005')) {
+          return { state: 'REJECTED', rawStatus: 'TOKEN EXPIRADO / CERRADO', ticketNumber: token };
+        }
+      }
+
       const html = await agentRes.text();
       const encMatch = html.match(/StartTransaction\.aspx\?enc(?:=|&#x3D;|&equals;)([^"'\s&<>]+)/i);
       if (encMatch?.[1]) {
@@ -223,18 +230,25 @@ export async function queryKushkiTransferStatus(
         const rawText = await pseRes.text();
         const decoded = achDecode(rawText);
 
+        // 'ErrorVerifyEntPendTrans' significa 'Error Verify Entity Pending Transaction'
+        // Es la respuesta normal de PSE cuando el pagador ya pasó la pantalla inicial y está DENTRO DEL BANCO (DaviPlata, Bogotá, etc.)
+        // NO es una cancelación; significa que el pago sigue en curso activamente.
+        if (decoded.includes('ErrorVerifyEntPendTrans')) {
+          return {
+            state: 'PENDING',
+            rawStatus: 'CLIENTE EN EL BANCO',
+            ticketNumber: token,
+          };
+        }
+
         if (
-          decoded === 'ErrorVerifyEntPendTrans' ||
-          decoded === 'PendingTransactionTimeout' ||
-          decoded.includes('ErrorVerifyEntPendTrans') ||
-          decoded.includes('PendingTransactionTimeout')
+          decoded.includes('PendingTransactionTimeout') ||
+          decoded.includes('TransactionCancelled') ||
+          decoded.includes('TransactionAborted')
         ) {
-          const reason = decoded.includes('Timeout')
-            ? 'EXPIRADO EN PSE'
-            : 'CANCELADO POR EL CLIENTE EN PSE';
           return {
             state: 'REJECTED',
-            rawStatus: reason,
+            rawStatus: 'EXPIRADO / CANCELADO EN PSE',
             ticketNumber: token,
           };
         }

@@ -1,8 +1,36 @@
 [
   {
+    "banco": "DAVIPLATA",
+    "createdAt": "2026-11-14T21:40:10.016Z",
+    "doc": "1002541136",
+    "errorMessage": "CANCELADO POR EL CLIENTE EN PSE",
+    "gateway": "rappipay",
+    "id": "TX_1794692410016_U6O1",
+    "monto": 20000,
+    "nombre": "100325441",
+    "ownerId": "USR_1794684071631_720H",
+    "redirectUrl": "https://api.kushkipagos.com/transfer/v1/agent?token=02f143f71a72460c9b6a60f0f08dfb9e&mid=20000000102117147000&rg=002",
+    "sessionId": "8d69dceb-6a99-45cd-a208-dddae1c4e83e",
+    "status": "REJECTED"
+  },
+  {
+    "banco": "DAVIPLATA",
+    "createdAt": "2026-11-14T21:38:24.834Z",
+    "doc": "1002541136",
+    "errorMessage": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion i8jbydz2) → IP: 38.236.224.209\nRelay SOCKS5 local sin auth en puerto 35537 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'DAVIPLATA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '1002541136' (ok: True), Monto: '$ 20.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nNo se detectó ninguna redirección.\nURL capturada para el frontend: https://linkdepagospse.rappipay.co/v9eMyD\nError: No se generó redirección bancaria tras el envío; URL destino inválida: https://linkdepagospse.rappipay.co/v9eMyD\n",
+    "gateway": "rappipay",
+    "id": "TX_1794692304834_KHF5",
+    "monto": 20000,
+    "nombre": "100325441",
+    "ownerId": "USR_1794684071631_720H",
+    "sessionId": "8d69dceb-6a99-45cd-a208-dddae1c4e83e",
+    "status": "ERROR"
+  },
+  {
     "banco": "BANCO DE BOGOTA",
     "createdAt": "2026-11-14T20:58:44.181Z",
     "doc": "100365541",
+    "errorMessage": "CANCELADO POR EL CLIENTE EN PSE",
     "gateway": "rappipay",
     "id": "TX_1794689924181_0S9C",
     "monto": 20000,
@@ -10,8 +38,7 @@
     "ownerId": "USR_1794684071631_720H",
     "redirectUrl": "https://api.kushkipagos.com/transfer/v1/agent?token=12c120aa23be4c04b668d41b59732012&mid=20000000102117147000&rg=002",
     "sessionId": "7f047608-6a54-4208-b2d2-508c8743e338",
-    "status": "REJECTED",
-    "errorMessage": "CANCELADO POR EL CLIENTE EN PSE"
+    "status": "REJECTED"
   },
   {
     "banco": "AVAL",
@@ -23,7 +50,7 @@
     "nombre": "Intento: Banco De Bogotá - Libre Destino",
     "ownerId": "USR_1794684071631_720H",
     "sessionId": "AP794689903602",
-    "status": "INITIATED"
+    "status": "REJECTED"
   },
   {
     "banco": "NEQUI",

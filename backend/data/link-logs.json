@@ -1,13 +1,24 @@
 [
   {
-    "type": "TEST_OK",
+    "activeRemaining": 0,
+    "blockedTotal": 0,
+    "createdAt": "2026-11-14T21:39:33.753Z",
     "gateway": "rappipay",
-    "url": "https://linkdepagospse.rappipay.co/v9eMyD",
-    "nextUrl": "https://api.kushkipagos.com/transfer/v1/agent?token=2b18a4234e3943738b561607edfa5745&mid=20000000102117147000&rg=002",
-    "reason": "Prueba exitosa (41.2s) -> Redirección generada correctamente.",
-    "id": "LOG_1794685601146_PS7C",
+    "id": "LOG_1794692373753_DM7K",
+    "ownerId": "USR_1794684071631_720H",
+    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion i8jbydz2) → IP: 38.236.224.209\nRelay SOCKS5 local sin auth en puerto 35537 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'DAVIPLATA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '1002541136' (ok: True), Monto: '$ 20.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nNo se detectó ninguna redirección.\nURL capturada para el frontend: https://linkdepagospse.rappipay.co/v9eMyD\nError: No se generó redirección bancaria tras el envío; URL destino inválida: https://linkdepagospse.rappipay.co/v9eMyD\n",
+    "type": "BLOCKED",
+    "url": ""
+  },
+  {
     "activeRemaining": 1,
     "blockedTotal": 0,
-    "createdAt": "2026-11-14T19:46:41.146Z"
+    "createdAt": "2026-11-14T19:46:41.146Z",
+    "gateway": "rappipay",
+    "id": "LOG_1794685601146_PS7C",
+    "nextUrl": "https://api.kushkipagos.com/transfer/v1/agent?token=2b18a4234e3943738b561607edfa5745&mid=20000000102117147000&rg=002",
+    "reason": "Prueba exitosa (41.2s) -> Redirección generada correctamente.",
+    "type": "TEST_OK",
+    "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   }
 ]
