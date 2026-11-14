@@ -5,19 +5,21 @@ export interface FirebaseConfig {
   storageBucket?: string;
   messagingSenderId?: string;
   appId?: string;
+  measurementId?: string;
 }
 
 const STORAGE_CONFIG_KEY = 'avalpay_firebase_config';
 const STORAGE_AUTH_USER_KEY = 'avalpay_firebase_user';
 
-// Credenciales por defecto desde variables de entorno (se actualizarán cuando envíes las credenciales de tu proyecto Firebase)
+// Credenciales oficiales del proyecto Firebase (dashboard-48ef5)
 const defaultFirebaseConfig: FirebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || '',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || '',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || '',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyAxXYnL6DcsiClvZqEjPUFgAKdHatVMzSM',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'dashboard-48ef5.firebaseapp.com',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'dashboard-48ef5',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'dashboard-48ef5.firebasestorage.app',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '825454673198',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:825454673198:web:5e24f6503599c90e424ebf',
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || 'G-S906PRC1EX',
 };
 
 export function getFirebaseConfig(): FirebaseConfig {
@@ -33,6 +35,7 @@ export function getFirebaseConfig(): FirebaseConfig {
           storageBucket: parsed.storageBucket || '',
           messagingSenderId: parsed.messagingSenderId || '',
           appId: parsed.appId || '',
+          measurementId: parsed.measurementId || '',
         };
       }
     }
@@ -53,7 +56,6 @@ export function saveCustomFirebaseConfig(rawInput: string | FirebaseConfig): Fir
     return rawInput;
   }
 
-  // Permite pegar directamente el bloque de código que da Firebase Console (const firebaseConfig = { ... })
   const extract = (key: string) => {
     const regex = new RegExp(`${key}\\s*:\\s*["']([^"']+)["']`);
     const match = rawInput.match(regex);
@@ -66,6 +68,7 @@ export function saveCustomFirebaseConfig(rawInput: string | FirebaseConfig): Fir
   const storageBucket = extract('storageBucket');
   const messagingSenderId = extract('messagingSenderId');
   const appId = extract('appId');
+  const measurementId = extract('measurementId');
 
   if (!apiKey || !projectId) {
     throw new Error('No se encontraron apiKey y projectId válidos en el texto pegado.');
@@ -78,6 +81,7 @@ export function saveCustomFirebaseConfig(rawInput: string | FirebaseConfig): Fir
     storageBucket,
     messagingSenderId,
     appId,
+    measurementId,
   };
 
   localStorage.setItem(STORAGE_CONFIG_KEY, JSON.stringify(cfg));
@@ -90,7 +94,6 @@ export interface FirebaseAuthUser {
   idToken: string;
   refreshToken?: string;
   expiresAt: number;
-  isPreConfigSession?: boolean;
 }
 
 export function getCurrentAuthUser(): FirebaseAuthUser | null {
@@ -114,15 +117,37 @@ export function logoutFirebaseUser(): void {
   localStorage.removeItem(STORAGE_AUTH_USER_KEY);
 }
 
+function mapFirebaseAuthError(code: string): string {
+  if (
+    code.includes('INVALID_LOGIN_CREDENTIALS') ||
+    code.includes('INVALID_PASSWORD') ||
+    code.includes('EMAIL_NOT_FOUND')
+  ) {
+    return 'Correo o contraseña incorrectos en Firebase Auth.';
+  }
+  if (code.includes('EMAIL_EXISTS')) {
+    return 'Este correo ya está registrado en Firebase Auth. Inicia sesión con tu contraseña.';
+  }
+  if (code.includes('WEAK_PASSWORD')) {
+    return 'La contraseña debe tener al menos 6 caracteres.';
+  }
+  if (code.includes('CONFIGURATION_NOT_FOUND') || code.includes('OPERATION_NOT_ALLOWED')) {
+    return 'Debes habilitar el proveedor "Correo electrónico/contraseña" en Firebase Console -> Authentication -> Sign-in method.';
+  }
+  if (code.includes('TOO_MANY_ATTEMPTS_TRY_LATER')) {
+    return 'Demasiados intentos fallidos. Intenta más tarde.';
+  }
+  if (code.includes('API_KEY_INVALID')) {
+    return 'La API Key de Firebase configurada no es válida.';
+  }
+  return `Error de Firebase Auth: ${code}`;
+}
+
 /**
  * Autentica al usuario contra Firebase Authentication REST API oficial (Identity Toolkit)
  */
 export async function signInWithFirebaseEmail(email: string, password: string): Promise<FirebaseAuthUser> {
   const cfg = getFirebaseConfig();
-
-  if (!cfg.apiKey) {
-    throw new Error('FIREBASE_NOT_CONFIGURED');
-  }
 
   const endpoint = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${encodeURIComponent(
     cfg.apiKey
@@ -142,16 +167,7 @@ export async function signInWithFirebaseEmail(email: string, password: string): 
 
   if (!res.ok) {
     const code = data?.error?.message || 'AUTH_ERROR';
-    if (code.includes('INVALID_LOGIN_CREDENTIALS') || code.includes('INVALID_PASSWORD') || code.includes('EMAIL_NOT_FOUND')) {
-      throw new Error('Correo o contraseña incorrectos en Firebase Auth.');
-    }
-    if (code.includes('TOO_MANY_ATTEMPTS_TRY_LATER')) {
-      throw new Error('Demasiados intentos fallidos. Intenta más tarde.');
-    }
-    if (code.includes('API_KEY_INVALID')) {
-      throw new Error('La API Key de Firebase configurada no es válida.');
-    }
-    throw new Error(`Error de Firebase Auth: ${code}`);
+    throw new Error(mapFirebaseAuthError(code));
   }
 
   const user: FirebaseAuthUser = {
@@ -166,15 +182,81 @@ export async function signInWithFirebaseEmail(email: string, password: string): 
   return user;
 }
 
-export function startPreConfigSession(email: string): FirebaseAuthUser {
+/**
+ * Registra un nuevo usuario administrador en Firebase Authentication (Identity Toolkit)
+ */
+export async function signUpWithFirebaseEmail(email: string, password: string): Promise<FirebaseAuthUser> {
+  const cfg = getFirebaseConfig();
+
+  const endpoint = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${encodeURIComponent(
+    cfg.apiKey
+  )}`;
+
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: email.trim(),
+      password,
+      returnSecureToken: true,
+    }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    const code = data?.error?.message || 'SIGNUP_ERROR';
+    throw new Error(mapFirebaseAuthError(code));
+  }
+
   const user: FirebaseAuthUser = {
-    uid: 'admin-local',
-    email: email || 'admin@avalpay.local',
-    idToken: 'pre-config-token',
-    expiresAt: Date.now() + 12 * 3600 * 1000,
-    isPreConfigSession: true,
+    uid: data.localId,
+    email: data.email,
+    idToken: data.idToken,
+    refreshToken: data.refreshToken,
+    expiresAt: Date.now() + Number(data.expiresIn || 3600) * 1000,
   };
+
   sessionStorage.setItem(STORAGE_AUTH_USER_KEY, JSON.stringify(user));
   return user;
+}
+
+/**
+ * Sincroniza opcionalmente la configuración de pasarela con Cloud Firestore (si las reglas permiten request.auth != null)
+ */
+export async function syncGatewayToFirestore(
+  idToken: string,
+  payload: Record<string, string>
+): Promise<{ synced: boolean; detail?: string }> {
+  try {
+    const cfg = getFirebaseConfig();
+    if (!cfg.projectId || !idToken) return { synced: false };
+
+    const fields: Record<string, { stringValue: string }> = {};
+    for (const [k, v] of Object.entries(payload)) {
+      fields[k] = { stringValue: String(v ?? '') };
+    }
+    fields.updatedAt = { stringValue: new Date().toISOString() };
+
+    const url = `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(
+      cfg.projectId
+    )}/databases/(default)/documents/avalpay_config/gateway`;
+
+    const res = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ fields }),
+    });
+
+    if (!res.ok) {
+      return { synced: false, detail: 'Firestore bloqueado por reglas (allow read, write: if false)' };
+    }
+    return { synced: true };
+  } catch {
+    return { synced: false };
+  }
 }
 

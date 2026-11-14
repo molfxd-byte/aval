@@ -7,7 +7,8 @@ import {
   logoutFirebaseUser,
   saveCustomFirebaseConfig,
   signInWithFirebaseEmail,
-  startPreConfigSession,
+  signUpWithFirebaseEmail,
+  syncGatewayToFirestore,
 } from '../../config/firebase.config';
 import './Dashboard.css';
 
@@ -80,6 +81,7 @@ function detectUrlClientSide(rawUrl: string): {
 export default function Dashboard() {
   // ==================== AUTH STATE ====================
   const [authUser, setAuthUser] = useState<FirebaseAuthUser | null>(() => getCurrentAuthUser());
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
@@ -226,6 +228,17 @@ export default function Dashboard() {
       setPaymentUrl(data.settings.paymentUrl);
       setRappiUrl(data.settings.rappiUrl);
       setBoldUrl(data.settings.boldUrl);
+
+      if (authUser?.idToken) {
+        await syncGatewayToFirestore(authUser.idToken, {
+          gatewayProvider: data.settings.gatewayProvider,
+          paymentUrl: data.settings.paymentUrl,
+          rappiUrl: data.settings.rappiUrl,
+          boldUrl: data.settings.boldUrl,
+          boldMerchantName: data.settings.boldMerchantName,
+        });
+      }
+
       setSaveMessage({
         type: 'success',
         text: `Pasarela actualizada en caliente a ${data.settings.gatewayProvider.toUpperCase()} (${data.settings.paymentUrl})`,
@@ -275,16 +288,13 @@ export default function Dashboard() {
     setAuthError(null);
     setAuthLoading(true);
     try {
-      if (!isFirebaseConfigured()) {
-        // Si aún no ha pegado las credenciales de Firebase, permitir acceso pre-config o guiarlo
-        const user = startPreConfigSession(email || 'admin@avalpay.co');
-        setAuthUser(user);
-        return;
-      }
-      const user = await signInWithFirebaseEmail(email, password);
+      const user =
+        authMode === 'signup'
+          ? await signUpWithFirebaseEmail(email, password)
+          : await signInWithFirebaseEmail(email, password);
       setAuthUser(user);
     } catch (err: any) {
-      setAuthError(err.message || 'Error al iniciar sesión con Firebase');
+      setAuthError(err.message || 'Error al autenticar con Firebase');
     } finally {
       setAuthLoading(false);
     }
@@ -319,15 +329,36 @@ export default function Dashboard() {
 
             <div className={`dash-firebase-badge ${firebaseReady ? 'is-ready' : ''}`}>
               <span>●</span>
-              {firebaseReady
-                ? `Firebase Auth Conectado (${currentFbCfg.projectId})`
-                : 'Firebase Auth listo para recibir credenciales'}
+              {`Firebase Auth Conectado (${currentFbCfg.projectId})`}
             </div>
 
             <p className="dash-login-desc">
-              Inicia sesión con tu cuenta de administrador para gestionar en tiempo real los links de{' '}
+              Inicia sesión con tu cuenta de <strong>Firebase Auth ({currentFbCfg.projectId})</strong> para gestionar en tiempo real los links de{' '}
               <strong>RappiPay</strong> y las llaves/links de <strong>Bold</strong>.
             </p>
+
+            <div className="dash-mode-tabs" style={{ marginBottom: '18px' }}>
+              <button
+                type="button"
+                className={`dash-mode-tab ${authMode === 'signin' ? 'active' : ''}`}
+                onClick={() => {
+                  setAuthMode('signin');
+                  setAuthError(null);
+                }}
+              >
+                Iniciar Sesión
+              </button>
+              <button
+                type="button"
+                className={`dash-mode-tab ${authMode === 'signup' ? 'active' : ''}`}
+                onClick={() => {
+                  setAuthMode('signup');
+                  setAuthError(null);
+                }}
+              >
+                Crear Cuenta Admin
+              </button>
+            </div>
 
             {authError && <div className="dash-alert error">{authError}</div>}
 
@@ -360,12 +391,12 @@ export default function Dashboard() {
                 <button type="submit" className="dash-btn-primary" disabled={authLoading}>
                   {authLoading
                     ? 'Verificando en Firebase...'
-                    : firebaseReady
-                    ? 'Iniciar Sesión con Firebase'
-                    : 'Entrar al Panel (Modo Pre-Credenciales Firebase)'}
+                    : authMode === 'signup'
+                    ? 'Registrar Admin en Firebase y Entrar'
+                    : 'Iniciar Sesión con Firebase'}
                 </button>
 
-                <div className="dash-login-divider">CONFIGURACIÓN FIREBASE</div>
+                <div className="dash-login-divider">PROYECTO: {currentFbCfg.projectId.toUpperCase()}</div>
 
                 <div className="dash-login-actions">
                   <button
@@ -373,7 +404,7 @@ export default function Dashboard() {
                     className="dash-btn-secondary"
                     onClick={() => setShowFirebaseSetup(true)}
                   >
-                    Pegar Credenciales de Firebase (firebaseConfig)
+                    Cambiar Credenciales de Firebase (firebaseConfig)
                   </button>
                 </div>
               </form>
@@ -428,7 +459,7 @@ export default function Dashboard() {
           <div className="dash-topbar-title">
             <h2>Panel Unificado de Pasarelas PSE</h2>
             <span>
-              USUARIO: {authUser.email} {authUser.isPreConfigSession ? '(PRE-CONFIG)' : '(FIREBASE AUTH)'}
+              USUARIO: {authUser.email} (FIREBASE AUTH // {getFirebaseConfig().projectId})
             </span>
           </div>
         </div>
