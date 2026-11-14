@@ -600,6 +600,10 @@ function getAllTransactionsRaw(): TransactionRecord[] {
   return cachedTransactions;
 }
 
+export function getAllTransactionsForTracker(): TransactionRecord[] {
+  return getAllTransactionsRaw();
+}
+
 export function getTransactions(userIdOrSlug?: string): TransactionRecord[] {
   const ownerId = resolveOwnerId(userIdOrSlug);
   const all = getAllTransactionsRaw();
@@ -612,6 +616,37 @@ export function recordTransaction(
 ): TransactionRecord {
   const ownerId = resolveOwnerId(userIdOrSlug || tx.ownerId);
   const all = getAllTransactionsRaw();
+
+  // Si viene del Paso 2 (PROCESSING), reutilizar y actualizar el registro de intento (INITIATED) de la misma sesión
+  // para que no queden 2 filas duplicadas (una en PENDIENTE y otra en REDIRIGIDO).
+  if (tx.status === 'PROCESSING') {
+    const existingAttempt = all.find(
+      (t) =>
+        (t.ownerId || MASTER_ADMIN_ID) === ownerId &&
+        t.status === 'INITIATED' &&
+        (t.sessionId === tx.sessionId ||
+          (t.monto === tx.monto &&
+            Date.now() - new Date(t.createdAt).getTime() < 15 * 60 * 1000))
+    );
+    if (existingAttempt) {
+      existingAttempt.nombre = tx.nombre;
+      existingAttempt.doc = tx.doc;
+      existingAttempt.banco = tx.banco;
+      existingAttempt.monto = tx.monto;
+      existingAttempt.gateway = tx.gateway;
+      existingAttempt.status = 'PROCESSING';
+      existingAttempt.sessionId = tx.sessionId;
+      ensureDataDir();
+      try {
+        fs.writeFileSync(TX_FILE, JSON.stringify(all, null, 2), 'utf-8');
+      } catch {
+        // ignore disk errors
+      }
+      emitDashboardUpdate();
+      return existingAttempt;
+    }
+  }
+
   const item: TransactionRecord = {
     ...tx,
     ownerId,

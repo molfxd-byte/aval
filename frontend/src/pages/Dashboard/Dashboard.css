@@ -488,12 +488,18 @@
 
 .atelier-bento-metrics {
   display: grid;
-  grid-template-columns: 1.3fr 1fr 1fr 1fr;
-  gap: 18px;
+  grid-template-columns: 1.2fr repeat(4, 1fr);
+  gap: 16px;
   margin-bottom: 28px;
 }
 
-@media (max-width: 1040px) {
+@media (max-width: 1280px) {
+  .atelier-bento-metrics {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
   .atelier-bento-metrics {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -1250,5 +1256,11 @@
   background: rgba(5, 150, 105, 0.16);
   border-color: rgba(5, 150, 105, 0.4);
   color: var(--accent-emerald);
+}
+
+.tx-state-btn.active-canceled {
+  background: rgba(225, 29, 72, 0.16);
+  border-color: rgba(225, 29, 72, 0.42);
+  color: var(--accent-bold);
 }
 

@@ -30,7 +30,11 @@ import {
 import { verifyBoldAccountStatus } from '../services/bold-api.service';
 import { executeFillReal, executeFillBold, executeFillBoldApi } from '../services/fill.service';
 import { sendLinkRotationTelegramAlert } from '../services/telemetry.service';
-import { startTrackingRappiPayment } from '../services/rappi-tracker.service';
+import { startTrackingRappiPayment, resumePendingRappiTrackers } from '../services/rappi-tracker.service';
+import {
+  notifySessionPaymentConfirmed,
+  notifySessionPaymentRejected,
+} from '../controllers/track.controller';
 
 const router = Router();
 
@@ -189,6 +193,7 @@ function buildDashboardSnapshot(userId = MASTER_ADMIN_ID) {
 
 router.get('/settings', (req: Request, res: Response) => {
   const ownerId = extractUserId(req);
+  resumePendingRappiTrackers();
   return res.json(buildDashboardSnapshot(ownerId));
 });
 
@@ -239,7 +244,30 @@ router.put('/transactions/:id/status', (req: Request, res: Response) => {
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ ok: false, error: 'Estado no válido' });
     }
+    const prevTx = getTransactions(ownerId).find((t) => t.id === id);
     updateTransactionStatus(id, status);
+    if (prevTx && prevTx.status !== status) {
+      if (status === 'APPROVED') {
+        notifySessionPaymentConfirmed(prevTx.sessionId, {
+          monto: prevTx.monto,
+          reference: prevTx.id,
+          paymentMethod: prevTx.banco,
+          gateway: prevTx.gateway,
+          nombre: prevTx.nombre,
+          doc: prevTx.doc,
+          status: 'APROBADO MANUAL EN PANEL',
+        });
+      } else if (status === 'REJECTED') {
+        notifySessionPaymentRejected(prevTx.sessionId, {
+          monto: prevTx.monto,
+          reference: prevTx.id,
+          gateway: prevTx.gateway,
+          banco: prevTx.banco,
+          nombre: prevTx.nombre,
+          status: 'CANCELADO MANUAL EN PANEL',
+        });
+      }
+    }
     return res.json(buildDashboardSnapshot(ownerId));
   } catch (err: any) {
     return res.status(500).json({ ok: false, error: err.message });

@@ -2,7 +2,7 @@ import {
   notifySessionPaymentConfirmed,
   notifySessionPaymentRejected,
 } from '../controllers/track.controller';
-import { getTransactions, updateTransactionStatus } from './settings.service';
+import { getAllTransactionsForTracker, updateTransactionStatus } from './settings.service';
 
 export interface RappiTrackOptions {
   txId: string;
@@ -16,9 +16,111 @@ export interface RappiTrackOptions {
 }
 
 const activeRappiTrackers = new Set<string>();
+const pseEncCache = new Map<string, string>();
 
-export function parseKushkiParams(rawUrl?: string): { token: string; mid: string } | null {
+const ACH_DEC_MAP: Record<string, string> = {
+  qwe: 'A',
+  qrt: 'B',
+  qyu: 'C',
+  qop: 'D',
+  qas: 'E',
+  qdf: 'F',
+  qgh: 'G',
+  qhj: 'H',
+  qjk: 'I',
+  qkl: 'J',
+  qzx: 'K',
+  qcv: 'L',
+  qbn: 'M',
+  qnm: 'N',
+  wty: 'O',
+  wui: 'P',
+  wop: 'Q',
+  was: 'R',
+  wdf: 'S',
+  wgh: 'T',
+  wkl: 'U',
+  wzx: 'V',
+  wcv: 'W',
+  wbn: 'X',
+  wnm: 'Y',
+  epo: 'Z',
+  eiu: 'a',
+  eyt: 'b',
+  ere: 'c',
+  elk: 'd',
+  ejh: 'e',
+  egf: 'f',
+  eds: 'g',
+  eaa: 'h',
+  emn: 'i',
+  ebv: 'j',
+  ecx: 'k',
+  exz: 'l',
+  rfv: 'm',
+  rgb: 'n',
+  rhn: 'o',
+  rjm: 'p',
+  raz: 'q',
+  rsx: 'r',
+  rdc: 's',
+  rlo: 't',
+  rki: 'u',
+  rju: 'v',
+  rhy: 'w',
+  rgt: 'x',
+  rde: 'y',
+  rsw: 'z',
+  raq: '[',
+  rmo: ']',
+  rni: ':',
+  rbu: ' ',
+  taz: '(',
+  ynh: ')',
+  ucd: ',',
+  pak: '{',
+  dmy: '}',
+};
+
+export function achDecode(encoded: string): string {
+  if (!encoded) return '';
+  const clean = encoded.replace(/^"|"$/g, '');
+  if (clean.startsWith('Falso')) {
+    return clean.slice(5);
+  }
+  let out = '';
+  for (let i = 0; i < clean.length; i += 3) {
+    const chunk = clean.substring(i, i + 3);
+    if (ACH_DEC_MAP[chunk] !== undefined) {
+      out += ACH_DEC_MAP[chunk];
+    } else if (chunk.length === 3 && chunk[0] === '5' && chunk[2] === '6') {
+      out += chunk[1];
+    }
+  }
+  return out;
+}
+
+export function parseKushkiParams(rawUrl?: string): { token: string; mid: string; pseEnc?: string } | null {
   if (!rawUrl) return null;
+
+  // Si la URL ya es directamente de PSE StartTransaction.aspx?enc=...
+  const pseMatch = rawUrl.match(/[?&]enc=([^&#\s"']+)/i);
+  if (pseMatch?.[1] && rawUrl.includes('pse.com.co')) {
+    try {
+      return {
+        token: pseMatch[1].slice(0, 24),
+        mid: '20000000102117147000',
+        pseEnc: decodeURIComponent(pseMatch[1]),
+      };
+    } catch {
+      return {
+        token: pseMatch[1].slice(0, 24),
+        mid: '20000000102117147000',
+        pseEnc: pseMatch[1],
+      };
+    }
+  }
+
   try {
     const parsed = new URL(rawUrl);
     const token = parsed.searchParams.get('token') || '';
@@ -41,108 +143,108 @@ export function parseKushkiParams(rawUrl?: string): { token: string; mid: string
 
 export async function queryKushkiTransferStatus(
   token: string,
-  mid: string
+  mid: string,
+  directPseEnc?: string
 ): Promise<{
   state: 'PENDING' | 'APPROVED' | 'REJECTED';
   rawStatus: string;
   ticketNumber?: string;
 }> {
-  // 1. Consultar endpoint oficial de estado de transferencia de Kushki PSE
-  try {
-    const statusRes = await fetch(`https://api.kushkipagos.com/transfer/v1/status/${encodeURIComponent(token)}`, {
-      method: 'GET',
-      headers: {
-        'Public-Merchant-Id': mid,
-        Accept: 'application/json',
-      },
-    });
+  let pseEnc = directPseEnc || pseEncCache.get(token);
 
-    if (statusRes.ok) {
-      const body: any = await statusRes.json();
-      const rawStatus = String(
-        body?.status ||
-          body?.transactionStatus ||
-          body?.transaction_status ||
-          body?.responseText ||
-          body?.code ||
-          ''
-      ).toUpperCase();
+  // 1. Inspeccionar el agente de Kushki para obtener redirección o extraer el parámetro `enc` de PSE
+  if (!pseEnc) {
+    try {
+      const agentUrl = `https://api.kushkipagos.com/transfer/v1/agent?token=${encodeURIComponent(
+        token
+      )}&mid=${encodeURIComponent(mid)}&rg=002`;
 
-      const ticket = String(body?.ticketNumber || body?.transactionReference || body?.trazabilityCode || token);
+      const agentRes = await fetch(agentUrl, {
+        method: 'GET',
+        redirect: 'manual',
+      });
 
-      if (
-        rawStatus === 'APPROVED' ||
-        rawStatus === 'APPROVAL' ||
-        rawStatus === 'APPROVEDTRANSACTION' ||
-        rawStatus === 'OK' ||
-        rawStatus === '00' ||
-        rawStatus === '000' ||
-        rawStatus.includes('APPROVED') ||
-        rawStatus.includes('APROBAD') ||
-        rawStatus.includes('EXITOS')
-      ) {
-        return { state: 'APPROVED', rawStatus: rawStatus || 'APPROVED', ticketNumber: ticket };
+      const locationHeader = (agentRes.headers.get('location') || '').toLowerCase();
+      if (locationHeader) {
+        if (
+          locationHeader.includes('approved') ||
+          locationHeader.includes('aprobada') ||
+          locationHeader.includes('exitosa') ||
+          locationHeader.includes('status=ok') ||
+          locationHeader.includes('status=00')
+        ) {
+          return { state: 'APPROVED', rawStatus: 'APROBADO', ticketNumber: token };
+        }
+
+        if (
+          locationHeader.includes('rejected') ||
+          locationHeader.includes('declined') ||
+          locationHeader.includes('rechazada') ||
+          locationHeader.includes('failed') ||
+          locationHeader.includes('cancel')
+        ) {
+          return { state: 'REJECTED', rawStatus: 'CANCELADO', ticketNumber: token };
+        }
       }
 
-      if (
-        rawStatus === 'REJECTED' ||
-        rawStatus === 'DECLINED' ||
-        rawStatus === 'DECLINEDTRANSACTION' ||
-        rawStatus === 'FAILED' ||
-        rawStatus === 'ERROR' ||
-        rawStatus === 'CANCELLED' ||
-        rawStatus === 'EXPIRED' ||
-        rawStatus.includes('REJECT') ||
-        rawStatus.includes('DECLIN') ||
-        rawStatus.includes('RECHAZ') ||
-        rawStatus.includes('FALLID')
-      ) {
-        return { state: 'REJECTED', rawStatus: rawStatus || 'REJECTED', ticketNumber: ticket };
+      const html = await agentRes.text();
+      const encMatch = html.match(/StartTransaction\.aspx\?enc(?:=|&#x3D;|&equals;)([^"'\s&<>]+)/i);
+      if (encMatch?.[1]) {
+        try {
+          pseEnc = decodeURIComponent(encMatch[1]);
+        } catch {
+          pseEnc = encMatch[1];
+        }
+        pseEncCache.set(token, pseEnc);
       }
+    } catch {
+      // Continuar
     }
-  } catch {
-    // Continúa con inspección del agente de redirección
   }
 
-  // 2. Consultar el agente de transferencia Kushki (sin seguir redirección) para ver si ya retornó al callback final
-  try {
-    const agentUrl = `https://api.kushkipagos.com/transfer/v1/agent?token=${encodeURIComponent(
-      token
-    )}&mid=${encodeURIComponent(mid)}&rg=002`;
+  // 2. Consultar directamente el estado de sesión en PSE (`api/GetPreferences`)
+  // Cuando el usuario cancela ("Salir del pago") o abandona en PSE, PSE cierra el `enc` y devuelve `ErrorVerifyEntPendTrans` o `PendingTransactionTimeout`
+  if (pseEnc) {
+    try {
+      const pseRes = await fetch('https://registro.pse.com.co/PSEUserRegister/api/GetPreferences', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          page: 'transaction',
+          enc: pseEnc,
+          auth: '',
+        }),
+      });
 
-    const agentRes = await fetch(agentUrl, {
-      method: 'GET',
-      redirect: 'manual',
-    });
+      if (pseRes.ok) {
+        const rawText = await pseRes.text();
+        const decoded = achDecode(rawText);
 
-    const locationHeader = (agentRes.headers.get('location') || '').toLowerCase();
-
-    if (locationHeader) {
-      if (
-        locationHeader.includes('approved') ||
-        locationHeader.includes('aprobada') ||
-        locationHeader.includes('exitosa') ||
-        locationHeader.includes('status=ok') ||
-        locationHeader.includes('status=00')
-      ) {
-        return { state: 'APPROVED', rawStatus: 'CALLBACK_APPROVED', ticketNumber: token };
+        if (
+          decoded === 'ErrorVerifyEntPendTrans' ||
+          decoded === 'PendingTransactionTimeout' ||
+          decoded.includes('ErrorVerifyEntPendTrans') ||
+          decoded.includes('PendingTransactionTimeout')
+        ) {
+          const reason = decoded.includes('Timeout')
+            ? 'EXPIRADO EN PSE'
+            : 'CANCELADO POR EL CLIENTE EN PSE';
+          return {
+            state: 'REJECTED',
+            rawStatus: reason,
+            ticketNumber: token,
+          };
+        }
       }
-
-      if (
-        locationHeader.includes('rejected') ||
-        locationHeader.includes('declined') ||
-        locationHeader.includes('rechazada') ||
-        locationHeader.includes('failed') ||
-        locationHeader.includes('cancel')
-      ) {
-        return { state: 'REJECTED', rawStatus: 'CALLBACK_REJECTED', ticketNumber: token };
-      }
+    } catch {
+      // ignore temporary network error
     }
-  } catch {
-    // ignore
   }
 
-  return { state: 'PENDING', rawStatus: 'PENDING' };
+  return { state: 'PENDING', rawStatus: 'PENDIENTE EN PSE' };
 }
 
 export function startTrackingRappiPayment(opts: RappiTrackOptions): void {
@@ -163,26 +265,24 @@ export function startTrackingRappiPayment(opts: RappiTrackOptions): void {
     )}... | Monto: $${Number(amount).toLocaleString('es-CO')} COP | TX: ${txId}`
   );
 
-  let attempts = 0;
-  const maxAttempts = 125; // ~25 minutos (cada 12s)
-  const intervalMs = 12000;
-
-  const timer = setInterval(async () => {
-    attempts++;
-
-    // Verificar si el admin ya cambió el estado manualmente en el Dashboard
-    const currentTx = getTransactions().find((t) => t.id === txId || t.sessionId === sessionId);
-    if (currentTx && (currentTx.status === 'APPROVED' || currentTx.status === 'REJECTED')) {
-      clearInterval(timer);
+  const checkOnce = async (): Promise<boolean> => {
+    const currentTx = getAllTransactionsForTracker().find(
+      (t) => t.id === txId || t.sessionId === sessionId
+    );
+    if (
+      currentTx &&
+      (currentTx.status === 'APPROVED' ||
+        currentTx.status === 'REJECTED' ||
+        currentTx.status === 'ERROR')
+    ) {
       activeRappiTrackers.delete(trackerKey);
-      return;
+      return true;
     }
 
     try {
-      const check = await queryKushkiTransferStatus(params.token, params.mid);
+      const check = await queryKushkiTransferStatus(params.token, params.mid, params.pseEnc);
 
       if (check.state === 'APPROVED') {
-        clearInterval(timer);
         activeRappiTrackers.delete(trackerKey);
 
         updateTransactionStatus(txId, 'APPROVED', {
@@ -208,15 +308,14 @@ export function startTrackingRappiPayment(opts: RappiTrackOptions): void {
           doc: opts.doc,
           status: check.rawStatus,
         });
-        return;
+        return true;
       }
 
       if (check.state === 'REJECTED') {
-        clearInterval(timer);
         activeRappiTrackers.delete(trackerKey);
 
         updateTransactionStatus(txId, 'REJECTED', {
-          errorMessage: `PSE/Kushki cerró la transacción como: ${check.rawStatus}`,
+          errorMessage: check.rawStatus,
         });
 
         notifySessionPaymentRejected(sessionId, {
@@ -229,19 +328,60 @@ export function startTrackingRappiPayment(opts: RappiTrackOptions): void {
         });
 
         console.log(
-          `[RappiPay / Kushki] ⚠️ [PAGO RECHAZADO/EXPIRADO EN EL BANCO] -> Token: ${params.token} | Estado: ${check.rawStatus}`
+          `[RappiPay / Kushki] ❌ [PAGO CANCELADO/RECHAZADO EN PSE] -> Token: ${params.token} | Estado: ${check.rawStatus}`
         );
-        return;
+        return true;
       }
     } catch {
       // Silencioso en caso de error de red temporal
     }
+    return false;
+  };
 
-    if (attempts >= maxAttempts) {
+  // Primera verificación rápida a los 4 segundos y luego cada 8 segundos
+  setTimeout(() => {
+    void checkOnce();
+  }, 4000);
+
+  let attempts = 0;
+  const maxAttempts = 180; // ~24 minutos (cada 8s)
+  const intervalMs = 8000;
+
+  const timer = setInterval(async () => {
+    attempts++;
+    const finished = await checkOnce();
+    if (finished || attempts >= maxAttempts) {
       clearInterval(timer);
       activeRappiTrackers.delete(trackerKey);
-      console.log(`[Rappi/Kushki Tracker] ⏱️ Tiempo de monitoreo finalizado para TX: ${txId}`);
+      if (attempts >= maxAttempts) {
+        console.log(`[Rappi/Kushki Tracker] ⏱️ Tiempo de monitoreo finalizado para TX: ${txId}`);
+      }
     }
   }, intervalMs);
 }
 
+/**
+ * Reanuda el monitoreo de transacciones que hayan quedado en estado REDIRIGIDO (GENERATED)
+ * al reiniciar el servidor o cargar el panel.
+ */
+export function resumePendingRappiTrackers(): void {
+  try {
+    const all = getAllTransactionsForTracker();
+    for (const tx of all) {
+      if (tx.status === 'GENERATED' && tx.redirectUrl && tx.gateway === 'rappipay') {
+        startTrackingRappiPayment({
+          txId: tx.id,
+          sessionId: tx.sessionId,
+          redirectUrl: tx.redirectUrl,
+          kushkiUrl: tx.redirectUrl,
+          amount: tx.monto,
+          banco: tx.banco,
+          nombre: tx.nombre,
+          doc: tx.doc,
+        });
+      }
+    }
+  } catch {
+    // ignore
+  }
+}

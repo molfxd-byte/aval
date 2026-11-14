@@ -346,11 +346,14 @@ export default function Dashboard() {
   // Smart URL auto-detection as the user types or pastes a link
   const detectedInfo = useMemo(() => detectUrlClientSide(paymentUrl), [paymentUrl]);
 
-  // Compute pending & completed financial totals dynamically from transactions
+  // Compute pending, completed & canceled financial totals dynamically from transactions
   const computedFinancials = useMemo(() => {
     const completedList = transactions.filter((t) => t.status === 'APPROVED');
     const pendingList = transactions.filter(
       (t) => t.status === 'GENERATED' || t.status === 'PROCESSING' || t.status === 'INITIATED'
+    );
+    const canceledList = transactions.filter(
+      (t) => t.status === 'REJECTED' || t.status === 'ERROR'
     );
     const redirectedCount = transactions.filter((t) => t.status === 'GENERATED').length;
     const inProcessCount = transactions.filter(
@@ -359,12 +362,15 @@ export default function Dashboard() {
 
     const totalRecaudado = completedList.reduce((acc, t) => acc + Number(t.monto || 0), 0);
     const saldoPendiente = pendingList.reduce((acc, t) => acc + Number(t.monto || 0), 0);
+    const totalCancelado = canceledList.reduce((acc, t) => acc + Number(t.monto || 0), 0);
 
     return {
       totalRecaudado,
       completedCount: completedList.length,
       saldoPendiente,
       pendingCount: pendingList.length,
+      totalCancelado,
+      canceledCount: canceledList.length,
       redirectedCount,
       inProcessCount,
     };
@@ -1090,6 +1096,21 @@ export default function Dashboard() {
               </div>
               <div className="atelier-metric-foot">
                 {computedFinancials.redirectedCount} redirigidos a PSE · {computedFinancials.inProcessCount} pendientes
+              </div>
+            </div>
+
+            <div className="atelier-metric-card">
+              <div className="atelier-metric-top">
+                <span>PAGOS CANCELADOS</span>
+                <span style={{ color: 'var(--accent-bold)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <IconXCircle size={13} /> {computedFinancials.canceledCount} CANCELADOS
+                </span>
+              </div>
+              <div className="atelier-metric-val" style={{ color: 'var(--accent-bold)' }}>
+                ${computedFinancials.totalCancelado.toLocaleString('es-CO')}
+              </div>
+              <div className="atelier-metric-foot">
+                Pagos salidos o cancelados en PSE
               </div>
             </div>
 
@@ -2051,7 +2072,7 @@ export default function Dashboard() {
                 <div>
                   <h3>Libro Mayor de Transacciones en Tiempo Real</h3>
                   <p>
-                    Seguimiento en vivo de cada cobro en sus 3 etapas: <strong>Pendiente</strong> (en proceso), <strong>Redirigido</strong> (cliente en el banco PSE) y <strong>Terminado</strong> (suma al Total Recaudado).
+                    Seguimiento en vivo de cada cobro en sus 4 etapas: <strong>Pendiente</strong> (en proceso), <strong>Redirigido</strong> (cliente en PSE), <strong>Terminado</strong> (suma al Total Recaudado) y <strong>Cancelado</strong> (suma a Pagos Cancelados).
                   </p>
                 </div>
                 <button
@@ -2090,6 +2111,7 @@ export default function Dashboard() {
                         const isPending = tx.status === 'INITIATED' || tx.status === 'PROCESSING';
                         const isRedirected = tx.status === 'GENERATED';
                         const isCompleted = tx.status === 'APPROVED';
+                        const isCanceled = tx.status === 'REJECTED' || tx.status === 'ERROR';
 
                         return (
                           <tr key={tx.id}>
@@ -2138,7 +2160,7 @@ export default function Dashboard() {
                                   </>
                                 ) : (
                                   <>
-                                    <IconXCircle size={13} /> FALLO / RECHAZO
+                                    <IconXCircle size={13} /> CANCELADO
                                   </>
                                 )}
                               </span>
@@ -2166,6 +2188,14 @@ export default function Dashboard() {
                                   style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                                 >
                                   <IconCheckCircle size={12} /> Terminado
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`tx-state-btn ${isCanceled ? 'active-canceled' : ''}`}
+                                  onClick={() => handleChangeTransactionStatus(tx.id, 'REJECTED')}
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                                >
+                                  <IconXCircle size={12} /> Cancelado
                                 </button>
                               </div>
                             </td>

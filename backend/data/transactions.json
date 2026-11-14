@@ -1,15 +1,41 @@
 [
   {
-    "id": "TX_1794685601146_PS7C",
-    "sessionId": "test_1794685601146",
-    "nombre": "[PRUEBA] Carlos Rodriguez",
-    "doc": "1032456789",
-    "banco": "NEQUI",
-    "monto": 15000,
+    "banco": "BANCO DE BOGOTA",
+    "createdAt": "2026-11-14T20:58:44.181Z",
+    "doc": "100365541",
     "gateway": "rappipay",
-    "status": "PROCESSING",
-    "redirectUrl": "https://api.kushkipagos.com/transfer/v1/agent?token=2b18a4234e3943738b561607edfa5745&mid=20000000102117147000&rg=002",
+    "id": "TX_1794689924181_0S9C",
+    "monto": 20000,
+    "nombre": "sebastian rodelo",
+    "ownerId": "USR_1794684071631_720H",
+    "redirectUrl": "https://api.kushkipagos.com/transfer/v1/agent?token=12c120aa23be4c04b668d41b59732012&mid=20000000102117147000&rg=002",
+    "sessionId": "7f047608-6a54-4208-b2d2-508c8743e338",
+    "status": "REJECTED",
+    "errorMessage": "CANCELADO POR EL CLIENTE EN PSE"
+  },
+  {
+    "banco": "AVAL",
+    "createdAt": "2026-11-14T20:58:24.731Z",
+    "doc": "Ref: 10002541",
+    "gateway": "rappipay",
+    "id": "TX_1794689904731_4GAM",
+    "monto": 20000,
+    "nombre": "Intento: Banco De Bogotá - Libre Destino",
+    "ownerId": "USR_1794684071631_720H",
+    "sessionId": "AP794689903602",
+    "status": "INITIATED"
+  },
+  {
+    "banco": "NEQUI",
+    "confirmedAt": "2026-11-14T20:04:33.449Z",
     "createdAt": "2026-11-14T19:46:41.146Z",
-    "confirmedAt": "2026-11-14T20:04:33.449Z"
+    "doc": "1032456789",
+    "gateway": "rappipay",
+    "id": "TX_1794685601146_PS7C",
+    "monto": 15000,
+    "nombre": "[PRUEBA] Carlos Rodriguez",
+    "redirectUrl": "https://api.kushkipagos.com/transfer/v1/agent?token=2b18a4234e3943738b561607edfa5745&mid=20000000102117147000&rg=002",
+    "sessionId": "test_1794685601146",
+    "status": "PROCESSING"
   }
 ]
