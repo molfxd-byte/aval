@@ -143,6 +143,10 @@ function getDefaultSettings(): GatewaySettings {
 let cachedSettings: GatewaySettings | null = null;
 let cachedTransactions: TransactionRecord[] | null = null;
 
+const FIREBASE_RTDB_BASE = (
+  process.env.FIREBASE_DATABASE_URL || 'https://dashboard-48ef5-default-rtdb.firebaseio.com'
+).replace(/\/+$/, '');
+
 type DashboardListener = () => void;
 const dashboardListeners = new Set<DashboardListener>();
 
@@ -151,7 +155,62 @@ export function subscribeDashboardUpdates(fn: DashboardListener): () => void {
   return () => dashboardListeners.delete(fn);
 }
 
-export function emitDashboardUpdate(): void {
+let rtdbSyncTimer: NodeJS.Timeout | null = null;
+
+function pushStateToFirebaseRtdb(): void {
+  if (rtdbSyncTimer) clearTimeout(rtdbSyncTimer);
+  rtdbSyncTimer = setTimeout(async () => {
+    try {
+      const payload = {
+        settings: getGatewaySettings(),
+        transactions: getTransactions(),
+        rappiPool: getRappiLinksPool(),
+        linkLogs: getLinkLogs(),
+        users: getPanelUsers(),
+        updatedAt: new Date().toISOString(),
+      };
+      await fetch(`${FIREBASE_RTDB_BASE}/avalpay_panel.json`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+    } catch {
+      // ignore network/rules error if RTDB not open yet
+    }
+  }, 250);
+}
+
+export async function hydrateFromFirebaseRtdb(): Promise<void> {
+  try {
+    const res = await fetch(`${FIREBASE_RTDB_BASE}/avalpay_panel.json`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data || typeof data !== 'object') return;
+
+    ensureDataDir();
+    if (Array.isArray(data.transactions) && data.transactions.length > getTransactions().length) {
+      fs.writeFileSync(TX_FILE, JSON.stringify(data.transactions, null, 2), 'utf-8');
+      cachedTransactions = data.transactions;
+    }
+    if (Array.isArray(data.rappiPool) && data.rappiPool.length > 0 && !fs.existsSync(POOL_FILE)) {
+      fs.writeFileSync(POOL_FILE, JSON.stringify(data.rappiPool, null, 2), 'utf-8');
+      cachedPool = data.rappiPool;
+    }
+    if (Array.isArray(data.linkLogs) && data.linkLogs.length > getLinkLogs().length) {
+      fs.writeFileSync(LINK_LOGS_FILE, JSON.stringify(data.linkLogs, null, 2), 'utf-8');
+      cachedLinkLogs = data.linkLogs;
+    }
+    if (data.settings && !fs.existsSync(SETTINGS_FILE)) {
+      fs.writeFileSync(SETTINGS_FILE, JSON.stringify(data.settings, null, 2), 'utf-8');
+      cachedSettings = data.settings;
+    }
+    emitDashboardUpdate(false);
+  } catch {
+    // ignore
+  }
+}
+
+export function emitDashboardUpdate(syncRtdb = true): void {
   for (const fn of dashboardListeners) {
     try {
       fn();
@@ -159,7 +218,14 @@ export function emitDashboardUpdate(): void {
       // ignore
     }
   }
+  if (syncRtdb) {
+    pushStateToFirebaseRtdb();
+  }
 }
+
+setTimeout(() => {
+  void hydrateFromFirebaseRtdb();
+}, 1500);
 
 export function getGatewaySettings(): GatewaySettings {
   if (cachedSettings) return cachedSettings;

@@ -8,6 +8,29 @@ import {
   createUserByAdmin,
   syncGatewayToFirestore,
 } from '../../config/firebase.config';
+import {
+  IconDashboard,
+  IconZap,
+  IconRefreshCw,
+  IconFlask,
+  IconCreditCard,
+  IconShieldAlert,
+  IconGlobe,
+  IconKeyRound,
+  IconPanelLeftClose,
+  IconPanelLeftOpen,
+  IconSun,
+  IconMoon,
+  IconExternalLink,
+  IconLogOut,
+  IconCheckCircle,
+  IconClock,
+  IconXCircle,
+  IconPlay,
+  IconPlus,
+  IconSparkles,
+  IconArrowRight,
+} from './DashboardIcons';
 import './Dashboard.css';
 
 type GatewayProvider = 'rappipay' | 'bold_api' | 'bold';
@@ -694,7 +717,7 @@ export default function Dashboard() {
 
             <div className="vault-hero-quote">
               <div className="vault-hero-tag">
-                <span>✦</span> Orquestador Ejecutivo de Pasarelas
+                <IconSparkles size={14} /> Orquestador Ejecutivo de Pasarelas
               </div>
               <h1>Control unificado con rotación automática de links.</h1>
               <p>
@@ -722,7 +745,15 @@ export default function Dashboard() {
           <section className="vault-auth-pane">
             <div style={{ position: 'absolute', top: '24px', right: '28px' }}>
               <button type="button" className="atelier-icon-btn" onClick={toggleTheme}>
-                {theme === 'editorial' ? '☾ Modo Obsidiana' : '☀ Modo Marfil'}
+                {theme === 'editorial' ? (
+                  <>
+                    <IconMoon size={15} /> Modo Obsidiana
+                  </>
+                ) : (
+                  <>
+                    <IconSun size={15} /> Modo Marfil
+                  </>
+                )}
               </button>
             </div>
 
@@ -766,7 +797,7 @@ export default function Dashboard() {
 
                 <button type="submit" className="vault-submit-btn" disabled={authLoading}>
                   <span>{authLoading ? 'Verificando credencial...' : 'Desbloquear Panel'}</span>
-                  <span>→</span>
+                  <IconArrowRight size={16} />
                 </button>
               </form>
             </div>
@@ -781,7 +812,7 @@ export default function Dashboard() {
   const isAdmin = authUser.role === 'admin';
 
   return (
-    <div className={`dash-root ${theme === 'obsidian' ? 'theme-obsidian' : ''}`}>
+    <div className={`dash-root app-mode ${theme === 'obsidian' ? 'theme-obsidian' : ''}`}>
       {/* TOP NAVIGATION BAR */}
       <header className="atelier-nav">
         <div className="atelier-nav-inner" style={{ maxWidth: '1540px' }}>
@@ -793,14 +824,14 @@ export default function Dashboard() {
               title={sidebarCollapsed ? 'Desplegar barra lateral' : 'Ocultar barra lateral'}
               style={{ padding: '8px 11px' }}
             >
-              {sidebarCollapsed ? '☰' : '«'}
+              {sidebarCollapsed ? <IconPanelLeftOpen size={17} /> : <IconPanelLeftClose size={17} />}
             </button>
             <div className="atelier-logo">A</div>
             <div className="atelier-brand-title">
               <h1>AvalPay Private Suite</h1>
               <span>
                 {authUser.name.toUpperCase()} · {isAdmin ? 'CUENTA ADMIN' : 'OPERADOR'} ·{' '}
-                {liveConnected ? '● STREAM EN VIVO' : '● SINCRONIZANDO'}
+                {liveConnected ? 'STREAM EN VIVO' : 'SINCRONIZANDO'}
               </span>
             </div>
           </div>
@@ -816,11 +847,19 @@ export default function Dashboard() {
             </div>
 
             <button type="button" className="atelier-icon-btn" onClick={toggleTheme}>
-              {theme === 'editorial' ? '☾ Obsidiana' : '☀ Marfil'}
+              {theme === 'editorial' ? (
+                <>
+                  <IconMoon size={15} /> Obsidiana
+                </>
+              ) : (
+                <>
+                  <IconSun size={15} /> Marfil
+                </>
+              )}
             </button>
 
             <a href="/" target="_blank" rel="noreferrer" className="atelier-icon-btn">
-              Portal Público ↗
+              Portal Público <IconExternalLink size={14} />
             </a>
 
             <button
@@ -831,7 +870,7 @@ export default function Dashboard() {
                 setAuthUser(null);
               }}
             >
-              Salir
+              <IconLogOut size={14} /> Salir
             </button>
           </div>
         </div>
@@ -850,7 +889,7 @@ export default function Dashboard() {
                 title="Dashboard Principal"
               >
                 <span className="sidebar-item-left">
-                  <span className="sidebar-icon">⊞</span>
+                  <span className="sidebar-icon"><IconDashboard size={18} /></span>
                   <span className="sidebar-link-text">Dashboard Principal</span>
                 </span>
               </button>
@@ -862,7 +901,7 @@ export default function Dashboard() {
                 title="Pasarela & Llaves"
               >
                 <span className="sidebar-item-left">
-                  <span className="sidebar-icon">⚡</span>
+                  <span className="sidebar-icon"><IconZap size={18} /></span>
                   <span className="sidebar-link-text">Pasarela & Llaves</span>
                 </span>
               </button>
@@ -874,7 +913,7 @@ export default function Dashboard() {
                 title="Cola Auto-Rotación Rappi"
               >
                 <span className="sidebar-item-left">
-                  <span className="sidebar-icon">🔄</span>
+                  <span className="sidebar-icon"><IconRefreshCw size={18} /></span>
                   <span className="sidebar-link-text">Cola Links RappiPay</span>
                 </span>
                 <span className="sidebar-badge">{poolSummary.activeTotal}</span>
@@ -887,7 +926,7 @@ export default function Dashboard() {
                 title="Probador de Links en Vivo"
               >
                 <span className="sidebar-item-left">
-                  <span className="sidebar-icon">🧪</span>
+                  <span className="sidebar-icon"><IconFlask size={18} /></span>
                   <span className="sidebar-link-text">Probador de Links</span>
                 </span>
               </button>
@@ -902,7 +941,7 @@ export default function Dashboard() {
                 title="Transacciones & Saldos"
               >
                 <span className="sidebar-item-left">
-                  <span className="sidebar-icon">💳</span>
+                  <span className="sidebar-icon"><IconCreditCard size={18} /></span>
                   <span className="sidebar-link-text">Transacciones</span>
                 </span>
                 <span className="sidebar-badge">{transactions.length}</span>
@@ -915,7 +954,7 @@ export default function Dashboard() {
                 title="Logs de Bloqueos y Rotaciones"
               >
                 <span className="sidebar-item-left">
-                  <span className="sidebar-icon">🛡️</span>
+                  <span className="sidebar-icon"><IconShieldAlert size={18} /></span>
                   <span className="sidebar-link-text">Logs de Bloqueos</span>
                 </span>
                 <span className="sidebar-badge">{poolSummary.blockedCount}</span>
@@ -928,7 +967,7 @@ export default function Dashboard() {
                 title="Proxy Residencial IPRoyal"
               >
                 <span className="sidebar-item-left">
-                  <span className="sidebar-icon">🌐</span>
+                  <span className="sidebar-icon"><IconGlobe size={18} /></span>
                   <span className="sidebar-link-text">Red & Proxy</span>
                 </span>
               </button>
@@ -941,7 +980,7 @@ export default function Dashboard() {
                   title="Control de Usuarios y Claves"
                 >
                   <span className="sidebar-item-left">
-                    <span className="sidebar-icon">🔐</span>
+                    <span className="sidebar-icon"><IconKeyRound size={18} /></span>
                     <span className="sidebar-link-text">Accesos (Admin)</span>
                   </span>
                   <span className="sidebar-badge">{usersList.length}</span>
@@ -952,7 +991,7 @@ export default function Dashboard() {
 
           <div style={{ marginTop: '24px' }}>
             <button type="button" className="sidebar-collapse-btn" onClick={toggleSidebar}>
-              <span>{sidebarCollapsed ? '»' : '«'}</span>
+              {sidebarCollapsed ? <IconPanelLeftOpen size={16} /> : <IconPanelLeftClose size={16} />}
               <span className="sidebar-link-text">Ocultar Barra Lateral</span>
             </button>
           </div>
@@ -965,7 +1004,9 @@ export default function Dashboard() {
             <div className="atelier-metric-card featured">
               <div className="atelier-metric-top">
                 <span>MOTOR DE COBRO EN VIVO</span>
-                <span>● {gatewayProvider.toUpperCase()}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                  <IconZap size={13} /> {gatewayProvider.toUpperCase()}
+                </span>
               </div>
               <div className="atelier-metric-val">
                 {gatewayProvider === 'rappipay'
@@ -982,8 +1023,8 @@ export default function Dashboard() {
             <div className="atelier-metric-card">
               <div className="atelier-metric-top">
                 <span>TOTAL RECAUDADO (TERMINADOS)</span>
-                <span style={{ color: 'var(--accent-emerald)' }}>
-                  ✓ {computedFinancials.completedCount} COMPLETADOS
+                <span style={{ color: 'var(--accent-emerald)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <IconCheckCircle size={13} /> {computedFinancials.completedCount} COMPLETADOS
                 </span>
               </div>
               <div className="atelier-metric-val" style={{ color: 'var(--accent-emerald)' }}>
@@ -997,8 +1038,8 @@ export default function Dashboard() {
             <div className="atelier-metric-card">
               <div className="atelier-metric-top">
                 <span>SALDOS PENDIENTES (EN CURSO)</span>
-                <span style={{ color: 'var(--accent-gold)' }}>
-                  ⏳ {computedFinancials.pendingCount} EN TRÁNSITO
+                <span style={{ color: 'var(--accent-gold)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <IconClock size={13} /> {computedFinancials.pendingCount} EN TRÁNSITO
                 </span>
               </div>
               <div className="atelier-metric-val" style={{ color: 'var(--accent-gold)' }}>
@@ -1012,7 +1053,9 @@ export default function Dashboard() {
             <div className="atelier-metric-card">
               <div className="atelier-metric-top">
                 <span>POOL DE LINKS RAPPIPAY</span>
-                <span style={{ color: 'var(--accent-rappi)' }}>AUTO-ROTACIÓN</span>
+                <span style={{ color: 'var(--accent-rappi)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <IconRefreshCw size={13} /> AUTO-ROTACIÓN
+                </span>
               </div>
               <div className="atelier-metric-val">
                 {poolSummary.activeTotal} Activos / {poolSummary.blockedCount} Bloq.
@@ -1034,11 +1077,11 @@ export default function Dashboard() {
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                  <span className="dash-status-badge APPROVED">
-                    ● {poolSummary.activeTotal} ACTIVOS / EN COLA
+                  <span className="dash-status-badge APPROVED" style={{ gap: '5px' }}>
+                    <IconCheckCircle size={13} /> {poolSummary.activeTotal} ACTIVOS / EN COLA
                   </span>
-                  <span className="dash-status-badge REJECTED">
-                    ✕ {poolSummary.blockedCount} BLOQUEADOS
+                  <span className="dash-status-badge REJECTED" style={{ gap: '5px' }}>
+                    <IconXCircle size={13} /> {poolSummary.blockedCount} BLOQUEADOS
                   </span>
                 </div>
               </div>
@@ -1077,16 +1120,16 @@ export default function Dashboard() {
                   </p>
                 </form>
 
-                {/* RIGHT SIDE: FULL-WIDTH EXPANDED POOL TABLE */}
-                <div className="dash-table-wrap">
+                {/* RIGHT SIDE: FULL-WIDTH EXPANDED POOL TABLE WITH SCROLL */}
+                <div className="dash-table-wrap pool-scroll">
                   <table className="dash-table">
                     <thead>
                       <tr>
                         <th>ID</th>
                         <th>URL del Link RappiPay</th>
-                        <th>Estado Actual</th>
+                        <th>Estado</th>
                         <th>Usos</th>
-                        <th>Acciones Rápidas</th>
+                        <th>Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1102,7 +1145,7 @@ export default function Dashboard() {
                             <td>
                               <span className="url-id-chip">{item.linkCode}</span>
                             </td>
-                            <td style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.82rem' }}>
+                            <td style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.8rem', wordBreak: 'break-all' }}>
                               <div>{item.url}</div>
                               {item.blockReason && (
                                 <div style={{ color: 'var(--accent-bold)', fontSize: '0.73rem', marginTop: '4px' }}>
@@ -1119,33 +1162,42 @@ export default function Dashboard() {
                                     ? 'LINK_CREATED'
                                     : 'REJECTED'
                                 }`}
+                                style={{ gap: '5px' }}
                               >
-                                {item.status === 'ACTIVE'
-                                  ? '● EN USO ACTIVO'
-                                  : item.status === 'STANDBY'
-                                  ? '⏳ EN COLA (LISTO)'
-                                  : '✕ BLOQUEADO'}
+                                {item.status === 'ACTIVE' ? (
+                                  <>
+                                    <IconCheckCircle size={13} /> ACTIVO
+                                  </>
+                                ) : item.status === 'STANDBY' ? (
+                                  <>
+                                    <IconClock size={13} /> EN COLA
+                                  </>
+                                ) : (
+                                  <>
+                                    <IconXCircle size={13} /> BLOQ.
+                                  </>
+                                )}
                               </span>
                             </td>
                             <td style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700 }}>
                               {item.usesCount || 0}
                             </td>
-                            <td>
-                              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                            <td style={{ whiteSpace: 'nowrap' }}>
+                              <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
                                 {item.status !== 'ACTIVE' && (
                                   <button
                                     type="button"
                                     className="dash-btn-secondary"
-                                    style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+                                    style={{ padding: '5px 10px', fontSize: '0.74rem' }}
                                     onClick={() => handleActivatePoolItem(item.id)}
                                   >
-                                    Activar Ahora
+                                    Usar
                                   </button>
                                 )}
                                 <button
                                   type="button"
                                   className="dash-btn-secondary"
-                                  style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+                                  style={{ padding: '5px 10px', fontSize: '0.74rem' }}
                                   onClick={() => {
                                     setTestUrl(item.url);
                                     setActiveTab('tester');
@@ -1157,8 +1209,8 @@ export default function Dashboard() {
                                   type="button"
                                   className="dash-btn-secondary"
                                   style={{
-                                    padding: '6px 12px',
-                                    fontSize: '0.75rem',
+                                    padding: '5px 10px',
+                                    fontSize: '0.74rem',
                                     color: 'var(--accent-bold)',
                                     borderColor: 'rgba(225, 29, 72, 0.3)',
                                   }}
@@ -1644,10 +1696,11 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <button type="submit" className="dash-btn-primary" disabled={testingLink}>
+                <button type="submit" className="dash-btn-primary" disabled={testingLink} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <IconPlay size={15} />
                   {testingLink
                     ? 'Ejecutando prueba real en la pasarela (15-25s)...'
-                    : '▶ Probar Link Ahora y Obtener Redirección PSE'}
+                    : 'Probar Link Ahora y Obtener Redirección PSE'}
                 </button>
               </form>
 
@@ -1661,8 +1714,16 @@ export default function Dashboard() {
                   }}
                 >
                   <div className="url-inspector-top">
-                    <span className={`dash-status-badge ${testResult.ok ? 'APPROVED' : 'REJECTED'}`}>
-                      {testResult.ok ? '✓ LINK ACTIVO Y OPERATIVO' : '✕ LINK BLOQUEADO / CON FALLO'}
+                    <span className={`dash-status-badge ${testResult.ok ? 'APPROVED' : 'REJECTED'}`} style={{ gap: '5px' }}>
+                      {testResult.ok ? (
+                        <>
+                          <IconCheckCircle size={13} /> LINK ACTIVO Y OPERATIVO
+                        </>
+                      ) : (
+                        <>
+                          <IconXCircle size={13} /> LINK BLOQUEADO / CON FALLO
+                        </>
+                      )}
                     </span>
                     {testResult.durationMs && (
                       <span className="url-id-chip">
@@ -1781,16 +1842,29 @@ export default function Dashboard() {
                                   ? 'LINK_CREATED'
                                   : 'REJECTED'
                               }`}
+                              style={{ gap: '5px' }}
                             >
-                              {log.type === 'BLOCKED'
-                                ? '🚨 BLOQUEADO'
-                                : log.type === 'ROTATED'
-                                ? '🔄 AUTO-ROTADO'
-                                : log.type === 'TEST_OK'
-                                ? '✓ PRUEBA OK'
-                                : log.type === 'ADDED'
-                                ? '+ EN COLA'
-                                : '✕ FALLO'}
+                              {log.type === 'BLOCKED' ? (
+                                <>
+                                  <IconShieldAlert size={13} /> BLOQUEADO
+                                </>
+                              ) : log.type === 'ROTATED' ? (
+                                <>
+                                  <IconRefreshCw size={13} /> AUTO-ROTADO
+                                </>
+                              ) : log.type === 'TEST_OK' ? (
+                                <>
+                                  <IconCheckCircle size={13} /> PRUEBA OK
+                                </>
+                              ) : log.type === 'ADDED' ? (
+                                <>
+                                  <IconPlus size={13} /> EN COLA
+                                </>
+                              ) : (
+                                <>
+                                  <IconXCircle size={13} /> FALLO
+                                </>
+                              )}
                             </span>
                           </td>
                           <td>
@@ -1910,14 +1984,25 @@ export default function Dashboard() {
                                     ? 'LINK_CREATED'
                                     : 'REJECTED'
                                 }`}
+                                style={{ gap: '5px' }}
                               >
-                                {isPending
-                                  ? '⏳ PENDIENTE'
-                                  : isRedirected
-                                  ? '↪ REDIRIGIDO'
-                                  : isCompleted
-                                  ? '✓ TERMINADO'
-                                  : '✕ FALLO / RECHAZO'}
+                                {isPending ? (
+                                  <>
+                                    <IconClock size={13} /> PENDIENTE
+                                  </>
+                                ) : isRedirected ? (
+                                  <>
+                                    <IconExternalLink size={13} /> REDIRIGIDO
+                                  </>
+                                ) : isCompleted ? (
+                                  <>
+                                    <IconCheckCircle size={13} /> TERMINADO
+                                  </>
+                                ) : (
+                                  <>
+                                    <IconXCircle size={13} /> FALLO / RECHAZO
+                                  </>
+                                )}
                               </span>
                             </td>
                             <td>
@@ -1940,8 +2025,9 @@ export default function Dashboard() {
                                   type="button"
                                   className={`tx-state-btn ${isCompleted ? 'active-completed' : ''}`}
                                   onClick={() => handleChangeTransactionStatus(tx.id, 'APPROVED')}
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                                 >
-                                  ✓ Terminado
+                                  <IconCheckCircle size={12} /> Terminado
                                 </button>
                               </div>
                             </td>
