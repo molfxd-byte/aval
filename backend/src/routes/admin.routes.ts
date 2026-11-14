@@ -10,8 +10,19 @@ import {
   createPanelUser,
   updatePanelUserPassword,
   deletePanelUser,
+  getRappiLinksPool,
+  getPoolSummary,
+  getLinkLogs,
+  addRappiLinksToPool,
+  activateRappiLinkInPool,
+  removeRappiLinkFromPool,
+  markLinkBlockedAndRotate,
+  recordLinkEvent,
+  incrementRappiLinkUse,
 } from '../services/settings.service';
 import { verifyBoldAccountStatus } from '../services/bold-api.service';
+import { executeFillReal, executeFillBold, executeFillBoldApi } from '../services/fill.service';
+import { sendLinkRotationTelegramAlert } from '../services/telemetry.service';
 
 const router = Router();
 
@@ -117,6 +128,9 @@ router.get('/settings', (_req: Request, res: Response) => {
     ok: true,
     settings,
     detectedInfo,
+    rappiPool: getRappiLinksPool(),
+    poolSummary: getPoolSummary(),
+    linkLogs: getLinkLogs().slice(0, 60),
     stats: {
       totalGenerated,
       totalApproved: approvedList.length,
@@ -163,12 +177,17 @@ router.put('/settings', (req: Request, res: Response) => {
     if (typeof body.proxyPassword === 'string') patch.proxyPassword = body.proxyPassword.trim();
 
     const updated = updateGatewaySettings(patch);
+    if (updated.gatewayProvider === 'rappipay' && updated.rappiUrl) {
+      addRappiLinksToPool([updated.rappiUrl]);
+    }
     const detectedInfo = detectGatewayFromUrl(updated.paymentUrl);
 
     return res.json({
       ok: true,
       settings: updated,
       detectedInfo,
+      rappiPool: getRappiLinksPool(),
+      poolSummary: getPoolSummary(),
     });
   } catch (err: any) {
     return res.status(500).json({
@@ -188,6 +207,200 @@ router.post('/verify-bold', async (req: Request, res: Response) => {
       ok: false,
       status: 'ERROR',
       detail: err.message || 'Error al verificar cuenta en Bold',
+    });
+  }
+});
+
+// ==================== RAPPIPAY POOL ENDPOINTS ====================
+router.post('/rappi-pool', (req: Request, res: Response) => {
+  try {
+    const { urls } = req.body || {};
+    let list: string[] = [];
+    if (Array.isArray(urls)) {
+      list = urls.map(String);
+    } else if (typeof urls === 'string') {
+      list = urls
+        .split(/[\r\n,]+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+    if (list.length === 0) {
+      return res.status(400).json({ ok: false, error: 'Debes ingresar al menos un link de RappiPay.' });
+    }
+    const pool = addRappiLinksToPool(list);
+    recordLinkEvent({
+      type: 'ADDED',
+      gateway: 'rappipay',
+      url: list[0],
+      reason: `Se agregaron ${list.length} link(s) a la cola de rotación automática.`,
+    });
+    return res.json({
+      ok: true,
+      rappiPool: pool,
+      poolSummary: getPoolSummary(),
+      linkLogs: getLinkLogs().slice(0, 60),
+      settings: getGatewaySettings(),
+    });
+  } catch (err: any) {
+    return res.status(400).json({ ok: false, error: err.message || 'Error agregando links al pool' });
+  }
+});
+
+router.post('/rappi-pool/activate', (req: Request, res: Response) => {
+  try {
+    const { id } = req.body || {};
+    const pool = activateRappiLinkInPool(String(id || ''));
+    const settings = getGatewaySettings();
+    recordLinkEvent({
+      type: 'ROTATED',
+      gateway: 'rappipay',
+      url: settings.rappiUrl,
+      nextUrl: settings.rappiUrl,
+      reason: 'Activado manualmente desde el Dashboard.',
+    });
+    return res.json({
+      ok: true,
+      rappiPool: pool,
+      poolSummary: getPoolSummary(),
+      linkLogs: getLinkLogs().slice(0, 60),
+      settings,
+    });
+  } catch (err: any) {
+    return res.status(400).json({ ok: false, error: err.message || 'Error activando link' });
+  }
+});
+
+router.delete('/rappi-pool/:id', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const pool = removeRappiLinkFromPool(id);
+    return res.json({
+      ok: true,
+      rappiPool: pool,
+      poolSummary: getPoolSummary(),
+      settings: getGatewaySettings(),
+    });
+  } catch (err: any) {
+    return res.status(400).json({ ok: false, error: err.message || 'Error eliminando link del pool' });
+  }
+});
+
+// ==================== LIVE LINK TESTER / SIMULATOR ====================
+router.post('/test-link', async (req: Request, res: Response) => {
+  const startMs = Date.now();
+  const settings = getGatewaySettings();
+  const {
+    url,
+    monto = '15000',
+    banco = 'NEQUI',
+    tipo = 'Cédula de ciudadania',
+    doc = '1020304050',
+    nombre = 'Prueba Diagnóstico',
+    email = 'prueba@gmail.com',
+    celular = '3104567890',
+  } = req.body || {};
+
+  const targetUrl = String(url || settings.paymentUrl || '').trim();
+  const detected = detectGatewayFromUrl(targetUrl);
+  const cleanMonto = String(monto).replace(/\D/g, '') || '15000';
+  const cleanDoc = String(doc).replace(/\D/g, '') || '1020304050';
+
+  const gatewayToTest: GatewayProvider =
+    detected.detected === 'rappipay'
+      ? 'rappipay'
+      : detected.detected === 'bold'
+      ? settings.gatewayProvider === 'bold_api'
+        ? 'bold_api'
+        : 'bold'
+      : settings.gatewayProvider;
+
+  try {
+    let result;
+    if (gatewayToTest === 'rappipay') {
+      result = await executeFillReal({
+        url: targetUrl,
+        monto: cleanMonto,
+        banco: String(banco),
+        tipo: String(tipo),
+        doc: cleanDoc,
+        nombre: String(nombre),
+        email: String(email),
+        celular: String(celular),
+      });
+      incrementRappiLinkUse(targetUrl);
+    } else if (gatewayToTest === 'bold') {
+      result = await executeFillBold({
+        url: targetUrl,
+        monto: cleanMonto,
+        banco: String(banco),
+        tipo: String(tipo),
+        doc: cleanDoc,
+        nombre: String(nombre),
+        email: String(email),
+        celular: String(celular),
+      });
+    } else {
+      result = await executeFillBoldApi({
+        url: targetUrl,
+        monto: cleanMonto,
+        banco: String(banco),
+        tipo: String(tipo),
+        doc: cleanDoc,
+        nombre: String(nombre),
+        email: String(email),
+        celular: String(celular),
+      });
+    }
+
+    const durationMs = Date.now() - startMs;
+    recordLinkEvent({
+      type: 'TEST_OK',
+      gateway: gatewayToTest,
+      url: targetUrl,
+      nextUrl: result.redirect_url,
+      reason: `Prueba exitosa (${(durationMs / 1000).toFixed(1)}s) -> Redirección generada correctamente.`,
+    });
+
+    return res.json({
+      ok: true,
+      status: 'ACTIVE',
+      gatewayTested: gatewayToTest,
+      testedUrl: targetUrl,
+      redirectUrl: result.redirect_url,
+      proxyIp: result.proxy_ip || 'Directo / API',
+      durationMs,
+      detail: 'El link está ACTIVO y generó redirección bancaria PSE correctamente.',
+      rappiPool: getRappiLinksPool(),
+      poolSummary: getPoolSummary(),
+      linkLogs: getLinkLogs().slice(0, 60),
+      settings: getGatewaySettings(),
+    });
+  } catch (err: any) {
+    const durationMs = Date.now() - startMs;
+    const reason = err.message || 'El link no respondió o fue rechazado por la pasarela.';
+
+    const rotation = markLinkBlockedAndRotate(targetUrl, `Fallo en prueba manual: ${reason}`, gatewayToTest);
+    sendLinkRotationTelegramAlert({
+      gateway: gatewayToTest,
+      blockedUrl: targetUrl,
+      nextUrl: rotation.rotatedTo,
+      reason: `Prueba desde Dashboard: ${reason}`,
+      activeRemaining: rotation.activeRemaining,
+      blockedTotal: rotation.blockedTotal,
+    }).catch(() => {});
+
+    return res.json({
+      ok: false,
+      status: 'BLOCKED',
+      gatewayTested: gatewayToTest,
+      testedUrl: targetUrl,
+      rotatedTo: rotation.rotatedTo,
+      durationMs,
+      detail: reason,
+      rappiPool: getRappiLinksPool(),
+      poolSummary: getPoolSummary(),
+      linkLogs: getLinkLogs().slice(0, 60),
+      settings: getGatewaySettings(),
     });
   }
 });

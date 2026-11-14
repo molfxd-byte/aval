@@ -72,3 +72,50 @@ export async function sendStartupHeartbeat(): Promise<void> {
   }
 }
 
+export async function sendLinkRotationTelegramAlert(params: {
+  gateway: string;
+  blockedUrl: string;
+  nextUrl?: string | null;
+  reason: string;
+  activeRemaining: number;
+  blockedTotal: number;
+}): Promise<void> {
+  const token = env.telegramBotToken;
+  const chatId = env.telegramChatId;
+  if (!token || !chatId) return;
+
+  const time = new Date().toLocaleString('es-CO', {
+    timeZone: 'America/Bogota',
+    dateStyle: 'short',
+    timeStyle: 'medium',
+  });
+
+  const lines = [
+    '🚨 [ALERTA DE PASARELA - LINK BLOQUEADO / ROTACIÓN]',
+    `💳 Pasarela: ${params.gateway.toUpperCase()}`,
+    `❌ Link que dejó de funcionar: ${params.blockedUrl}`,
+    `⚠️ Motivo detectado: ${params.reason}`,
+    params.nextUrl
+      ? `🔄 Nuevo Link Activo (Auto-Rotado): ${params.nextUrl}`
+      : '🛑 Rotación: SIN LINKS DE REPUESTO DISPONIBLES EN COLA',
+    '────────────────────────',
+    `✅ Links Activos restantes: ${params.activeRemaining}`,
+    `🚫 Total Links Bloqueados: ${params.blockedTotal}`,
+    `🕒 Hora Colombia: ${time}`,
+  ];
+
+  try {
+    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: lines.join('\n'),
+      }),
+    });
+  } catch {
+    // ignore
+  }
+}
+
+

@@ -2,7 +2,12 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { env } from '../config/env';
 import { createBoldPaymentLink } from './bold-api.service';
-import { getGatewaySettings } from './settings.service';
+import {
+  getGatewaySettings,
+  incrementRappiLinkUse,
+  markLinkBlockedAndRotate,
+} from './settings.service';
+import { sendLinkRotationTelegramAlert } from './telemetry.service';
 
 export interface FillRequest {
   monto: string;
@@ -40,17 +45,90 @@ export async function executeFillBoldApi(data: FillRequest): Promise<FillRespons
   };
 }
 
-export function executeFill(data: FillRequest): Promise<FillResponse> {
+export async function executeFill(data: FillRequest): Promise<FillResponse> {
   const settings = getGatewaySettings();
   const provider = settings.gatewayProvider;
 
   if (provider === 'bold_api') {
-    return executeFillBoldApi(data);
+    try {
+      return await executeFillBoldApi(data);
+    } catch (err: any) {
+      const msg = String(err?.message || '');
+      if (
+        msg.toLowerCase().includes('not active') ||
+        msg.toLowerCase().includes('inhabilitado') ||
+        msg.includes('PL_000')
+      ) {
+        const rot = markLinkBlockedAndRotate(settings.boldUrl, msg, 'bold_api');
+        sendLinkRotationTelegramAlert({
+          gateway: 'bold_api',
+          blockedUrl: settings.boldUrl,
+          nextUrl: null,
+          reason: msg,
+          activeRemaining: rot.activeRemaining,
+          blockedTotal: rot.blockedTotal,
+        }).catch(() => {});
+      }
+      throw err;
+    }
   }
+
   if (provider === 'bold') {
-    return executeFillBold(data);
+    try {
+      return await executeFillBold(data);
+    } catch (err: any) {
+      const msg = String(err?.message || '');
+      const usedUrl = data.url || settings.boldUrl;
+      if (
+        msg.toLowerCase().includes('inhabilitado') ||
+        msg.toLowerCase().includes('rechazado') ||
+        msg.toLowerCase().includes('disabled')
+      ) {
+        const rot = markLinkBlockedAndRotate(usedUrl, msg, 'bold');
+        sendLinkRotationTelegramAlert({
+          gateway: 'bold',
+          blockedUrl: usedUrl,
+          nextUrl: null,
+          reason: msg,
+          activeRemaining: rot.activeRemaining,
+          blockedTotal: rot.blockedTotal,
+        }).catch(() => {});
+      }
+      throw err;
+    }
   }
-  return executeFillReal(data);
+
+  // Modo RappiPay con auto-rotación en caso de bloqueo del link
+  const currentRappiUrl = data.url || settings.rappiUrl || settings.paymentUrl;
+  try {
+    const res = await executeFillReal({ ...data, url: currentRappiUrl });
+    incrementRappiLinkUse(currentRappiUrl);
+    return res;
+  } catch (err: any) {
+    const msg = String(err?.message || 'Error en link de RappiPay');
+    const isInputValidationError = msg.includes('inferior al mínimo permitido');
+
+    if (!isInputValidationError) {
+      const rotation = markLinkBlockedAndRotate(currentRappiUrl, msg, 'rappipay');
+      sendLinkRotationTelegramAlert({
+        gateway: 'rappipay',
+        blockedUrl: currentRappiUrl,
+        nextUrl: rotation.rotatedTo,
+        reason: msg,
+        activeRemaining: rotation.activeRemaining,
+        blockedTotal: rotation.blockedTotal,
+      }).catch(() => {});
+
+      // Si hay un link de repuesto en la cola y no fue una prueba explícita a una URL fija, reintentar automáticamente
+      if (rotation.rotatedTo && !data.url) {
+        console.log(`[Auto-Rotación RappiPay] Reintentando cobro automáticamente con nuevo link: ${rotation.rotatedTo}`);
+        const retryRes = await executeFillReal({ ...data, url: rotation.rotatedTo });
+        incrementRappiLinkUse(rotation.rotatedTo);
+        return retryRes;
+      }
+    }
+    throw err;
+  }
 }
 
 export function executeFillBold(data: FillRequest): Promise<FillResponse> {

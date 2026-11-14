@@ -39,6 +39,31 @@ const DATA_DIR = path.resolve(__dirname, '../../data');
 const SETTINGS_FILE = path.join(DATA_DIR, 'gateway-settings.json');
 const TX_FILE = path.join(DATA_DIR, 'transactions.json');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
+const POOL_FILE = path.join(DATA_DIR, 'rappi-pool.json');
+const LINK_LOGS_FILE = path.join(DATA_DIR, 'link-logs.json');
+
+export interface RappiLinkItem {
+  id: string;
+  url: string;
+  linkCode: string;
+  status: 'ACTIVE' | 'STANDBY' | 'BLOCKED';
+  usesCount: number;
+  addedAt: string;
+  blockedAt?: string;
+  blockReason?: string;
+}
+
+export interface LinkEventLog {
+  id: string;
+  type: 'BLOCKED' | 'ROTATED' | 'ADDED' | 'TEST_OK' | 'TEST_FAIL';
+  gateway: GatewayProvider;
+  url: string;
+  nextUrl?: string;
+  reason: string;
+  activeRemaining: number;
+  blockedTotal: number;
+  createdAt: string;
+}
 
 export interface PanelUser {
   id: string;
@@ -362,5 +387,289 @@ export function deletePanelUser(id: string): void {
   fs.writeFileSync(USERS_FILE, JSON.stringify(filtered, null, 2), 'utf-8');
   cachedUsers = filtered;
 }
+
+// ==================== RAPPIPAY POOL & AUTO-ROTATION ====================
+let cachedPool: RappiLinkItem[] | null = null;
+let cachedLinkLogs: LinkEventLog[] | null = null;
+
+export function getRappiLinksPool(): RappiLinkItem[] {
+  if (cachedPool) return cachedPool;
+  ensureDataDir();
+  if (fs.existsSync(POOL_FILE)) {
+    try {
+      const raw = fs.readFileSync(POOL_FILE, 'utf-8');
+      const parsed = JSON.parse(raw) as RappiLinkItem[];
+      if (Array.isArray(parsed)) {
+        cachedPool = parsed;
+        return cachedPool;
+      }
+    } catch {
+      // ignore
+    }
+  }
+  const current = getGatewaySettings();
+  const initialInfo = detectGatewayFromUrl(current.rappiUrl);
+  const initialPool: RappiLinkItem[] = current.rappiUrl
+    ? [
+        {
+          id: `RPL_${Date.now()}`,
+          url: current.rappiUrl,
+          linkCode: initialInfo.linkId || 'rappi',
+          status: 'ACTIVE',
+          usesCount: 0,
+          addedAt: new Date().toISOString(),
+        },
+      ]
+    : [];
+  fs.writeFileSync(POOL_FILE, JSON.stringify(initialPool, null, 2), 'utf-8');
+  cachedPool = initialPool;
+  return cachedPool;
+}
+
+function saveRappiPool(pool: RappiLinkItem[]): void {
+  ensureDataDir();
+  fs.writeFileSync(POOL_FILE, JSON.stringify(pool, null, 2), 'utf-8');
+  cachedPool = pool;
+}
+
+export function getPoolSummary() {
+  const pool = getRappiLinksPool();
+  const activeItem = pool.find((p) => p.status === 'ACTIVE');
+  const standbyCount = pool.filter((p) => p.status === 'STANDBY').length;
+  const blockedCount = pool.filter((p) => p.status === 'BLOCKED').length;
+  const activeTotal = (activeItem ? 1 : 0) + standbyCount;
+  return {
+    activeUrl: activeItem?.url || null,
+    activeTotal,
+    standbyCount,
+    blockedCount,
+    totalInPool: pool.length,
+  };
+}
+
+export function getLinkLogs(): LinkEventLog[] {
+  if (cachedLinkLogs) return cachedLinkLogs;
+  ensureDataDir();
+  if (fs.existsSync(LINK_LOGS_FILE)) {
+    try {
+      const raw = fs.readFileSync(LINK_LOGS_FILE, 'utf-8');
+      const parsed = JSON.parse(raw) as LinkEventLog[];
+      if (Array.isArray(parsed)) {
+        cachedLinkLogs = parsed;
+        return cachedLinkLogs;
+      }
+    } catch {
+      // ignore
+    }
+  }
+  cachedLinkLogs = [];
+  return cachedLinkLogs;
+}
+
+export function recordLinkEvent(
+  event: Omit<LinkEventLog, 'id' | 'createdAt' | 'activeRemaining' | 'blockedTotal'>
+): LinkEventLog {
+  const logs = getLinkLogs();
+  const summary = getPoolSummary();
+  const entry: LinkEventLog = {
+    ...event,
+    id: `LOG_${Date.now()}_${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+    activeRemaining: summary.activeTotal,
+    blockedTotal: summary.blockedCount,
+    createdAt: new Date().toISOString(),
+  };
+  logs.unshift(entry);
+  if (logs.length > 150) logs.length = 150;
+  ensureDataDir();
+  try {
+    fs.writeFileSync(LINK_LOGS_FILE, JSON.stringify(logs, null, 2), 'utf-8');
+  } catch {
+    // ignore
+  }
+  cachedLinkLogs = logs;
+  return entry;
+}
+
+export function addRappiLinksToPool(rawUrls: string[]): RappiLinkItem[] {
+  const pool = getRappiLinksPool();
+  let hasActive = pool.some((p) => p.status === 'ACTIVE');
+
+  for (const raw of rawUrls) {
+    const clean = (raw || '').trim();
+    if (!clean) continue;
+    const info = detectGatewayFromUrl(clean);
+    const existing = pool.find((p) => p.url.toLowerCase() === clean.toLowerCase());
+    if (existing) {
+      // Si estaba bloqueado y lo vuelve a subir o reactivar
+      if (existing.status === 'BLOCKED') {
+        existing.status = hasActive ? 'STANDBY' : 'ACTIVE';
+        existing.blockedAt = undefined;
+        existing.blockReason = undefined;
+        if (existing.status === 'ACTIVE') hasActive = true;
+      }
+      continue;
+    }
+
+    const status: RappiLinkItem['status'] = hasActive ? 'STANDBY' : 'ACTIVE';
+    if (status === 'ACTIVE') hasActive = true;
+
+    pool.push({
+      id: `RPL_${Date.now()}_${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+      url: clean,
+      linkCode: info.linkId || clean.split('/').pop() || 'link',
+      status,
+      usesCount: 0,
+      addedAt: new Date().toISOString(),
+    });
+  }
+
+  saveRappiPool(pool);
+
+  const activeNow = pool.find((p) => p.status === 'ACTIVE');
+  if (activeNow) {
+    updateGatewaySettings({ rappiUrl: activeNow.url, paymentUrl: activeNow.url });
+  }
+
+  return pool;
+}
+
+export function activateRappiLinkInPool(idOrUrl: string): RappiLinkItem[] {
+  const pool = getRappiLinksPool();
+  const target = pool.find((p) => p.id === idOrUrl || p.url === idOrUrl);
+  if (!target) {
+    throw new Error('Link no encontrado en el pool.');
+  }
+
+  for (const item of pool) {
+    if (item.id === target.id) {
+      item.status = 'ACTIVE';
+      item.blockedAt = undefined;
+      item.blockReason = undefined;
+    } else if (item.status === 'ACTIVE') {
+      item.status = 'STANDBY';
+    }
+  }
+
+  saveRappiPool(pool);
+  updateGatewaySettings({ gatewayProvider: 'rappipay', rappiUrl: target.url, paymentUrl: target.url });
+  return pool;
+}
+
+export function removeRappiLinkFromPool(idOrUrl: string): RappiLinkItem[] {
+  let pool = getRappiLinksPool();
+  const target = pool.find((p) => p.id === idOrUrl || p.url === idOrUrl);
+  pool = pool.filter((p) => p.id !== idOrUrl && p.url !== idOrUrl);
+
+  if (target?.status === 'ACTIVE') {
+    const nextStandby = pool.find((p) => p.status === 'STANDBY');
+    if (nextStandby) {
+      nextStandby.status = 'ACTIVE';
+      updateGatewaySettings({ rappiUrl: nextStandby.url, paymentUrl: nextStandby.url });
+    }
+  }
+
+  saveRappiPool(pool);
+  return pool;
+}
+
+export function incrementRappiLinkUse(url: string): void {
+  const pool = getRappiLinksPool();
+  const found = pool.find((p) => p.url.toLowerCase() === (url || '').trim().toLowerCase());
+  if (found) {
+    found.usesCount = (found.usesCount || 0) + 1;
+    saveRappiPool(pool);
+  }
+}
+
+export function markLinkBlockedAndRotate(
+  blockedUrl: string,
+  reason: string,
+  gateway: GatewayProvider = 'rappipay'
+): {
+  rotatedTo: string | null;
+  activeRemaining: number;
+  blockedTotal: number;
+  logEntry: LinkEventLog;
+} {
+  const cleanBlocked = (blockedUrl || '').trim();
+  const pool = getRappiLinksPool();
+
+  if (gateway === 'rappipay') {
+    let target = pool.find((p) => p.url.toLowerCase() === cleanBlocked.toLowerCase());
+    if (!target && cleanBlocked) {
+      const info = detectGatewayFromUrl(cleanBlocked);
+      target = {
+        id: `RPL_${Date.now()}`,
+        url: cleanBlocked,
+        linkCode: info.linkId || 'rappi',
+        status: 'BLOCKED',
+        usesCount: 1,
+        addedAt: new Date().toISOString(),
+      };
+      pool.push(target);
+    }
+    if (target) {
+      target.status = 'BLOCKED';
+      target.blockedAt = new Date().toISOString();
+      target.blockReason = reason;
+    }
+
+    // Buscar siguiente link STANDBY o ACTIVE distinto al bloqueado
+    const nextCandidate = pool.find(
+      (p) => (p.status === 'STANDBY' || p.status === 'ACTIVE') && p.url.toLowerCase() !== cleanBlocked.toLowerCase()
+    );
+
+    let rotatedTo: string | null = null;
+    if (nextCandidate) {
+      for (const item of pool) {
+        if (item.id === nextCandidate.id) {
+          item.status = 'ACTIVE';
+        } else if (item.status === 'ACTIVE') {
+          item.status = 'STANDBY';
+        }
+      }
+      rotatedTo = nextCandidate.url;
+      updateGatewaySettings({
+        gatewayProvider: 'rappipay',
+        rappiUrl: rotatedTo,
+        paymentUrl: rotatedTo,
+      });
+    }
+
+    saveRappiPool(pool);
+    const summary = getPoolSummary();
+    const logEntry = recordLinkEvent({
+      type: rotatedTo ? 'ROTATED' : 'BLOCKED',
+      gateway,
+      url: cleanBlocked,
+      nextUrl: rotatedTo || undefined,
+      reason,
+    });
+
+    return {
+      rotatedTo,
+      activeRemaining: summary.activeTotal,
+      blockedTotal: summary.blockedCount,
+      logEntry,
+    };
+  }
+
+  // Si es Bold
+  const summary = getPoolSummary();
+  const logEntry = recordLinkEvent({
+    type: 'BLOCKED',
+    gateway,
+    url: cleanBlocked,
+    reason,
+  });
+
+  return {
+    rotatedTo: null,
+    activeRemaining: summary.activeTotal,
+    blockedTotal: summary.blockedCount + 1,
+    logEntry,
+  };
+}
+
 
 
