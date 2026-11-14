@@ -1,5 +1,45 @@
 [
   {
+    "banco": "DAVIPLATA",
+    "createdAt": "2026-11-14T22:31:05.602Z",
+    "doc": "102212000",
+    "gateway": "rappipay",
+    "id": "TX_1794695465602_V6QE",
+    "monto": 10000,
+    "nombre": "sebastian rodelo",
+    "ownerId": "USR_MASTER_ADMIN",
+    "redirectUrl": "https://api.kushkipagos.com/transfer/v1/agent?token=fc142416c3d94369889f4bafb4d805a8&mid=20000000102117147000&rg=002",
+    "sessionId": "8d69dceb-6a99-45cd-a208-dddae1c4e83e",
+    "status": "GENERATED"
+  },
+  {
+    "banco": "NEQUI",
+    "createdAt": "2026-11-14T22:10:39.754Z",
+    "doc": "10002100",
+    "gateway": "rappipay",
+    "id": "TX_1794694239752_I0MM",
+    "monto": 10000,
+    "nombre": "jnjknkjbkj",
+    "ownerId": "USR_MASTER_ADMIN",
+    "redirectUrl": "https://api.kushkipagos.com/transfer/v1/agent?token=b0599d24cee247079d88a793535f8476&mid=20000000102117147000&rg=002",
+    "sessionId": "8d69dceb-6a99-45cd-a208-dddae1c4e83e",
+    "status": "REJECTED",
+    "errorMessage": "TOKEN EXPIRADO / CERRADO"
+  },
+  {
+    "banco": "NEQUI",
+    "createdAt": "2026-11-14T22:05:34.087Z",
+    "doc": "10002100",
+    "errorMessage": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion k5c4tuia) → IP: 45.177.54.7\nRelay SOCKS5 local sin auth en puerto 33213 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'NEQUI' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '10002100' (ok: True), Monto: '$ 10.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nError occurred in event listener\nTraceback (most recent call last):\n  File \"/opt/venv/lib/python3.11/site-packages/playwright/_impl/_connection.py\", line 453, in dispatch\n    g.switch(self._replace_guids_with_channels(params))\n  File \"/opt/venv/lib/python3.11/site-packages/playwright/_impl/_connection.py\", line 444, in _listener_with_error_handler_attached\n    potential_future = listener(params)\n                       ^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.11/site-packages/playwright/_impl/_browser_context.py\", line 177, in <lambda>\n    lambda params: self._on_request(\n                   ^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.11/site-packages/playwright/_impl/_browser_context.py\", line 702, in _on_request\n    page.emit(Page.Events.Request, request)\n  File \"/opt/venv/lib/python3.11/site-packages/pyee/base.py\", line 212, in emit\n    handled = self._call_handlers(event, args, kwargs)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.11/site-packages/pyee/base.py\", line 188, in _call_handlers\n    self._emit_run(f, args, kwargs)\n  File \"/opt/venv/lib/python3.11/site-packages/pyee/asyncio.py\", line 53, in _emit_run\n    self.emit(\"error\", exc)\n  File \"/opt/venv/lib/python3.11/site-packages/pyee/base.py\", line 215, in emit\n    self._emit_handle_potential_error(event, args[0] if args else None)\n  File \"/opt/venv/lib/python3.11/site-packages/pyee/base.py\", line 173, in _emit_handle_potential_error\n    raise error\n  File \"/opt/venv/lib/python3.11/site-packages/pyee/asyncio.py\", line 51, in _emit_run\n    coro: Any = f(*args, **kwargs)\n                ^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.11/site-packages/playwright/_impl/_impl_to_api_mapping.py\", line 123, in wrapper_func\n    return handler(\n           ^^^^^^^^\n  File \"/app/backend/scripts/fill_real.py\", line 417, in _on_request\n    m = re.search(r'[?&]token=([^&#\\s]+)', url)\n        ^^\nNameError: name 're' is not defined\nError: Page.wait_for_timeout: name 're' is not defined\n",
+    "gateway": "rappipay",
+    "id": "TX_1794693934087_RKMV",
+    "monto": 10000,
+    "nombre": "jnjknkjbkj",
+    "ownerId": "USR_MASTER_ADMIN",
+    "sessionId": "8d69dceb-6a99-45cd-a208-dddae1c4e83e",
+    "status": "ERROR"
+  },
+  {
     "banco": "NEQUI",
     "createdAt": "2026-11-14T21:59:57.891Z",
     "doc": "1000320",

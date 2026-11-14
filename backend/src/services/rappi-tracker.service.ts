@@ -100,26 +100,8 @@ export function achDecode(encoded: string): string {
   return out;
 }
 
-export function parseKushkiParams(rawUrl?: string): { token: string; mid: string; pseEnc?: string } | null {
+export function parseKushkiParams(rawUrl?: string): { token: string; mid: string } | null {
   if (!rawUrl) return null;
-
-  // Si la URL ya es directamente de PSE StartTransaction.aspx?enc=...
-  const pseMatch = rawUrl.match(/[?&]enc=([^&#\s"']+)/i);
-  if (pseMatch?.[1] && rawUrl.includes('pse.com.co')) {
-    try {
-      return {
-        token: pseMatch[1].slice(0, 24),
-        mid: '20000000102117147000',
-        pseEnc: decodeURIComponent(pseMatch[1]),
-      };
-    } catch {
-      return {
-        token: pseMatch[1].slice(0, 24),
-        mid: '20000000102117147000',
-        pseEnc: pseMatch[1],
-      };
-    }
-  }
 
   try {
     const parsed = new URL(rawUrl);
@@ -141,121 +123,64 @@ export function parseKushkiParams(rawUrl?: string): { token: string; mid: string
   return null;
 }
 
+/**
+ * Consulta el estado de la transferencia de forma pasiva a través de Kushki sin interferir
+ * jamás con la sesión de PSE del comprador.
+ * NUNCA llama a PSE `api/GetPreferences` desde el servidor para no invalidar el formulario PSE.
+ */
 export async function queryKushkiTransferStatus(
   token: string,
-  mid: string,
-  directPseEnc?: string
+  mid: string
 ): Promise<{
   state: 'PENDING' | 'APPROVED' | 'REJECTED';
   rawStatus: string;
   ticketNumber?: string;
 }> {
-  let pseEnc = directPseEnc || pseEncCache.get(token);
+  try {
+    const agentUrl = `https://api.kushkipagos.com/transfer/v1/agent?token=${encodeURIComponent(
+      token
+    )}&mid=${encodeURIComponent(mid)}&rg=002`;
 
-  // 1. Inspeccionar el agente de Kushki para obtener redirección o extraer el parámetro `enc` de PSE
-  if (!pseEnc) {
-    try {
-      const agentUrl = `https://api.kushkipagos.com/transfer/v1/agent?token=${encodeURIComponent(
-        token
-      )}&mid=${encodeURIComponent(mid)}&rg=002`;
+    const agentRes = await fetch(agentUrl, {
+      method: 'GET',
+      redirect: 'manual',
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+      },
+    });
 
-      const agentRes = await fetch(agentUrl, {
-        method: 'GET',
-        redirect: 'manual',
-      });
-
-      const locationHeader = (agentRes.headers.get('location') || '').toLowerCase();
-      if (locationHeader) {
-        if (
-          locationHeader.includes('approved') ||
-          locationHeader.includes('aprobada') ||
-          locationHeader.includes('exitosa') ||
-          locationHeader.includes('status=ok') ||
-          locationHeader.includes('status=00')
-        ) {
-          return { state: 'APPROVED', rawStatus: 'APROBADO', ticketNumber: token };
-        }
-
-        if (
-          locationHeader.includes('rejected') ||
-          locationHeader.includes('declined') ||
-          locationHeader.includes('rechazada') ||
-          locationHeader.includes('failed') ||
-          locationHeader.includes('cancel')
-        ) {
-          return { state: 'REJECTED', rawStatus: 'CANCELADO', ticketNumber: token };
-        }
+    const locationHeader = (agentRes.headers.get('location') || '').toLowerCase();
+    if (locationHeader) {
+      if (
+        locationHeader.includes('approved') ||
+        locationHeader.includes('aprobada') ||
+        locationHeader.includes('exitosa') ||
+        locationHeader.includes('status=ok') ||
+        locationHeader.includes('status=00')
+      ) {
+        return { state: 'APPROVED', rawStatus: 'APROBADO', ticketNumber: token };
       }
 
-      if (agentRes.status === 400) {
-        const errBody = await agentRes.text();
-        if (errBody.includes('Token expirado') || errBody.includes('T005')) {
-          return { state: 'REJECTED', rawStatus: 'TOKEN EXPIRADO / CERRADO', ticketNumber: token };
-        }
+      if (
+        locationHeader.includes('rejected') ||
+        locationHeader.includes('declined') ||
+        locationHeader.includes('rechazada') ||
+        locationHeader.includes('failed') ||
+        locationHeader.includes('cancel')
+      ) {
+        return { state: 'REJECTED', rawStatus: 'CANCELADO', ticketNumber: token };
       }
-
-      const html = await agentRes.text();
-      const encMatch = html.match(/StartTransaction\.aspx\?enc(?:=|&#x3D;|&equals;)([^"'\s&<>]+)/i);
-      if (encMatch?.[1]) {
-        try {
-          pseEnc = decodeURIComponent(encMatch[1]);
-        } catch {
-          pseEnc = encMatch[1];
-        }
-        pseEncCache.set(token, pseEnc);
-      }
-    } catch {
-      // Continuar
     }
-  }
 
-  // 2. Consultar directamente el estado de sesión en PSE (`api/GetPreferences`)
-  // Cuando el usuario cancela ("Salir del pago") o abandona en PSE, PSE cierra el `enc` y devuelve `ErrorVerifyEntPendTrans` o `PendingTransactionTimeout`
-  if (pseEnc) {
-    try {
-      const pseRes = await fetch('https://registro.pse.com.co/PSEUserRegister/api/GetPreferences', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json; charset=utf-8',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify({
-          page: 'transaction',
-          enc: pseEnc,
-          auth: '',
-        }),
-      });
-
-      if (pseRes.ok) {
-        const rawText = await pseRes.text();
-        const decoded = achDecode(rawText);
-
-        // 'ErrorVerifyEntPendTrans' significa 'Error Verify Entity Pending Transaction'
-        // Es la respuesta normal de PSE cuando el pagador ya pasó la pantalla inicial y está DENTRO DEL BANCO (DaviPlata, Bogotá, etc.)
-        // NO es una cancelación; significa que el pago sigue en curso activamente.
-        if (decoded.includes('ErrorVerifyEntPendTrans')) {
-          return {
-            state: 'PENDING',
-            rawStatus: 'CLIENTE EN EL BANCO',
-            ticketNumber: token,
-          };
-        }
-
-        if (
-          decoded.includes('PendingTransactionTimeout') ||
-          decoded.includes('TransactionCancelled') ||
-          decoded.includes('TransactionAborted')
-        ) {
-          return {
-            state: 'REJECTED',
-            rawStatus: 'EXPIRADO / CANCELADO EN PSE',
-            ticketNumber: token,
-          };
-        }
+    if (agentRes.status === 400) {
+      const errBody = await agentRes.text();
+      if (errBody.includes('Token expirado') || errBody.includes('T005')) {
+        return { state: 'REJECTED', rawStatus: 'TOKEN EXPIRADO / CERRADO', ticketNumber: token };
       }
-    } catch {
-      // ignore temporary network error
     }
+  } catch {
+    // Silencioso en caso de micro-corte de red
   }
 
   return { state: 'PENDING', rawStatus: 'PENDIENTE EN PSE' };
@@ -294,7 +219,7 @@ export function startTrackingRappiPayment(opts: RappiTrackOptions): void {
     }
 
     try {
-      const check = await queryKushkiTransferStatus(params.token, params.mid, params.pseEnc);
+      const check = await queryKushkiTransferStatus(params.token, params.mid);
 
       if (check.state === 'APPROVED') {
         activeRappiTrackers.delete(trackerKey);
@@ -352,14 +277,14 @@ export function startTrackingRappiPayment(opts: RappiTrackOptions): void {
     return false;
   };
 
-  // Primera verificación rápida a los 4 segundos y luego cada 8 segundos
+  // Primera verificación diferida (a los 25 segundos) para dar tiempo a que el comprador cargue el banco
   setTimeout(() => {
     void checkOnce();
-  }, 4000);
+  }, 25000);
 
   let attempts = 0;
-  const maxAttempts = 180; // ~24 minutos (cada 8s)
-  const intervalMs = 8000;
+  const maxAttempts = 120; // ~24 minutos (cada 12s)
+  const intervalMs = 12000;
 
   const timer = setInterval(async () => {
     attempts++;
