@@ -125,13 +125,13 @@ export function parseKushkiParams(rawUrl?: string): { token: string; mid: string
     const parsed = new URL(rawUrl);
     const token = parsed.searchParams.get('token') || '';
     const mid = parsed.searchParams.get('mid') || '20000000102117147000';
-    if (token) {
+    if (token && !token.startsWith('eyJ')) {
       return { token, mid };
     }
   } catch {
     const tokenMatch = rawUrl.match(/[?&]token=([a-zA-Z0-9_-]+)/);
     const midMatch = rawUrl.match(/[?&]mid=([a-zA-Z0-9_-]+)/);
-    if (tokenMatch?.[1]) {
+    if (tokenMatch?.[1] && !tokenMatch[1].startsWith('eyJ')) {
       return {
         token: tokenMatch[1],
         mid: midMatch?.[1] || '20000000102117147000',

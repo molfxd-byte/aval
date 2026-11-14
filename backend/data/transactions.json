@@ -1,5 +1,31 @@
 [
   {
+    "banco": "NEQUI",
+    "createdAt": "2026-11-14T21:59:57.891Z",
+    "doc": "1000320",
+    "gateway": "rappipay",
+    "id": "TX_1794693597891_8R7Y",
+    "monto": 10000,
+    "nombre": "asasda",
+    "ownerId": "USR_MASTER_ADMIN",
+    "redirectUrl": "https://api.kushkipagos.com/transfer/v1/agent?token=eyJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJodHRwczovL2lkZW50aXR5dG9vbGtpdC5nb29nbGVhcGlzLmNvbS9nb29nbGUuaWRlbnRpdHkuaWRlbnRpdHl0b29sa2l0LnYxLklkZW50aXR5VG9vbGtpdCIsImNsYWltcyI6eyJ0cmFuc2FjdGlvbklkIjoiMDE5NTllNjUtYTgzZS00MjE0LTkyZmEtOWFhZjE2M2E0NDIyIiwiZG9tYWluIjoiQ0FTSEZMT1ciLCJvcGVyYXRpb24iOiJjYXNoX2Zsb3dfY2FzaF9pbl9wc2VfbGlua190cmFuc2FjdGlvbiJ9LCJleHAiOjE3OTQ2OTcyMzYsImlhdCI6MTc5NDY5MzYzNiwiaXNzIjoiZmlyZWJhc2UtYWRtaW5zZGstM2VyZ3ZAcnBwLXBsYXRmb3JtLW1vYmlsZS1hcHAtcHJvZC5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsInN1YiI6ImZpcmViYXNlLWFkbWluc2RrLTNlcmd2QHJwcC1wbGF0Zm9ybS1tb2JpbGUtYXBwLXByb2QuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJ1aWQiOiIwMTk1OWU2NS1hODNlLTQyMTQtOTJmYS05YWFmMTYzYTQ0MjIifQ.ZHRmemPZpIiwT9W_nAgJQN6pfK529yMdz6qdt1V54Jjz7wfqvzooVcE5JgBFls-lGc595l8Ftt_XQq3BBU4-G_PvPNidMPbnfU_6Di37vdFJ3rTXNVHCpDXaeIWSvYauGCj_IsfoHff7n3OjY9ZkFG6E0U0z7O1XqZeQKA05TRa5qoXCQBLuQJ7taNVnTupkxqyphfcZoHsR5nBR8cNYNrhsuuz9eOVjVh4Ub2EO8b0KadmC9KUTdQN5zZ1ax31hbv26pUBfy7f4hNPqXpr6ci3HDIgCyNA19SFHEISGof_ROxJEdtvB0jaY8k_rejz-tPp8KeVGnnAwWCSmads7uQ&mid=20000000102117147000&rg=002",
+    "sessionId": "8d69dceb-6a99-45cd-a208-dddae1c4e83e",
+    "status": "GENERATED"
+  },
+  {
+    "banco": "NEQUI",
+    "createdAt": "2026-11-14T21:57:51.296Z",
+    "doc": "1002364555",
+    "gateway": "rappipay",
+    "id": "TX_1794693471296_J0XD",
+    "monto": 20000,
+    "nombre": "lui",
+    "ownerId": "USR_MASTER_ADMIN",
+    "redirectUrl": "https://api.kushkipagos.com/transfer/v1/agent?token=eyJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJodHRwczovL2lkZW50aXR5dG9vbGtpdC5nb29nbGVhcGlzLmNvbS9nb29nbGUuaWRlbnRpdHkuaWRlbnRpdHl0b29sa2l0LnYxLklkZW50aXR5VG9vbGtpdCIsImNsYWltcyI6eyJ0cmFuc2FjdGlvbklkIjoiNTkyNzRkOWEtOTVhZi00Y2M1LWI2ODgtM2U5MWE3ZDZiODUwIiwiZG9tYWluIjoiQ0FTSEZMT1ciLCJvcGVyYXRpb24iOiJjYXNoX2Zsb3dfY2FzaF9pbl9wc2VfbGlua190cmFuc2FjdGlvbiJ9LCJleHAiOjE3OTQ2OTcxMjIsImlhdCI6MTc5NDY5MzUyMiwiaXNzIjoiZmlyZWJhc2UtYWRtaW5zZGstM2VyZ3ZAcnBwLXBsYXRmb3JtLW1vYmlsZS1hcHAtcHJvZC5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsInN1YiI6ImZpcmViYXNlLWFkbWluc2RrLTNlcmd2QHJwcC1wbGF0Zm9ybS1tb2JpbGUtYXBwLXByb2QuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJ1aWQiOiI1OTI3NGQ5YS05NWFmLTRjYzUtYjY4OC0zZTkxYTdkNmI4NTAifQ.wVkmNeRj6veK5v7sicHIspQTUu-V7dPxCn5OVP4ldjcgTxfSK2MvX_ffMTdoz329B3TCU1XCJ6RGZiIxpaZdHBO-dJbQwOAEcn8Sw5oVJRGHSFUF9DD9arETQJdZMZEPTmEMh1Qg2v_g-I8VQD4a1NGNdKLhIqLubqr_KztzNb26SL6zFWhcshnEfGKvFIQ-f2RyDp1ragASn10EshxVPWUr9TpN7Puna4Pv_DAPCryq_f2Ycvzdhl-pVLZEAK9Meonn0ZcuaR63O9YQhTXCJqQYEVtGfVhQODngItKsIZHjQCKj9CuF0OEX6N4dFzv1jMV6rkn-8A-LA7u-g-cAoA&mid=20000000102117147000&rg=002",
+    "sessionId": "8d69dceb-6a99-45cd-a208-dddae1c4e83e",
+    "status": "GENERATED"
+  },
+  {
     "banco": "DAVIPLATA",
     "createdAt": "2026-11-14T21:40:10.016Z",
     "doc": "1002541136",

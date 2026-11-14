@@ -410,27 +410,39 @@ def fill(data):
         captured_kushki_url = []
 
         def _on_request(req):
-            if "kushkipagos.com" in req.url and "token=" in req.url:
-                if req.url not in captured_kushki_url:
-                    captured_kushki_url.append(req.url)
-                    _log(f"URL Kushki Token interceptada en red: {req.url}")
-            if "registro.pse.com.co" in req.url or "pse.com.co" in req.url:
-                if req.url not in captured_pse_url:
-                    captured_pse_url.append(req.url)
-                    _log(f"URL PSE interceptada en red: {req.url}")
+            url = req.url
+            if "kushkipagos.com" in url and "token=" in url:
+                # El token real de Kushki es un hash alfanumérico (ej: 12c120aa23be4c04b668d41b59732012)
+                # NUNCA un JWT de Firebase que empiece por 'eyJ'
+                m = re.search(r'[?&]token=([^&#\s]+)', url)
+                if m:
+                    token_val = m.group(1)
+                    if not token_val.startswith("eyJ") and len(token_val) <= 64:
+                        if url not in captured_kushki_url:
+                            captured_kushki_url.append(url)
+                            _log(f"URL Kushki Token REAL interceptada en red: {url}")
+            if "registro.pse.com.co" in url or "pse.com.co" in url:
+                if url not in captured_pse_url:
+                    captured_pse_url.append(url)
+                    _log(f"URL PSE interceptada en red: {url}")
 
         def _on_response(res):
             try:
-                if "payment-url" in res.url or "/payments/info" in res.url:
-                    content_type = res.headers.get("content-type", "")
-                    if "application/json" in content_type:
-                        body = res.json()
-                        token = body.get("token") or body.get("transfer", {}).get("token")
-                        if token:
-                            k_url = f"https://api.kushkipagos.com/transfer/v1/agent?token={token}&mid=20000000102117147000&rg=002"
-                            if k_url not in captured_kushki_url:
-                                captured_kushki_url.append(k_url)
-                                _log(f"URL Kushki interceptada desde respuesta payment-url: {k_url}")
+                # Interceptar cuando Firebase Realtime Database devuelve el nodo con el link real de Kushki
+                if "firebaseio.com" in res.url and "cash_flow_cash_in_pse_link_transaction" in res.url:
+                    body = res.json()
+                    if isinstance(body, dict):
+                        link = (
+                            body.get("params", {}).get("link") or
+                            body.get("data", {}).get("link") or
+                            body.get("link")
+                        )
+                        if link and "kushkipagos.com" in link and "token=" in link:
+                            m = re.search(r'[?&]token=([^&#\s]+)', link)
+                            if m and not m.group(1).startswith("eyJ"):
+                                if link not in captured_kushki_url:
+                                    captured_kushki_url.append(link)
+                                    _log(f"URL Kushki Token REAL obtenida directamente de Firebase: {link}")
             except Exception:
                 pass
 
