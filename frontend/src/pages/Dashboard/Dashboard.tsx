@@ -98,16 +98,6 @@ interface TransactionRecord {
   confirmedAt?: string;
 }
 
-interface DashboardStats {
-  totalGenerated: number;
-  totalApproved: number;
-  totalPending?: number;
-  totalErrors: number;
-  totalApprovedAmount: number;
-  totalPendingAmount?: number;
-  totalGeneratedAmount: number;
-}
-
 interface PanelUserRecord {
   id: string;
   name: string;
@@ -203,7 +193,7 @@ export default function Dashboard() {
   const [testUrl, setTestUrl] = useState('');
   const [testMonto, setTestMonto] = useState('15000');
   const [testBanco, setTestBanco] = useState('NEQUI');
-  const [testTipo, setTestTipo] = useState('Cédula de ciudadania');
+  const testTipo = 'Cédula de ciudadania';
   const [testDoc, setTestDoc] = useState('1032456789');
   const [testNombre, setTestNombre] = useState('Carlos Rodriguez');
   const [testEmail, setTestEmail] = useState('carlos.rodriguez@gmail.com');
@@ -233,16 +223,7 @@ export default function Dashboard() {
     detail: string;
   } | null>(null);
 
-  // Stats & Transactions
-  const [stats, setStats] = useState<DashboardStats>({
-    totalGenerated: 0,
-    totalApproved: 0,
-    totalPending: 0,
-    totalErrors: 0,
-    totalApprovedAmount: 0,
-    totalPendingAmount: 0,
-    totalGeneratedAmount: 0,
-  });
+  // Transactions
   const [transactions, setTransactions] = useState<TransactionRecord[]>([]);
 
   // Admin User Management States (Only for Cuenta Admin)
@@ -275,7 +256,6 @@ export default function Dashboard() {
     if (Array.isArray(data.rappiPool)) setRappiPool(data.rappiPool);
     if (data.poolSummary) setPoolSummary(data.poolSummary);
     if (Array.isArray(data.linkLogs)) setLinkLogs(data.linkLogs);
-    if (data.stats) setStats(data.stats);
     if (Array.isArray(data.transactions)) setTransactions(data.transactions);
   };
 

@@ -180,3 +180,4 @@ export const IconArrowRight: React.FC<IconProps> = ({ size = 15, className, styl
     <path d="m12 5 7 7-7 7" />
   </svg>
 );
+
