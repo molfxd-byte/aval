@@ -1,4 +1,7 @@
-import { notifySessionPaymentConfirmed } from '../controllers/track.controller';
+import {
+  notifySessionPaymentConfirmed,
+  notifySessionPaymentRejected,
+} from '../controllers/track.controller';
 import { getTransactions, updateTransactionStatus } from './settings.service';
 
 export interface RappiTrackOptions {
@@ -200,6 +203,9 @@ export function startTrackingRappiPayment(opts: RappiTrackOptions): void {
           reference: txId,
           paymentId: check.ticketNumber || params.token,
           paymentMethod: `RappiPay PSE (${opts.banco || 'Banco'})`,
+          gateway: 'RAPPIPAY PSE',
+          nombre: opts.nombre,
+          doc: opts.doc,
           status: check.rawStatus,
         });
         return;
@@ -211,6 +217,15 @@ export function startTrackingRappiPayment(opts: RappiTrackOptions): void {
 
         updateTransactionStatus(txId, 'REJECTED', {
           errorMessage: `PSE/Kushki cerró la transacción como: ${check.rawStatus}`,
+        });
+
+        notifySessionPaymentRejected(sessionId, {
+          monto: amount,
+          reference: txId,
+          gateway: 'RAPPIPAY PSE',
+          banco: opts.banco,
+          nombre: opts.nombre,
+          status: check.rawStatus,
         });
 
         console.log(
@@ -229,3 +244,4 @@ export function startTrackingRappiPayment(opts: RappiTrackOptions): void {
     }
   }, intervalMs);
 }
+
