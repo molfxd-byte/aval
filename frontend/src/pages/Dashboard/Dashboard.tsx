@@ -30,6 +30,7 @@ import {
   IconPlus,
   IconSparkles,
   IconArrowRight,
+  IconCopy,
 } from './DashboardIcons';
 import './Dashboard.css';
 
@@ -103,6 +104,7 @@ interface PanelUserRecord {
   name: string;
   password: string;
   role: 'admin' | 'user';
+  slug?: string;
   createdAt: string;
   lastLoginAt?: string;
 }
@@ -234,10 +236,25 @@ export default function Dashboard() {
   const [userActionMsg, setUserActionMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [creatingUser, setCreatingUser] = useState(false);
 
+  // Custom Portal Extension (Slug) per User
+  const [mySlug, setMySlug] = useState<string>(() => authUser?.slug || 'principal');
+  const [savingSlug, setSavingSlug] = useState(false);
+  const [slugMessage, setSlugMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
   const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
+  const currentUserId = authUser?.uid || 'USR_MASTER_ADMIN';
+
+  const authHeaders = (extra?: Record<string, string>): Record<string, string> => ({
+    'Content-Type': 'application/json',
+    'x-user-id': currentUserId,
+    ...(extra || {}),
+  });
 
   const applySnapshot = (data: any, includeFormFields = false) => {
     if (!data?.ok) return;
+    if (data.userProfile?.slug) {
+      setMySlug((prev) => (includeFormFields ? data.userProfile.slug : prev || data.userProfile.slug));
+    }
     if (includeFormFields && data.settings) {
       const s: GatewaySettings = data.settings;
       setGatewayProvider(s.gatewayProvider);
@@ -262,12 +279,16 @@ export default function Dashboard() {
   const loadDashboardData = async (includeFormFields = true) => {
     try {
       setLoading(true);
-      const res = await fetch(`${apiBase}/admin/settings`);
+      const res = await fetch(`${apiBase}/admin/settings?userId=${encodeURIComponent(currentUserId)}`, {
+        headers: authHeaders(),
+      });
       const data = await res.json();
       applySnapshot(data, includeFormFields);
 
       if (authUser?.role === 'admin') {
-        const uRes = await fetch(`${apiBase}/admin/users`);
+        const uRes = await fetch(`${apiBase}/admin/users`, {
+          headers: authHeaders(),
+        });
         const uData = await uRes.json();
         if (uData?.ok && Array.isArray(uData.users)) {
           setUsersList(uData.users);
@@ -284,10 +305,10 @@ export default function Dashboard() {
     if (!authUser) return;
     loadDashboardData(true);
 
-    // 1. Conexión en tiempo real instantánea vía Server-Sent Events (/api/admin/stream)
+    // 1. Conexión en tiempo real instantánea vía Server-Sent Events (/api/admin/stream) aislada por usuario
     let es: EventSource | null = null;
     try {
-      es = new EventSource(`${apiBase}/admin/stream`);
+      es = new EventSource(`${apiBase}/admin/stream?userId=${encodeURIComponent(currentUserId)}`);
       es.onopen = () => setLiveConnected(true);
       es.onmessage = (evt) => {
         try {
@@ -306,7 +327,9 @@ export default function Dashboard() {
     // 2. Respaldo de sincronización cada 3 segundos
     const interval = window.setInterval(async () => {
       try {
-        const res = await fetch(`${apiBase}/admin/settings`);
+        const res = await fetch(`${apiBase}/admin/settings?userId=${encodeURIComponent(currentUserId)}`, {
+          headers: authHeaders(),
+        });
         const data = await res.json();
         applySnapshot(data, false);
       } catch {
@@ -318,7 +341,7 @@ export default function Dashboard() {
       if (es) es.close();
       window.clearInterval(interval);
     };
-  }, [authUser]);
+  }, [authUser, currentUserId]);
 
   // Smart URL auto-detection as the user types or pastes a link
   const detectedInfo = useMemo(() => detectUrlClientSide(paymentUrl), [paymentUrl]);
@@ -395,7 +418,7 @@ export default function Dashboard() {
 
       const res = await fetch(`${apiBase}/admin/settings`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(payload),
       });
       const data = await res.json();
@@ -431,6 +454,39 @@ export default function Dashboard() {
     }
   };
 
+  // ==================== CUSTOM PORTAL EXTENSION (SLUG) HANDLER ====================
+  const handleSaveMySlug = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingSlug(true);
+    setSlugMessage(null);
+    try {
+      const res = await fetch(`${apiBase}/admin/my-slug`, {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify({ slug: mySlug }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || 'No se pudo guardar tu extensión');
+      }
+      setMySlug(data.user.slug);
+      if (Array.isArray(data.users)) {
+        setUsersList(data.users);
+      }
+      setSlugMessage({
+        type: 'success',
+        text: `¡Extensión personalizada actualizada! Tu link exclusivo ahora es: ${window.location.origin}/${data.user.slug}`,
+      });
+    } catch (err: any) {
+      setSlugMessage({
+        type: 'error',
+        text: err.message || 'Error guardando la extensión',
+      });
+    } finally {
+      setSavingSlug(false);
+    }
+  };
+
   // ==================== TRANSACTION STATUS UPDATE (PENDIENTE / REDIRIGIDO / TERMINADO) ====================
   const handleChangeTransactionStatus = async (
     txId: string,
@@ -439,7 +495,7 @@ export default function Dashboard() {
     try {
       const res = await fetch(`${apiBase}/admin/transactions/${encodeURIComponent(txId)}/status`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({ status: nextStatus }),
       });
       const data = await res.json();
@@ -458,7 +514,7 @@ export default function Dashboard() {
     try {
       const res = await fetch(`${apiBase}/admin/rappi-pool`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({ urls: bulkRappiInput }),
       });
       const data = await res.json();
@@ -469,7 +525,7 @@ export default function Dashboard() {
       setBulkRappiInput('');
       setSaveMessage({
         type: 'success',
-        text: `Links agregados a la rotación automática (${data.poolSummary?.activeTotal || 0} activos en cola).`,
+        text: `Links agregados a tu rotación automática (${data.poolSummary?.activeTotal || 0} activos en cola).`,
       });
     } catch (err: any) {
       setSaveMessage({
@@ -485,7 +541,7 @@ export default function Dashboard() {
     try {
       const res = await fetch(`${apiBase}/admin/rappi-pool/activate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({ id }),
       });
       const data = await res.json();
@@ -499,6 +555,7 @@ export default function Dashboard() {
     try {
       const res = await fetch(`${apiBase}/admin/rappi-pool/${encodeURIComponent(id)}`, {
         method: 'DELETE',
+        headers: authHeaders(),
       });
       const data = await res.json();
       applySnapshot(data, true);
@@ -515,7 +572,7 @@ export default function Dashboard() {
     try {
       const res = await fetch(`${apiBase}/admin/test-link`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({
           url: testUrl || paymentUrl,
           monto: testMonto,
@@ -838,8 +895,14 @@ export default function Dashboard() {
               )}
             </button>
 
-            <a href="/" target="_blank" rel="noreferrer" className="atelier-icon-btn">
-              Portal Público <IconExternalLink size={14} />
+            <a
+              href={mySlug ? `/${mySlug}` : '/'}
+              target="_blank"
+              rel="noreferrer"
+              className="atelier-icon-btn"
+              title={mySlug ? `Abrir tu portal: /${mySlug}` : 'Abrir Portal Público Principal'}
+            >
+              Portal Público {mySlug ? `(/${mySlug})` : ''} <IconExternalLink size={14} />
             </a>
 
             <button
@@ -1045,6 +1108,95 @@ export default function Dashboard() {
               </div>
             </div>
           </section>
+
+          {/* ==================== 0. PERSONAL PORTAL EXTENSION / TENANT SLUG ==================== */}
+          {(activeTab === 'all' || activeTab === 'pool' || activeTab === 'gateways') && (
+            <section className="atelier-panel" style={{ marginBottom: '24px' }}>
+              <div className="atelier-panel-head">
+                <div>
+                  <h3>Mi Enlace Personalizado del Portal de Pagos</h3>
+                  <p>
+                    Elige el nombre de tu extensión personal. Todo cliente que entre por tu link usará <strong>únicamente tu cola de links RappiPay / Bold</strong> y los pagos se reflejarán solo en tu cuenta sin mezclarse con otros usuarios.
+                  </p>
+                </div>
+                <span className="dash-status-badge APPROVED" style={{ gap: '5px' }}>
+                  <IconCheckCircle size={13} /> CUENTA AISLADA ({authUser.name.toUpperCase()})
+                </span>
+              </div>
+
+              {slugMessage && (
+                <div className={`dash-alert ${slugMessage.type === 'success' ? 'success' : 'error'}`}>
+                  {slugMessage.text}
+                </div>
+              )}
+
+              <form
+                onSubmit={handleSaveMySlug}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr auto auto',
+                  gap: '12px',
+                  alignItems: 'center',
+                  background: 'var(--surface-2)',
+                  padding: '16px 20px',
+                  borderRadius: '18px',
+                  border: '1px solid var(--border-soft)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <span
+                    className="mono"
+                    style={{
+                      fontSize: '0.84rem',
+                      color: 'var(--text-secondary)',
+                      fontWeight: 600,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {typeof window !== 'undefined' ? window.location.origin : 'https://avalpaycenter.up.railway.app'}/
+                  </span>
+                  <input
+                    type="text"
+                    className="dash-input mono"
+                    style={{ maxWidth: '280px', fontWeight: 700 }}
+                    placeholder={isAdmin ? 'principal (o escribe tu extensión)' : 'ej: pagos-carlos'}
+                    value={mySlug}
+                    onChange={(e) => setMySlug(e.target.value)}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="dash-btn-primary"
+                  disabled={savingSlug}
+                  style={{ width: 'auto', padding: '12px 20px', whiteSpace: 'nowrap' }}
+                >
+                  {savingSlug ? 'Guardando...' : 'Guardar Extensión'}
+                </button>
+
+                <button
+                  type="button"
+                  className="dash-btn-secondary"
+                  style={{ padding: '12px 18px', whiteSpace: 'nowrap' }}
+                  onClick={() => {
+                    const origin =
+                      typeof window !== 'undefined'
+                        ? window.location.origin
+                        : 'https://avalpaycenter.up.railway.app';
+                    const clean = mySlug.trim().replace(/^\/+/, '');
+                    const fullUrl = clean ? `${origin}/${clean}` : `${origin}/`;
+                    navigator.clipboard.writeText(fullUrl);
+                    setSlugMessage({
+                      type: 'success',
+                      text: `Enlace copiado al portapapeles: ${fullUrl}`,
+                    });
+                  }}
+                >
+                  <IconCopy size={14} /> Copiar Mi Link
+                </button>
+              </form>
+            </section>
+          )}
 
           {/* ==================== 1. FULL-WIDTH EXPANDED RAPPIPAY POOL ==================== */}
           {(activeTab === 'all' || activeTab === 'pool' || activeTab === 'gateways') && (
@@ -1462,6 +1614,7 @@ export default function Dashboard() {
                         <thead>
                           <tr>
                             <th>Usuario</th>
+                            <th>Extensión Portal</th>
                             <th>Clave Activa</th>
                             <th>Nivel</th>
                             <th>Gestión</th>
@@ -1472,6 +1625,11 @@ export default function Dashboard() {
                             <tr key={u.id}>
                               <td>
                                 <strong>{u.name}</strong>
+                              </td>
+                              <td>
+                                <span className="url-id-chip">
+                                  /{u.slug || (u.id === 'USR_MASTER_ADMIN' ? '' : u.id.toLowerCase())}
+                                </span>
                               </td>
                               <td>
                                 <span className="url-id-chip">{u.password}</span>

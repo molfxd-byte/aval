@@ -1,31 +1,32 @@
 [
   {
+    "createdAt": "2026-11-14T18:30:12.522Z",
+    "firebaseEmail": "admin@dashboard-48ef5.firebaseapp.com",
     "id": "USR_MASTER_ADMIN",
+    "lastLoginAt": "2026-11-14T18:30:56.266Z",
     "name": "Cuenta Admin Principal",
     "password": "admin2026",
-    "role": "admin",
-    "firebaseEmail": "admin@dashboard-48ef5.firebaseapp.com",
-    "createdAt": "2026-11-14T18:30:12.522Z",
-    "lastLoginAt": "2026-11-14T18:30:56.266Z"
+    "role": "admin"
   },
   {
+    "createdAt": "2026-11-14T18:31:52.838Z",
+    "firebaseEmail": "access_a001b63b@dashboard-48ef5.firebaseapp.com",
+    "firebaseUid": "MFAImZwJ7mXgJDhRzGxBQX7clZ12",
     "id": "USR_1794681112838_5C4L",
+    "lastLoginAt": "2026-11-14T18:32:01.235Z",
     "name": "luisfe4r",
     "password": "luis123#",
-    "role": "user",
-    "firebaseUid": "MFAImZwJ7mXgJDhRzGxBQX7clZ12",
-    "firebaseEmail": "access_a001b63b@dashboard-48ef5.firebaseapp.com",
-    "createdAt": "2026-11-14T18:31:52.838Z",
-    "lastLoginAt": "2026-11-14T18:32:01.235Z"
+    "role": "user"
   },
   {
+    "createdAt": "2026-11-14T19:21:11.631Z",
+    "firebaseEmail": "access_820c1aa1@dashboard-48ef5.firebaseapp.com",
+    "firebaseUid": "FHZaf40GqNVI40h3qtsFFTIAuqz1",
     "id": "USR_1794684071631_720H",
+    "lastLoginAt": "2026-11-14T20:50:41.538Z",
     "name": "f4er-panel",
     "password": "luisfer123*",
     "role": "user",
-    "firebaseUid": "FHZaf40GqNVI40h3qtsFFTIAuqz1",
-    "firebaseEmail": "access_820c1aa1@dashboard-48ef5.firebaseapp.com",
-    "createdAt": "2026-11-14T19:21:11.631Z",
-    "lastLoginAt": "2026-11-14T20:01:00.587Z"
+    "slug": "principal"
   }
 ]

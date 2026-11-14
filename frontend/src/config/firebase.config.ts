@@ -54,6 +54,7 @@ export interface FirebaseAuthUser {
   uid: string;
   name: string;
   role: 'admin' | 'user';
+  slug?: string;
   email: string;
   idToken: string;
   refreshToken?: string;
@@ -183,9 +184,10 @@ export async function loginWithPasswordOnly(password: string, apiBase: string): 
     const fbTokenData = await ensureFirebaseToken(firebaseEmail, firebasePassword, true);
 
     const authUser: FirebaseAuthUser = {
-      uid: fbTokenData?.localId || data.user.id,
+      uid: data.user.id,
       name: data.user.name,
       role: data.user.role === 'admin' ? 'admin' : 'user',
+      slug: data.user.slug || (data.user.role === 'admin' ? 'principal' : ''),
       email: firebaseEmail,
       idToken: fbTokenData?.idToken || 'local-session-token',
       refreshToken: fbTokenData?.refreshToken,

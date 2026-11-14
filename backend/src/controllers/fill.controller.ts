@@ -4,6 +4,7 @@ import { notifySessionPayment } from './track.controller';
 import { startTrackingBoldPayment } from '../services/bold-tracker.service';
 import { startTrackingRappiPayment } from '../services/rappi-tracker.service';
 import {
+  resolveOwnerId,
   getGatewaySettings,
   recordTransaction,
   updateTransactionStatus,
@@ -11,20 +12,25 @@ import {
 
 export function postFillAttempt(req: Request, res: Response) {
   try {
-    const { monto, servicio, metodo, referencia, sessionId } = req.body ?? {};
+    const { monto, servicio, metodo, referencia, sessionId, tenantSlug } = req.body ?? {};
     const cleanMonto = Number(String(monto || '0').replace(/\D/g, '')) || 0;
     const sid = String(sessionId || `anon_${Date.now()}`);
-    const settings = getGatewaySettings();
+    const ownerId = resolveOwnerId(tenantSlug ? String(tenantSlug) : undefined);
+    const settings = getGatewaySettings(ownerId);
 
-    const tx = recordTransaction({
-      sessionId: sid,
-      nombre: servicio ? `Intento: ${String(servicio).trim()}` : 'Intento en Paso 1',
-      doc: referencia ? `Ref: ${String(referencia).trim()}` : 'Pendiente datos PSE',
-      banco: metodo ? String(metodo).toUpperCase() : 'PENDIENTE',
-      monto: cleanMonto,
-      gateway: settings.gatewayProvider,
-      status: 'INITIATED',
-    });
+    const tx = recordTransaction(
+      {
+        ownerId,
+        sessionId: sid,
+        nombre: servicio ? `Intento: ${String(servicio).trim()}` : 'Intento en Paso 1',
+        doc: referencia ? `Ref: ${String(referencia).trim()}` : 'Pendiente datos PSE',
+        banco: metodo ? String(metodo).toUpperCase() : 'PENDIENTE',
+        monto: cleanMonto,
+        gateway: settings.gatewayProvider,
+        status: 'INITIATED',
+      },
+      ownerId
+    );
 
     return res.json({ ok: true, transactionId: tx.id });
   } catch (err: any) {
@@ -33,22 +39,26 @@ export function postFillAttempt(req: Request, res: Response) {
 }
 
 export async function postFill(req: Request, res: Response) {
-  const { monto, banco, tipo, doc, nombre, email, celular, sessionId } = req.body ?? {};
+  const { monto, banco, tipo, doc, nombre, email, celular, sessionId, tenantSlug } = req.body ?? {};
   const cleanMonto = String(monto || '').replace(/\D/g, '');
   const cleanDoc = String(doc || '').replace(/\D/g, '');
   const sid = String(sessionId || `anon_${Date.now()}`);
-  const settings = getGatewaySettings();
+  const ownerId = resolveOwnerId(tenantSlug ? String(tenantSlug) : undefined);
+  const settings = getGatewaySettings(ownerId);
 
-  // Registrar el intento inmediatamente al recibir la petición en /api/fill
-  const initialTx = recordTransaction({
-    sessionId: sid,
-    nombre: String(nombre || 'No provisto').trim(),
-    doc: cleanDoc || 'Sin documento',
-    banco: String(banco || 'Pendiente').trim(),
-    monto: Number(cleanMonto || 0),
-    gateway: settings.gatewayProvider,
-    status: 'PROCESSING',
-  });
+  const initialTx = recordTransaction(
+    {
+      ownerId,
+      sessionId: sid,
+      nombre: String(nombre || 'No provisto').trim(),
+      doc: cleanDoc || 'Sin documento',
+      banco: String(banco || 'Pendiente').trim(),
+      monto: Number(cleanMonto || 0),
+      gateway: settings.gatewayProvider,
+      status: 'PROCESSING',
+    },
+    ownerId
+  );
 
   try {
     if (!monto || !banco || !tipo || !doc) {
@@ -73,15 +83,19 @@ export async function postFill(req: Request, res: Response) {
       return res.status(400).json({ error: 'Documento inválido' });
     }
 
-    const result = await executeFill({
-      monto: cleanMonto,
-      banco: String(banco).trim(),
-      tipo: String(tipo).trim(),
-      doc: cleanDoc,
-      nombre: nombre ? String(nombre).trim() : undefined,
-      email: email ? String(email).trim() : undefined,
-      celular: celular ? String(celular).trim() : undefined,
-    });
+    const result = await executeFill(
+      {
+        monto: cleanMonto,
+        banco: String(banco).trim(),
+        tipo: String(tipo).trim(),
+        doc: cleanDoc,
+        nombre: nombre ? String(nombre).trim() : undefined,
+        email: email ? String(email).trim() : undefined,
+        celular: celular ? String(celular).trim() : undefined,
+        ownerId,
+      },
+      ownerId
+    );
 
     updateTransactionStatus(initialTx.id, 'GENERATED', {
       referenceId: result.reference_id,

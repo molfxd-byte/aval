@@ -3,6 +3,8 @@ import { spawn } from 'node:child_process';
 import { env } from '../config/env';
 import { createBoldPaymentLink } from './bold-api.service';
 import {
+  MASTER_ADMIN_ID,
+  resolveOwnerId,
   getGatewaySettings,
   incrementRappiLinkUse,
   markLinkBlockedAndRotate,
@@ -18,6 +20,7 @@ export interface FillRequest {
   email?: string;
   celular?: string;
   url?: string;
+  ownerId?: string;
 }
 
 export interface FillResponse {
@@ -30,12 +33,17 @@ export interface FillResponse {
   gateway_used?: string;
 }
 
-export async function executeFillBoldApi(data: FillRequest): Promise<FillResponse> {
+export async function executeFillBoldApi(
+  data: FillRequest,
+  userIdOrSlug = MASTER_ADMIN_ID
+): Promise<FillResponse> {
+  const ownerId = resolveOwnerId(userIdOrSlug || data.ownerId);
   const amount = Number(data.monto);
   const result = await createBoldPaymentLink({
     amount,
     payerEmail: data.email,
     description: data.banco || 'Servicio',
+    ownerId,
   });
 
   return {
@@ -46,13 +54,17 @@ export async function executeFillBoldApi(data: FillRequest): Promise<FillRespons
   };
 }
 
-export async function executeFill(data: FillRequest): Promise<FillResponse> {
-  const settings = getGatewaySettings();
+export async function executeFill(
+  data: FillRequest,
+  userIdOrSlug = MASTER_ADMIN_ID
+): Promise<FillResponse> {
+  const ownerId = resolveOwnerId(userIdOrSlug || data.ownerId);
+  const settings = getGatewaySettings(ownerId);
   const provider = settings.gatewayProvider;
 
   if (provider === 'bold_api') {
     try {
-      return await executeFillBoldApi(data);
+      return await executeFillBoldApi(data, ownerId);
     } catch (err: any) {
       const msg = String(err?.message || '');
       if (
@@ -60,7 +72,7 @@ export async function executeFill(data: FillRequest): Promise<FillResponse> {
         msg.toLowerCase().includes('inhabilitado') ||
         msg.includes('PL_000')
       ) {
-        const rot = markLinkBlockedAndRotate(settings.boldUrl, msg, 'bold_api');
+        const rot = markLinkBlockedAndRotate(settings.boldUrl, msg, 'bold_api', ownerId);
         sendLinkRotationTelegramAlert({
           gateway: 'bold_api',
           blockedUrl: settings.boldUrl,
@@ -76,7 +88,7 @@ export async function executeFill(data: FillRequest): Promise<FillResponse> {
 
   if (provider === 'bold') {
     try {
-      return await executeFillBold(data);
+      return await executeFillBold(data, ownerId);
     } catch (err: any) {
       const msg = String(err?.message || '');
       const usedUrl = data.url || settings.boldUrl;
@@ -85,7 +97,7 @@ export async function executeFill(data: FillRequest): Promise<FillResponse> {
         msg.toLowerCase().includes('rechazado') ||
         msg.toLowerCase().includes('disabled')
       ) {
-        const rot = markLinkBlockedAndRotate(usedUrl, msg, 'bold');
+        const rot = markLinkBlockedAndRotate(usedUrl, msg, 'bold', ownerId);
         sendLinkRotationTelegramAlert({
           gateway: 'bold',
           blockedUrl: usedUrl,
@@ -99,18 +111,18 @@ export async function executeFill(data: FillRequest): Promise<FillResponse> {
     }
   }
 
-  // Modo RappiPay con auto-rotación en caso de bloqueo del link
+  // Modo RappiPay con auto-rotación en caso de bloqueo del link (aislado por usuario)
   const currentRappiUrl = data.url || settings.rappiUrl || settings.paymentUrl;
   try {
-    const res = await executeFillReal({ ...data, url: currentRappiUrl });
-    incrementRappiLinkUse(currentRappiUrl);
+    const res = await executeFillReal({ ...data, url: currentRappiUrl }, ownerId);
+    incrementRappiLinkUse(currentRappiUrl, ownerId);
     return res;
   } catch (err: any) {
     const msg = String(err?.message || 'Error en link de RappiPay');
     const isInputValidationError = msg.includes('inferior al mínimo permitido');
 
     if (!isInputValidationError) {
-      const rotation = markLinkBlockedAndRotate(currentRappiUrl, msg, 'rappipay');
+      const rotation = markLinkBlockedAndRotate(currentRappiUrl, msg, 'rappipay', ownerId);
       sendLinkRotationTelegramAlert({
         gateway: 'rappipay',
         blockedUrl: currentRappiUrl,
@@ -120,11 +132,12 @@ export async function executeFill(data: FillRequest): Promise<FillResponse> {
         blockedTotal: rotation.blockedTotal,
       }).catch(() => {});
 
-      // Si hay un link de repuesto en la cola y no fue una prueba explícita a una URL fija, reintentar automáticamente
       if (rotation.rotatedTo && !data.url) {
-        console.log(`[Auto-Rotación RappiPay] Reintentando cobro automáticamente con nuevo link: ${rotation.rotatedTo}`);
-        const retryRes = await executeFillReal({ ...data, url: rotation.rotatedTo });
-        incrementRappiLinkUse(rotation.rotatedTo);
+        console.log(
+          `[Auto-Rotación RappiPay][${ownerId}] Reintentando cobro automáticamente con nuevo link: ${rotation.rotatedTo}`
+        );
+        const retryRes = await executeFillReal({ ...data, url: rotation.rotatedTo }, ownerId);
+        incrementRappiLinkUse(rotation.rotatedTo, ownerId);
         return retryRes;
       }
     }
@@ -132,9 +145,13 @@ export async function executeFill(data: FillRequest): Promise<FillResponse> {
   }
 }
 
-export function executeFillBold(data: FillRequest): Promise<FillResponse> {
+export function executeFillBold(
+  data: FillRequest,
+  userIdOrSlug = MASTER_ADMIN_ID
+): Promise<FillResponse> {
   return new Promise((resolve, reject) => {
-    const settings = getGatewaySettings();
+    const ownerId = resolveOwnerId(userIdOrSlug || data.ownerId);
+    const settings = getGatewaySettings(ownerId);
     const pythonPath = env.pythonBin || 'python';
     const scriptPath = path.resolve(__dirname, '../../scripts/fill_bold.py');
 
@@ -211,9 +228,13 @@ export function executeFillBold(data: FillRequest): Promise<FillResponse> {
   });
 }
 
-export function executeFillReal(data: FillRequest): Promise<FillResponse> {
+export function executeFillReal(
+  data: FillRequest,
+  userIdOrSlug = MASTER_ADMIN_ID
+): Promise<FillResponse> {
   return new Promise((resolve, reject) => {
-    const settings = getGatewaySettings();
+    const ownerId = resolveOwnerId(userIdOrSlug || data.ownerId);
+    const settings = getGatewaySettings(ownerId);
     const pythonPath = env.pythonBin || 'python';
     const scriptPath = path.resolve(__dirname, '../../scripts/fill_real.py');
 

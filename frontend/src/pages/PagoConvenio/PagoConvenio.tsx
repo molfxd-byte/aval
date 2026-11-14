@@ -147,6 +147,10 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
     };
     savePasarelaSession(session);
     const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
+    const tenantSlug =
+      sessionStorage.getItem('avalpay_tenant_slug') ||
+      localStorage.getItem('avalpay_tenant_slug') ||
+      undefined;
     fetch(`${apiBase}/fill/attempt`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -156,6 +160,7 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
         metodo: method,
         referencia: references[0]?.value || '',
         sessionId: session.transactionId,
+        tenantSlug,
       }),
     }).catch(() => {});
     window.clearTimeout(loaderTimer.current);

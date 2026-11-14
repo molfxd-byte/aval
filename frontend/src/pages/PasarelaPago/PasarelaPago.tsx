@@ -123,6 +123,11 @@ function PasarelaPago() {
         ? pseBank
         : (pasarelaAvalBanks.find((b) => b.id === avalBank)?.name ?? avalBank);
 
+    const tenantSlug =
+      sessionStorage.getItem('avalpay_tenant_slug') ||
+      localStorage.getItem('avalpay_tenant_slug') ||
+      undefined;
+
     const payload = {
       monto: session.amount.replace(/\D/g, '') || '10000',
       banco: bancoSeleccionado,
@@ -132,6 +137,7 @@ function PasarelaPago() {
       email: email.trim(),
       celular: mobile.trim(),
       sessionId: getTrackSessionId(),
+      tenantSlug,
     };
 
     let targetUrl = '';

@@ -1,0 +1,16 @@
+{
+  "USR_1794684071631_720H": {
+    "gatewayProvider": "rappipay",
+    "paymentUrl": "",
+    "rappiUrl": "",
+    "boldUrl": "",
+    "boldApiKey": "",
+    "boldSecretKey": "",
+    "boldMerchantName": "Paycenter",
+    "proxyHost": "geo.iproyal.com",
+    "proxyPort": "12321",
+    "proxyUsername": "WeeIuCAK2zva54rU",
+    "proxyPassword": "Z4VVsSB4GPzVOAqi_country-co",
+    "updatedAt": "2026-11-14T20:48:24.091Z"
+  }
+}

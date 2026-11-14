@@ -7,6 +7,7 @@ export interface CreateBoldLinkParams {
   reference?: string;
   payerEmail?: string;
   callbackUrl?: string;
+  ownerId?: string;
 }
 
 export interface BoldLinkApiResponse {
@@ -34,7 +35,7 @@ export interface CreateBoldLinkResult {
  * Endpoint: POST https://integrations.api.bold.co/online/link/v1
  */
 export async function createBoldPaymentLink(params: CreateBoldLinkParams): Promise<CreateBoldLinkResult> {
-  const settings = getGatewaySettings();
+  const settings = getGatewaySettings(params.ownerId);
   let apiKey = (settings.boldApiKey || env.boldApiKey || '').trim().replace(/^["']|["']$/g, '');
   if (!apiKey) {
     throw new Error('BOLD_API_KEY no está configurada.');

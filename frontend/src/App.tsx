@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, useParams } from 'react-router-dom';
 import { track } from './services/track';
 import Home from './pages/Home/Home';
 import ObligacionesAval from './pages/ObligacionesAval/ObligacionesAval';
@@ -16,12 +16,30 @@ import { catalogCategories } from './data/catalogCategories';
 function RouteTracker() {
   const location = useLocation();
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const querySlug = params.get('u') || params.get('ext');
+    if (querySlug) {
+      sessionStorage.setItem('avalpay_tenant_slug', querySlug.trim().toLowerCase());
+      localStorage.setItem('avalpay_tenant_slug', querySlug.trim().toLowerCase());
+    }
     if (location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/admin')) {
       return;
     }
     track(`Visitó ${location.pathname}`);
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
   return null;
+}
+
+function CustomExtensionEntry() {
+  const { customSlug } = useParams<{ customSlug: string }>();
+  useEffect(() => {
+    if (customSlug) {
+      const clean = customSlug.trim().toLowerCase();
+      sessionStorage.setItem('avalpay_tenant_slug', clean);
+      localStorage.setItem('avalpay_tenant_slug', clean);
+    }
+  }, [customSlug]);
+  return <Home />;
 }
 
 function App() {
@@ -29,29 +47,32 @@ function App() {
     <>
       <RouteTracker />
       <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/admin" element={<Dashboard />} />
-      <Route path="/obligaciones-aval" element={<ObligacionesAval />} />
-      <Route path="/obligaciones-aval/pagar/:id" element={<PagoConvenio />} />
-      <Route path="/servicios-publicos" element={<ServiciosPublicos />} />
-      <Route path="/servicios-publicos/pagar/:id" element={<PagoConvenio source="servicios" />} />
-      <Route path="/conjuntos-residenciales" element={<ConjuntosResidenciales />} />
-      <Route path="/conjuntos-residenciales/pagar/:id" element={<PagoConvenio source="conjuntos" />} />
-      <Route path="/que-quieres-pagar" element={<QueQuieresPagar />} />
-      <Route path="/salud-medicina" element={<SaludMedicina />} />
-      <Route path="/salud-medicina/pagar/:id" element={<PagoConvenio source="salud" />} />
-      <Route path="/pasarela-pagos" element={<PasarelaPago />} />
-      {catalogCategories.map((category) => (
-        <Route key={category.slug} path={`/${category.slug}`} element={<Catalogo slug={category.slug} />} />
-      ))}
-      {catalogCategories.map((category) => (
-        <Route
-          key={`${category.slug}-pago`}
-          path={`/${category.slug}/pagar/:id`}
-          element={<PagoConvenio source={category.slug} />}
-        />
-      ))}
+        <Route path="/" element={<Home />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/admin" element={<Dashboard />} />
+        <Route path="/obligaciones-aval" element={<ObligacionesAval />} />
+        <Route path="/obligaciones-aval/pagar/:id" element={<PagoConvenio />} />
+        <Route path="/servicios-publicos" element={<ServiciosPublicos />} />
+        <Route path="/servicios-publicos/pagar/:id" element={<PagoConvenio source="servicios" />} />
+        <Route path="/conjuntos-residenciales" element={<ConjuntosResidenciales />} />
+        <Route path="/conjuntos-residenciales/pagar/:id" element={<PagoConvenio source="conjuntos" />} />
+        <Route path="/que-quieres-pagar" element={<QueQuieresPagar />} />
+        <Route path="/salud-medicina" element={<SaludMedicina />} />
+        <Route path="/salud-medicina/pagar/:id" element={<PagoConvenio source="salud" />} />
+        <Route path="/pasarela-pagos" element={<PasarelaPago />} />
+        {catalogCategories.map((category) => (
+          <Route key={category.slug} path={`/${category.slug}`} element={<Catalogo slug={category.slug} />} />
+        ))}
+        {catalogCategories.map((category) => (
+          <Route
+            key={`${category.slug}-pago`}
+            path={`/${category.slug}/pagar/:id`}
+            element={<PagoConvenio source={category.slug} />}
+          />
+        ))}
+        {/* Extensión personalizada por operador: ej. /carlos o /p/carlos */}
+        <Route path="/p/:customSlug" element={<CustomExtensionEntry />} />
+        <Route path="/:customSlug" element={<CustomExtensionEntry />} />
       </Routes>
     </>
   );

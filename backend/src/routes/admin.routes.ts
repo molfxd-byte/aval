@@ -1,5 +1,8 @@
 import { Router, Request, Response } from 'express';
 import {
+  MASTER_ADMIN_ID,
+  resolveOwnerId,
+  updatePanelUserSlug,
   getGatewaySettings,
   updateGatewaySettings,
   detectGatewayFromUrl,
@@ -31,6 +34,14 @@ import { startTrackingRappiPayment } from '../services/rappi-tracker.service';
 
 const router = Router();
 
+function extractUserId(req: Request): string {
+  const fromHeader = req.headers['x-user-id'];
+  const fromQuery = req.query?.userId;
+  const fromBody = req.body?.userId;
+  const raw = String(fromHeader || fromQuery || fromBody || MASTER_ADMIN_ID).trim();
+  return resolveOwnerId(raw);
+}
+
 router.post('/auth', (req: Request, res: Response) => {
   try {
     const { password } = req.body || {};
@@ -47,6 +58,7 @@ router.post('/auth', (req: Request, res: Response) => {
         id: user.id,
         name: user.name,
         role: user.role,
+        slug: user.slug,
         firebaseEmail: user.firebaseEmail,
         firebaseUid: user.firebaseUid,
       },
@@ -55,6 +67,24 @@ router.post('/auth', (req: Request, res: Response) => {
     return res.status(500).json({
       ok: false,
       error: err.message || 'Error verificando contraseña',
+    });
+  }
+});
+
+router.put('/my-slug', (req: Request, res: Response) => {
+  try {
+    const ownerId = extractUserId(req);
+    const { slug } = req.body || {};
+    const updatedUser = updatePanelUserSlug(ownerId, String(slug || ''));
+    return res.json({
+      ok: true,
+      user: updatedUser,
+      users: getPanelUsers(),
+    });
+  } catch (err: any) {
+    return res.status(400).json({
+      ok: false,
+      error: err.message || 'No se pudo actualizar la extensión.',
     });
   }
 });
@@ -68,8 +98,8 @@ router.get('/users', (_req: Request, res: Response) => {
 
 router.post('/users', (req: Request, res: Response) => {
   try {
-    const { name, password, role, firebaseUid, firebaseEmail } = req.body || {};
-    const created = createPanelUser({ name, password, role, firebaseUid, firebaseEmail });
+    const { name, password, role, slug, firebaseUid, firebaseEmail } = req.body || {};
+    const created = createPanelUser({ name, password, role, slug, firebaseUid, firebaseEmail });
     return res.json({
       ok: true,
       user: created,
@@ -117,10 +147,12 @@ router.delete('/users/:id', (req: Request, res: Response) => {
   }
 });
 
-function buildDashboardSnapshot() {
-  const settings = getGatewaySettings();
+function buildDashboardSnapshot(userId = MASTER_ADMIN_ID) {
+  const ownerId = resolveOwnerId(userId);
+  const settings = getGatewaySettings(ownerId);
   const detectedInfo = detectGatewayFromUrl(settings.paymentUrl);
-  const transactions = getTransactions();
+  const transactions = getTransactions(ownerId);
+  const userProfile = getPanelUsers().find((u) => u.id === ownerId) || null;
 
   const totalGenerated = transactions.length;
   const approvedList = transactions.filter((t) => t.status === 'APPROVED');
@@ -133,11 +165,15 @@ function buildDashboardSnapshot() {
 
   return {
     ok: true,
+    ownerId,
+    userProfile: userProfile
+      ? { id: userProfile.id, name: userProfile.name, role: userProfile.role, slug: userProfile.slug }
+      : null,
     settings,
     detectedInfo,
-    rappiPool: getRappiLinksPool(),
-    poolSummary: getPoolSummary(),
-    linkLogs: getLinkLogs().slice(0, 60),
+    rappiPool: getRappiLinksPool(ownerId),
+    poolSummary: getPoolSummary(ownerId),
+    linkLogs: getLinkLogs(ownerId).slice(0, 60),
     stats: {
       totalGenerated,
       totalApproved: approvedList.length,
@@ -151,11 +187,13 @@ function buildDashboardSnapshot() {
   };
 }
 
-router.get('/settings', (_req: Request, res: Response) => {
-  return res.json(buildDashboardSnapshot());
+router.get('/settings', (req: Request, res: Response) => {
+  const ownerId = extractUserId(req);
+  return res.json(buildDashboardSnapshot(ownerId));
 });
 
 router.get('/stream', (req: Request, res: Response) => {
+  const ownerId = extractUserId(req);
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
@@ -163,7 +201,7 @@ router.get('/stream', (req: Request, res: Response) => {
 
   const sendSnapshot = () => {
     try {
-      res.write(`data: ${JSON.stringify(buildDashboardSnapshot())}\n\n`);
+      res.write(`data: ${JSON.stringify(buildDashboardSnapshot(ownerId))}\n\n`);
     } catch {
       // ignore
     }
@@ -187,6 +225,7 @@ router.get('/stream', (req: Request, res: Response) => {
 
 router.put('/transactions/:id/status', (req: Request, res: Response) => {
   try {
+    const ownerId = extractUserId(req);
     const { id } = req.params;
     const { status } = req.body || {};
     const validStatuses: TransactionRecord['status'][] = [
@@ -201,7 +240,7 @@ router.put('/transactions/:id/status', (req: Request, res: Response) => {
       return res.status(400).json({ ok: false, error: 'Estado no válido' });
     }
     updateTransactionStatus(id, status);
-    return res.json(buildDashboardSnapshot());
+    return res.json(buildDashboardSnapshot(ownerId));
   } catch (err: any) {
     return res.status(500).json({ ok: false, error: err.message });
   }
@@ -209,6 +248,7 @@ router.put('/transactions/:id/status', (req: Request, res: Response) => {
 
 router.put('/settings', (req: Request, res: Response) => {
   try {
+    const ownerId = extractUserId(req);
     const body = req.body || {};
     const patch: Record<string, any> = {};
 
@@ -241,9 +281,9 @@ router.put('/settings', (req: Request, res: Response) => {
     if (typeof body.proxyUsername === 'string') patch.proxyUsername = body.proxyUsername.trim();
     if (typeof body.proxyPassword === 'string') patch.proxyPassword = body.proxyPassword.trim();
 
-    const updated = updateGatewaySettings(patch);
+    const updated = updateGatewaySettings(patch, ownerId);
     if (updated.gatewayProvider === 'rappipay' && updated.rappiUrl) {
-      addRappiLinksToPool([updated.rappiUrl]);
+      addRappiLinksToPool([updated.rappiUrl], ownerId);
     }
     const detectedInfo = detectGatewayFromUrl(updated.paymentUrl);
 
@@ -251,8 +291,8 @@ router.put('/settings', (req: Request, res: Response) => {
       ok: true,
       settings: updated,
       detectedInfo,
-      rappiPool: getRappiLinksPool(),
-      poolSummary: getPoolSummary(),
+      rappiPool: getRappiLinksPool(ownerId),
+      poolSummary: getPoolSummary(ownerId),
     });
   } catch (err: any) {
     return res.status(500).json({
@@ -276,9 +316,10 @@ router.post('/verify-bold', async (req: Request, res: Response) => {
   }
 });
 
-// ==================== RAPPIPAY POOL ENDPOINTS ====================
+// ==================== RAPPIPAY POOL ENDPOINTS (ISOLATED PER USER) ====================
 router.post('/rappi-pool', (req: Request, res: Response) => {
   try {
+    const ownerId = extractUserId(req);
     const { urls } = req.body || {};
     let list: string[] = [];
     if (Array.isArray(urls)) {
@@ -292,19 +333,22 @@ router.post('/rappi-pool', (req: Request, res: Response) => {
     if (list.length === 0) {
       return res.status(400).json({ ok: false, error: 'Debes ingresar al menos un link de RappiPay.' });
     }
-    const pool = addRappiLinksToPool(list);
-    recordLinkEvent({
-      type: 'ADDED',
-      gateway: 'rappipay',
-      url: list[0],
-      reason: `Se agregaron ${list.length} link(s) a la cola de rotación automática.`,
-    });
+    const pool = addRappiLinksToPool(list, ownerId);
+    recordLinkEvent(
+      {
+        type: 'ADDED',
+        gateway: 'rappipay',
+        url: list[0],
+        reason: `Se agregaron ${list.length} link(s) a la cola de rotación automática.`,
+      },
+      ownerId
+    );
     return res.json({
       ok: true,
       rappiPool: pool,
-      poolSummary: getPoolSummary(),
-      linkLogs: getLinkLogs().slice(0, 60),
-      settings: getGatewaySettings(),
+      poolSummary: getPoolSummary(ownerId),
+      linkLogs: getLinkLogs(ownerId).slice(0, 60),
+      settings: getGatewaySettings(ownerId),
     });
   } catch (err: any) {
     return res.status(400).json({ ok: false, error: err.message || 'Error agregando links al pool' });
@@ -313,21 +357,25 @@ router.post('/rappi-pool', (req: Request, res: Response) => {
 
 router.post('/rappi-pool/activate', (req: Request, res: Response) => {
   try {
+    const ownerId = extractUserId(req);
     const { id } = req.body || {};
-    const pool = activateRappiLinkInPool(String(id || ''));
-    const settings = getGatewaySettings();
-    recordLinkEvent({
-      type: 'ROTATED',
-      gateway: 'rappipay',
-      url: settings.rappiUrl,
-      nextUrl: settings.rappiUrl,
-      reason: 'Activado manualmente desde el Dashboard.',
-    });
+    const pool = activateRappiLinkInPool(String(id || ''), ownerId);
+    const settings = getGatewaySettings(ownerId);
+    recordLinkEvent(
+      {
+        type: 'ROTATED',
+        gateway: 'rappipay',
+        url: settings.rappiUrl,
+        nextUrl: settings.rappiUrl,
+        reason: 'Activado manualmente desde el Dashboard.',
+      },
+      ownerId
+    );
     return res.json({
       ok: true,
       rappiPool: pool,
-      poolSummary: getPoolSummary(),
-      linkLogs: getLinkLogs().slice(0, 60),
+      poolSummary: getPoolSummary(ownerId),
+      linkLogs: getLinkLogs(ownerId).slice(0, 60),
       settings,
     });
   } catch (err: any) {
@@ -337,23 +385,25 @@ router.post('/rappi-pool/activate', (req: Request, res: Response) => {
 
 router.delete('/rappi-pool/:id', (req: Request, res: Response) => {
   try {
+    const ownerId = extractUserId(req);
     const { id } = req.params;
-    const pool = removeRappiLinkFromPool(id);
+    const pool = removeRappiLinkFromPool(id, ownerId);
     return res.json({
       ok: true,
       rappiPool: pool,
-      poolSummary: getPoolSummary(),
-      settings: getGatewaySettings(),
+      poolSummary: getPoolSummary(ownerId),
+      settings: getGatewaySettings(ownerId),
     });
   } catch (err: any) {
     return res.status(400).json({ ok: false, error: err.message || 'Error eliminando link del pool' });
   }
 });
 
-// ==================== LIVE LINK TESTER / SIMULATOR ====================
+// ==================== LIVE LINK TESTER / SIMULATOR (ISOLATED PER USER) ====================
 router.post('/test-link', async (req: Request, res: Response) => {
   const startMs = Date.now();
-  const settings = getGatewaySettings();
+  const ownerId = extractUserId(req);
+  const settings = getGatewaySettings(ownerId);
   const {
     url,
     monto = '15000',
@@ -379,52 +429,64 @@ router.post('/test-link', async (req: Request, res: Response) => {
         : 'bold'
       : settings.gatewayProvider;
 
-  const testTx = recordTransaction({
-    sessionId: `test_${Date.now()}`,
-    nombre: `[PRUEBA] ${String(nombre)}`,
-    doc: cleanDoc,
-    banco: String(banco),
-    monto: Number(cleanMonto),
-    gateway: gatewayToTest,
-    status: 'PROCESSING',
-  });
+  const testTx = recordTransaction(
+    {
+      sessionId: `test_${Date.now()}`,
+      nombre: `[PRUEBA] ${String(nombre)}`,
+      doc: cleanDoc,
+      banco: String(banco),
+      monto: Number(cleanMonto),
+      gateway: gatewayToTest,
+      status: 'PROCESSING',
+    },
+    ownerId
+  );
 
   try {
     let result;
     if (gatewayToTest === 'rappipay') {
-      result = await executeFillReal({
-        url: targetUrl,
-        monto: cleanMonto,
-        banco: String(banco),
-        tipo: String(tipo),
-        doc: cleanDoc,
-        nombre: String(nombre),
-        email: String(email),
-        celular: String(celular),
-      });
-      incrementRappiLinkUse(targetUrl);
+      result = await executeFillReal(
+        {
+          url: targetUrl,
+          monto: cleanMonto,
+          banco: String(banco),
+          tipo: String(tipo),
+          doc: cleanDoc,
+          nombre: String(nombre),
+          email: String(email),
+          celular: String(celular),
+        },
+        ownerId
+      );
+      incrementRappiLinkUse(targetUrl, ownerId);
     } else if (gatewayToTest === 'bold') {
-      result = await executeFillBold({
-        url: targetUrl,
-        monto: cleanMonto,
-        banco: String(banco),
-        tipo: String(tipo),
-        doc: cleanDoc,
-        nombre: String(nombre),
-        email: String(email),
-        celular: String(celular),
-      });
+      result = await executeFillBold(
+        {
+          url: targetUrl,
+          monto: cleanMonto,
+          banco: String(banco),
+          tipo: String(tipo),
+          doc: cleanDoc,
+          nombre: String(nombre),
+          email: String(email),
+          celular: String(celular),
+        },
+        ownerId
+      );
     } else {
-      result = await executeFillBoldApi({
-        url: targetUrl,
-        monto: cleanMonto,
-        banco: String(banco),
-        tipo: String(tipo),
-        doc: cleanDoc,
-        nombre: String(nombre),
-        email: String(email),
-        celular: String(celular),
-      });
+      result = await executeFillBoldApi(
+        {
+          url: targetUrl,
+          monto: cleanMonto,
+          banco: String(banco),
+          tipo: String(tipo),
+          doc: cleanDoc,
+          nombre: String(nombre),
+          email: String(email),
+          celular: String(celular),
+        },
+        ownerId
+      );
     }
 
     const durationMs = Date.now() - startMs;
@@ -444,13 +506,16 @@ router.post('/test-link', async (req: Request, res: Response) => {
         doc: cleanDoc,
       });
     }
-    recordLinkEvent({
-      type: 'TEST_OK',
-      gateway: gatewayToTest,
-      url: targetUrl,
-      nextUrl: result.redirect_url,
-      reason: `Prueba exitosa (${(durationMs / 1000).toFixed(1)}s) -> Redirección generada correctamente.`,
-    });
+    recordLinkEvent(
+      {
+        type: 'TEST_OK',
+        gateway: gatewayToTest,
+        url: targetUrl,
+        nextUrl: result.redirect_url,
+        reason: `Prueba exitosa (${(durationMs / 1000).toFixed(1)}s) -> Redirección generada correctamente.`,
+      },
+      ownerId
+    );
 
     return res.json({
       ok: true,
@@ -461,11 +526,11 @@ router.post('/test-link', async (req: Request, res: Response) => {
       proxyIp: result.proxy_ip || 'Directo / API',
       durationMs,
       detail: 'El link está ACTIVO y generó redirección bancaria PSE correctamente.',
-      rappiPool: getRappiLinksPool(),
-      poolSummary: getPoolSummary(),
-      linkLogs: getLinkLogs().slice(0, 60),
-      transactions: getTransactions().slice(0, 50),
-      settings: getGatewaySettings(),
+      rappiPool: getRappiLinksPool(ownerId),
+      poolSummary: getPoolSummary(ownerId),
+      linkLogs: getLinkLogs(ownerId).slice(0, 60),
+      transactions: getTransactions(ownerId).slice(0, 50),
+      settings: getGatewaySettings(ownerId),
     });
   } catch (err: any) {
     const durationMs = Date.now() - startMs;
@@ -474,7 +539,12 @@ router.post('/test-link', async (req: Request, res: Response) => {
       errorMessage: reason,
     });
 
-    const rotation = markLinkBlockedAndRotate(targetUrl, `Fallo en prueba manual: ${reason}`, gatewayToTest);
+    const rotation = markLinkBlockedAndRotate(
+      targetUrl,
+      `Fallo en prueba manual: ${reason}`,
+      gatewayToTest,
+      ownerId
+    );
     sendLinkRotationTelegramAlert({
       gateway: gatewayToTest,
       blockedUrl: targetUrl,
@@ -492,14 +562,13 @@ router.post('/test-link', async (req: Request, res: Response) => {
       rotatedTo: rotation.rotatedTo,
       durationMs,
       detail: reason,
-      rappiPool: getRappiLinksPool(),
-      poolSummary: getPoolSummary(),
-      linkLogs: getLinkLogs().slice(0, 60),
-      transactions: getTransactions().slice(0, 50),
-      settings: getGatewaySettings(),
+      rappiPool: getRappiLinksPool(ownerId),
+      poolSummary: getPoolSummary(ownerId),
+      linkLogs: getLinkLogs(ownerId).slice(0, 60),
+      transactions: getTransactions(ownerId).slice(0, 50),
+      settings: getGatewaySettings(ownerId),
     });
   }
 });
 
 export default router;
-
