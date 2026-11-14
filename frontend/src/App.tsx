@@ -10,11 +10,15 @@ import Catalogo from './pages/Catalogo/Catalogo';
 import QueQuieresPagar from './pages/QueQuieresPagar/QueQuieresPagar';
 import SaludMedicina from './pages/SaludMedicina/SaludMedicina';
 import ServiciosPublicos from './pages/ServiciosPublicos/ServiciosPublicos';
+import Dashboard from './pages/Dashboard/Dashboard';
 import { catalogCategories } from './data/catalogCategories';
 
 function RouteTracker() {
   const location = useLocation();
   useEffect(() => {
+    if (location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/admin')) {
+      return;
+    }
     track(`Visitó ${location.pathname}`);
   }, [location.pathname]);
   return null;
@@ -26,6 +30,8 @@ function App() {
       <RouteTracker />
       <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/admin" element={<Dashboard />} />
       <Route path="/obligaciones-aval" element={<ObligacionesAval />} />
       <Route path="/obligaciones-aval/pagar/:id" element={<PagoConvenio />} />
       <Route path="/servicios-publicos" element={<ServiciosPublicos />} />
