@@ -121,7 +121,25 @@ export async function executeFill(
     const msg = String(err?.message || 'Error en link de RappiPay');
     const isInputValidationError = msg.includes('inferior al mínimo permitido');
 
-    if (!isInputValidationError) {
+    // Criterio estricto de bloqueo: SOLO rotar si el link fue explícitamente rechazado o quemado por RappiPay
+    const isTrulyBlocked =
+      msg.includes('LINK_DEFINITIVAMENTE_BLOQUEADO') ||
+      msg.includes('Link de pago PSE rechazado') ||
+      msg.includes('El link de pago con PSE expiró') ||
+      msg.toLowerCase().includes('inhabilitado por la pasarela') ||
+      msg.includes('422');
+
+    const isTemporaryError =
+      msg.includes('ERROR_TEMPORAL_REINTENTABLE') ||
+      msg.includes('No se generó redirección') ||
+      msg.includes('No se detectó URL de redirección') ||
+      msg.includes('timeout') ||
+      msg.includes('Timeout') ||
+      msg.includes('ERR_') ||
+      msg.includes('Connection failed') ||
+      isInputValidationError;
+
+    if (isTrulyBlocked && !isTemporaryError) {
       const rotation = markLinkBlockedAndRotate(currentRappiUrl, msg, 'rappipay', ownerId);
       sendLinkRotationTelegramAlert({
         gateway: 'rappipay',
@@ -140,6 +158,10 @@ export async function executeFill(
         incrementRappiLinkUse(rotation.rotatedTo, ownerId);
         return retryRes;
       }
+    } else {
+      console.warn(
+        `[Fill Real][${ownerId}] ⚠️ Fallo temporal de red o timeout (el link ${currentRappiUrl} NO está bloqueado y permanece ACTIVO): ${msg}`
+      );
     }
     throw err;
   }

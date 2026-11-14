@@ -419,7 +419,23 @@ def fill(data):
                     captured_pse_url.append(req.url)
                     _log(f"URL PSE interceptada en red: {req.url}")
 
+        def _on_response(res):
+            try:
+                if "payment-url" in res.url or "/payments/info" in res.url:
+                    content_type = res.headers.get("content-type", "")
+                    if "application/json" in content_type:
+                        body = res.json()
+                        token = body.get("token") or body.get("transfer", {}).get("token")
+                        if token:
+                            k_url = f"https://api.kushkipagos.com/transfer/v1/agent?token={token}&mid=20000000102117147000&rg=002"
+                            if k_url not in captured_kushki_url:
+                                captured_kushki_url.append(k_url)
+                                _log(f"URL Kushki interceptada desde respuesta payment-url: {k_url}")
+            except Exception:
+                pass
+
         page.on("request", _on_request)
+        page.on("response", _on_response)
 
         try:
             target_url = data.get("url") or os.environ.get("PAYMENT_AUTOMATION_URL", "").strip()
@@ -566,38 +582,58 @@ def fill(data):
             boton.click()
             _log("Se hizo clic en Transferir.")
 
-            # Detectar redirección
-            pagina_final = _detectar_redireccion(
-                page,
-                context,
-                url_inicial
-            )
+            # Esperar redirección de manera robusta y dinámica (hasta 28s)
+            url_destino = None
+            t_inicio_wait = time.time()
+            max_espera_segundos = 28
 
-            # Captura de la página final
+            while time.time() - t_inicio_wait < max_espera_segundos:
+                if captured_pse_url:
+                    url_destino = captured_pse_url[0]
+                    _log(f"Redirección PSE interceptada en tráfico de red: {url_destino}")
+                    break
+                if captured_kushki_url:
+                    url_destino = captured_kushki_url[0]
+                    _log(f"Redirección Kushki interceptada en tráfico de red: {url_destino}")
+                    break
+                if page.url != url_inicial and "linkdepagospse.rappipay.co" not in page.url:
+                    url_destino = page.url
+                    _log(f"Redirección detectada en pestaña principal: {url_destino}")
+                    break
+                paginas = [p for p in context.pages if p != page]
+                if paginas and paginas[-1].url != "about:blank" and "linkdepagospse.rappipay.co" not in paginas[-1].url:
+                    url_destino = paginas[-1].url
+                    _log(f"Redirección detectada en pestaña nueva: {url_destino}")
+                    break
+                page.wait_for_timeout(400)
+
+            # Captura de la página final para auditoría
             png = None
             try:
-                png = pagina_final.screenshot(full_page=True)
+                png = page.screenshot(full_page=True)
             except Exception:
                 pass
-            url_destino = pagina_final.url
-            if (not url_destino or url_destino == url_inicial or "linkdepagospse.rappipay.co" in url_destino) and captured_pse_url:
-                url_destino = captured_pse_url[0]
-                _log(f"Usando URL PSE interceptada en tráfico de red: {url_destino}")
 
-            # Revisar si la pasarela rechazó el link o la transacción
+            # Revisar si la pasarela RappiPay mostró explícitamente mensaje de link quemado o rechazado
             texto_pantalla = ""
             try:
-                texto_pantalla = pagina_final.locator("body").inner_text()
+                texto_pantalla = page.locator("body").inner_text()
             except Exception:
                 pass
 
             if "Link de pago PSE rechazado" in texto_pantalla or "no podemos continuar con la transacción" in texto_pantalla:
                 _log("La pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.")
-                raise Exception("El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.")
+                raise Exception("LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.")
+
+            if "El link de pago con PSE expiró" in texto_pantalla or "expiró" in texto_pantalla.lower():
+                _log("La pasarela RappiPay mostró: 'El link de pago con PSE expiró'.")
+                raise Exception("LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago con PSE expiró en RappiPay.")
+
+            if not url_destino or url_destino == url_inicial or "linkdepagospse.rappipay.co" in url_destino:
+                _log("No se detectó URL de redirección bancaria tras 28s de espera.")
+                raise Exception(f"ERROR_TEMPORAL_REINTENTABLE: No se generó redirección bancaria tras el envío (posible latencia del proxy o banco). El link sigue activo. URL actual: {page.url}")
 
             _log(f"URL capturada para el frontend: {url_destino}")
-            if not url_destino or url_destino == url_inicial or "linkdepagospse.rappipay.co" in url_destino:
-                raise Exception(f"No se generó redirección bancaria tras el envío; URL destino inválida: {url_destino}")
             kushki_url = captured_kushki_url[0] if captured_kushki_url else (url_destino if "kushkipagos.com" in url_destino else None)
             return habilitado, png, url_destino, proxy_ip, kushki_url
 
