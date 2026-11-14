@@ -38,6 +38,18 @@ export interface TransactionRecord {
 const DATA_DIR = path.resolve(__dirname, '../../data');
 const SETTINGS_FILE = path.join(DATA_DIR, 'gateway-settings.json');
 const TX_FILE = path.join(DATA_DIR, 'transactions.json');
+const USERS_FILE = path.join(DATA_DIR, 'users.json');
+
+export interface PanelUser {
+  id: string;
+  name: string;
+  password: string;
+  role: 'admin' | 'user';
+  firebaseUid?: string;
+  firebaseEmail?: string;
+  createdAt: string;
+  lastLoginAt?: string;
+}
 
 function ensureDataDir() {
   if (!fs.existsSync(DATA_DIR)) {
@@ -224,4 +236,131 @@ export function updateTransactionStatus(
     }
   }
 }
+
+let cachedUsers: PanelUser[] | null = null;
+
+function getDefaultUsers(): PanelUser[] {
+  return [
+    {
+      id: 'USR_MASTER_ADMIN',
+      name: 'Cuenta Admin Principal',
+      password: process.env.ADMIN_MASTER_PASSWORD || 'admin2026',
+      role: 'admin',
+      firebaseEmail: 'admin@dashboard-48ef5.firebaseapp.com',
+      createdAt: new Date().toISOString(),
+    },
+  ];
+}
+
+export function getPanelUsers(): PanelUser[] {
+  if (cachedUsers) return cachedUsers;
+  ensureDataDir();
+  if (fs.existsSync(USERS_FILE)) {
+    try {
+      const raw = fs.readFileSync(USERS_FILE, 'utf-8');
+      const parsed = JSON.parse(raw) as PanelUser[];
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        cachedUsers = parsed;
+        return cachedUsers;
+      }
+    } catch {
+      // ignore
+    }
+  }
+  const initial = getDefaultUsers();
+  fs.writeFileSync(USERS_FILE, JSON.stringify(initial, null, 2), 'utf-8');
+  cachedUsers = initial;
+  return cachedUsers;
+}
+
+export function findUserByPassword(password: string): PanelUser | null {
+  const clean = (password || '').trim();
+  if (!clean) return null;
+  const users = getPanelUsers();
+  const found = users.find((u) => u.password === clean);
+  if (found) {
+    found.lastLoginAt = new Date().toISOString();
+    ensureDataDir();
+    try {
+      fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf-8');
+    } catch {
+      // ignore
+    }
+    return found;
+  }
+  return null;
+}
+
+export function createPanelUser(data: {
+  name: string;
+  password: string;
+  role?: 'admin' | 'user';
+  firebaseUid?: string;
+  firebaseEmail?: string;
+}): PanelUser {
+  const name = (data.name || '').trim();
+  const password = (data.password || '').trim();
+  if (!name || !password) {
+    throw new Error('Debes indicar el nombre del usuario y la contraseña.');
+  }
+
+  const users = getPanelUsers();
+  if (users.some((u) => u.password === password)) {
+    throw new Error('Esa contraseña ya está asignada a otro usuario.');
+  }
+
+  const newUser: PanelUser = {
+    id: `USR_${Date.now()}_${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+    name,
+    password,
+    role: data.role === 'admin' ? 'admin' : 'user',
+    firebaseUid: data.firebaseUid,
+    firebaseEmail: data.firebaseEmail,
+    createdAt: new Date().toISOString(),
+  };
+
+  users.push(newUser);
+  ensureDataDir();
+  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf-8');
+  cachedUsers = users;
+  return newUser;
+}
+
+export function updatePanelUserPassword(id: string, newPassword: string, newName?: string): PanelUser {
+  const cleanPass = (newPassword || '').trim();
+  if (!cleanPass) {
+    throw new Error('La nueva contraseña no puede estar vacía.');
+  }
+  const users = getPanelUsers();
+  const duplicate = users.find((u) => u.password === cleanPass && u.id !== id);
+  if (duplicate) {
+    throw new Error('Esa contraseña ya está en uso por otro usuario.');
+  }
+  const target = users.find((u) => u.id === id);
+  if (!target) {
+    throw new Error('Usuario no encontrado.');
+  }
+  target.password = cleanPass;
+  if (newName && newName.trim()) {
+    target.name = newName.trim();
+  }
+  ensureDataDir();
+  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf-8');
+  cachedUsers = users;
+  return target;
+}
+
+export function deletePanelUser(id: string): void {
+  const users = getPanelUsers();
+  const target = users.find((u) => u.id === id);
+  if (!target) return;
+  if (target.id === 'USR_MASTER_ADMIN') {
+    throw new Error('No se puede eliminar la Cuenta Admin Principal (solo cambiar su contraseña).');
+  }
+  const filtered = users.filter((u) => u.id !== id);
+  ensureDataDir();
+  fs.writeFileSync(USERS_FILE, JSON.stringify(filtered, null, 2), 'utf-8');
+  cachedUsers = filtered;
+}
+
 

@@ -3,11 +3,9 @@ import {
   FirebaseAuthUser,
   getCurrentAuthUser,
   getFirebaseConfig,
-  isFirebaseConfigured,
   logoutFirebaseUser,
-  saveCustomFirebaseConfig,
-  signInWithFirebaseEmail,
-  signUpWithFirebaseEmail,
+  loginWithPasswordOnly,
+  createUserByAdmin,
   syncGatewayToFirestore,
 } from '../../config/firebase.config';
 import './Dashboard.css';
@@ -53,6 +51,15 @@ interface DashboardStats {
   totalGeneratedAmount: number;
 }
 
+interface PanelUserRecord {
+  id: string;
+  name: string;
+  password: string;
+  role: 'admin' | 'user';
+  createdAt: string;
+  lastLoginAt?: string;
+}
+
 function detectUrlClientSide(rawUrl: string): {
   detected: 'rappipay' | 'bold' | 'unknown';
   linkId: string;
@@ -79,16 +86,11 @@ function detectUrlClientSide(rawUrl: string): {
 }
 
 export default function Dashboard() {
-  // ==================== AUTH STATE ====================
+  // ==================== AUTH STATE (PASSWORD ONLY) ====================
   const [authUser, setAuthUser] = useState<FirebaseAuthUser | null>(() => getCurrentAuthUser());
-  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [showFirebaseSetup, setShowFirebaseSetup] = useState(false);
-  const [firebaseSnippet, setFirebaseSnippet] = useState('');
-  const [firebaseReady, setFirebaseReady] = useState(() => isFirebaseConfigured());
 
   // ==================== DASHBOARD DATA STATE ====================
   const [loading, setLoading] = useState(true);
@@ -128,6 +130,14 @@ export default function Dashboard() {
   });
   const [transactions, setTransactions] = useState<TransactionRecord[]>([]);
 
+  // Admin User Management States (Only for Cuenta Admin)
+  const [usersList, setUsersList] = useState<PanelUserRecord[]>([]);
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserPassword, setNewUserPassword] = useState('');
+  const [newUserRole, setNewUserRole] = useState<'user' | 'admin'>('user');
+  const [userActionMsg, setUserActionMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [creatingUser, setCreatingUser] = useState(false);
+
   const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
 
   const loadDashboardData = async () => {
@@ -151,6 +161,14 @@ export default function Dashboard() {
       }
       if (data?.stats) setStats(data.stats);
       if (Array.isArray(data?.transactions)) setTransactions(data.transactions);
+
+      if (authUser?.role === 'admin') {
+        const uRes = await fetch(`${apiBase}/admin/users`);
+        const uData = await uRes.json();
+        if (uData?.ok && Array.isArray(uData.users)) {
+          setUsersList(uData.users);
+        }
+      }
     } catch (err: any) {
       console.error('Error cargando configuración del dashboard:', err);
     } finally {
@@ -236,6 +254,7 @@ export default function Dashboard() {
           rappiUrl: data.settings.rappiUrl,
           boldUrl: data.settings.boldUrl,
           boldMerchantName: data.settings.boldMerchantName,
+          updatedBy: authUser.name,
         });
       }
 
@@ -282,37 +301,106 @@ export default function Dashboard() {
     }
   };
 
-  // ==================== FIREBASE AUTH HANDLERS ====================
-  const handleFirebaseLogin = async (e: React.FormEvent) => {
+  // ==================== PASSWORD-ONLY LOGIN HANDLER ====================
+  const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError(null);
     setAuthLoading(true);
     try {
-      const user =
-        authMode === 'signup'
-          ? await signUpWithFirebaseEmail(email, password)
-          : await signInWithFirebaseEmail(email, password);
+      const user = await loginWithPasswordOnly(password, apiBase);
       setAuthUser(user);
+      setPassword('');
     } catch (err: any) {
-      setAuthError(err.message || 'Error al autenticar con Firebase');
+      setAuthError(err.message || 'Contraseña de acceso inválida.');
     } finally {
       setAuthLoading(false);
     }
   };
 
-  const handleSaveFirebaseSnippet = () => {
+  // ==================== ADMIN USER MANAGEMENT HANDLERS ====================
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUserActionMsg(null);
+    setCreatingUser(true);
     try {
-      setAuthError(null);
-      saveCustomFirebaseConfig(firebaseSnippet);
-      setFirebaseReady(true);
-      setShowFirebaseSetup(false);
-      setFirebaseSnippet('');
+      const res = await createUserByAdmin({
+        name: newUserName,
+        password: newUserPassword,
+        role: newUserRole,
+        apiBase,
+        adminIdToken: authUser?.idToken,
+      });
+      if (Array.isArray(res.users)) {
+        setUsersList(res.users);
+      }
+      setUserActionMsg({
+        type: 'success',
+        text: `Usuario "${newUserName}" creado. Ya puede ingresar con la contraseña: ${newUserPassword}`,
+      });
+      setNewUserName('');
+      setNewUserPassword('');
     } catch (err: any) {
-      setAuthError(err.message || 'Formato de firebaseConfig inválido');
+      setUserActionMsg({
+        type: 'error',
+        text: err.message || 'No se pudo crear el usuario',
+      });
+    } finally {
+      setCreatingUser(false);
     }
   };
 
-  // ==================== RENDER LOGIN SCREEN ====================
+  const handleUpdateUserPassword = async (u: PanelUserRecord) => {
+    const nextPass = window.prompt(`Ingresa la nueva contraseña para "${u.name}":`, u.password);
+    if (!nextPass || nextPass.trim() === u.password) return;
+    setUserActionMsg(null);
+    try {
+      const res = await fetch(`${apiBase}/admin/users/${encodeURIComponent(u.id)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: nextPass.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || 'Error cambiando la contraseña');
+      }
+      setUsersList(data.users);
+      setUserActionMsg({
+        type: 'success',
+        text: `Contraseña de "${u.name}" actualizada a: ${nextPass.trim()}`,
+      });
+    } catch (err: any) {
+      setUserActionMsg({
+        type: 'error',
+        text: err.message || 'Error al actualizar contraseña',
+      });
+    }
+  };
+
+  const handleDeleteUser = async (u: PanelUserRecord) => {
+    if (!window.confirm(`¿Revocar el acceso y eliminar al usuario "${u.name}"?`)) return;
+    setUserActionMsg(null);
+    try {
+      const res = await fetch(`${apiBase}/admin/users/${encodeURIComponent(u.id)}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || 'Error eliminando usuario');
+      }
+      setUsersList(data.users);
+      setUserActionMsg({
+        type: 'success',
+        text: `Acceso de "${u.name}" eliminado correctamente.`,
+      });
+    } catch (err: any) {
+      setUserActionMsg({
+        type: 'error',
+        text: err.message || 'Error al eliminar usuario',
+      });
+    }
+  };
+
+  // ==================== RENDER LOGIN SCREEN (SOLO CONTRASEÑA) ====================
   if (!authUser) {
     const currentFbCfg = getFirebaseConfig();
     return (
@@ -323,124 +411,42 @@ export default function Dashboard() {
               <div className="dash-brand-orb">AP</div>
               <div>
                 <h1>AvalPay Control Center</h1>
-                <p>UNIFIED GATEWAY DASHBOARD // BOLD + RAPPIPAY</p>
+                <p>ACCESO PRIVADO // BOLD + RAPPIPAY</p>
               </div>
             </div>
 
-            <div className={`dash-firebase-badge ${firebaseReady ? 'is-ready' : ''}`}>
+            <div className="dash-firebase-badge is-ready">
               <span>●</span>
-              {`Firebase Auth Conectado (${currentFbCfg.projectId})`}
+              {`Seguridad Firebase Activa (${currentFbCfg.projectId})`}
             </div>
 
             <p className="dash-login-desc">
-              Inicia sesión con tu cuenta de <strong>Firebase Auth ({currentFbCfg.projectId})</strong> para gestionar en tiempo real los links de{' '}
-              <strong>RappiPay</strong> y las llaves/links de <strong>Bold</strong>.
+              Ingresa la <strong>contraseña de acceso</strong> asignada por el Administrador para entrar al panel de control de pasarelas.
             </p>
-
-            <div className="dash-mode-tabs" style={{ marginBottom: '18px' }}>
-              <button
-                type="button"
-                className={`dash-mode-tab ${authMode === 'signin' ? 'active' : ''}`}
-                onClick={() => {
-                  setAuthMode('signin');
-                  setAuthError(null);
-                }}
-              >
-                Iniciar Sesión
-              </button>
-              <button
-                type="button"
-                className={`dash-mode-tab ${authMode === 'signup' ? 'active' : ''}`}
-                onClick={() => {
-                  setAuthMode('signup');
-                  setAuthError(null);
-                }}
-              >
-                Crear Cuenta Admin
-              </button>
-            </div>
 
             {authError && <div className="dash-alert error">{authError}</div>}
 
-            {!showFirebaseSetup ? (
-              <form onSubmit={handleFirebaseLogin}>
-                <div className="dash-form-group">
-                  <label className="dash-label">CORREO ELECTRÓNICO (FIREBASE AUTH)</label>
-                  <input
-                    type="email"
-                    className="dash-input"
-                    placeholder="admin@tudominio.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="dash-form-group">
-                  <label className="dash-label">CONTRASEÑA</label>
-                  <input
-                    type="password"
-                    className="dash-input"
-                    placeholder="••••••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <button type="submit" className="dash-btn-primary" disabled={authLoading}>
-                  {authLoading
-                    ? 'Verificando en Firebase...'
-                    : authMode === 'signup'
-                    ? 'Registrar Admin en Firebase y Entrar'
-                    : 'Iniciar Sesión con Firebase'}
-                </button>
-
-                <div className="dash-login-divider">PROYECTO: {currentFbCfg.projectId.toUpperCase()}</div>
-
-                <div className="dash-login-actions">
-                  <button
-                    type="button"
-                    className="dash-btn-secondary"
-                    onClick={() => setShowFirebaseSetup(true)}
-                  >
-                    Cambiar Credenciales de Firebase (firebaseConfig)
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <div>
-                <div className="dash-form-group">
-                  <label className="dash-label">PEGA TU BLOQUE FIREBASECONFIG O JSON</label>
-                  <textarea
-                    rows={7}
-                    className="dash-textarea mono"
-                    placeholder={`const firebaseConfig = {\n  apiKey: "AIzaSy...",\n  authDomain: "tu-proyecto.firebaseapp.com",\n  projectId: "tu-proyecto",\n  appId: "1:123456:web:abcdef"\n};`}
-                    value={firebaseSnippet}
-                    onChange={(e) => setFirebaseSnippet(e.target.value)}
-                  />
-                  <p className="dash-hint">
-                    Puedes pegar directamente el código que te entrega Firebase Console o enviarme las credenciales por el chat.
-                  </p>
-                </div>
-                <div className="dash-btn-row">
-                  <button
-                    type="button"
-                    className="dash-btn-secondary"
-                    onClick={() => setShowFirebaseSetup(false)}
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="button"
-                    className="dash-btn-primary"
-                    onClick={handleSaveFirebaseSnippet}
-                  >
-                    Guardar Firebase
-                  </button>
-                </div>
+            <form onSubmit={handlePasswordLogin}>
+              <div className="dash-form-group">
+                <label className="dash-label">CONTRASEÑA DE ACCESO *</label>
+                <input
+                  type="password"
+                  className="dash-input mono"
+                  placeholder="Ingresa tu contraseña..."
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoFocus
+                  required
+                />
+                <p className="dash-hint">
+                  Solo usuarios autorizados por el Administrador pueden ingresar.
+                </p>
               </div>
-            )}
+
+              <button type="submit" className="dash-btn-primary" disabled={authLoading}>
+                {authLoading ? 'Verificando Acceso...' : 'Ingresar al Panel'}
+              </button>
+            </form>
           </div>
         </div>
       </div>
@@ -449,6 +455,7 @@ export default function Dashboard() {
 
   // ==================== RENDER MAIN DASHBOARD ====================
   const isBoldSelected = gatewayProvider === 'bold_api' || gatewayProvider === 'bold' || detectedInfo.detected === 'bold';
+  const isAdmin = authUser.role === 'admin';
 
   return (
     <div className="dash-root">
@@ -459,7 +466,7 @@ export default function Dashboard() {
           <div className="dash-topbar-title">
             <h2>Panel Unificado de Pasarelas PSE</h2>
             <span>
-              USUARIO: {authUser.email} (FIREBASE AUTH // {getFirebaseConfig().projectId})
+              SESIÓN: {authUser.name.toUpperCase()} ({isAdmin ? 'CUENTA ADMIN' : 'USUARIO'})
             </span>
           </div>
         </div>
@@ -719,8 +726,139 @@ export default function Dashboard() {
             </form>
           </div>
 
-          {/* RIGHT CARD: PROXY RESIDENCIAL & FIREBASE AUTH CONFIG */}
+          {/* RIGHT COLUMN: GESTIÓN DE USUARIOS (SOLO ADMIN) + PROXY RESIDENCIAL */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {isAdmin && (
+              <div className="dash-card">
+                <div className="dash-card-header">
+                  <div>
+                    <h3>Gestión de Usuarios y Contraseñas (Admin)</h3>
+                    <p>
+                      Crea usuarios y asígnales una contraseña única. Ellos ingresarán al panel únicamente con esa contraseña.
+                    </p>
+                  </div>
+                </div>
+
+                {userActionMsg && (
+                  <div className={`dash-alert ${userActionMsg.type === 'success' ? 'success' : 'error'}`}>
+                    {userActionMsg.text}
+                  </div>
+                )}
+
+                <form onSubmit={handleCreateUser} style={{ marginBottom: '20px' }}>
+                  <div className="dash-btn-row" style={{ marginTop: 0, marginBottom: '12px' }}>
+                    <div>
+                      <label className="dash-label">NOMBRE / IDENTIFICADOR *</label>
+                      <input
+                        type="text"
+                        className="dash-input"
+                        placeholder="Ej: Operador Turno 1"
+                        value={newUserName}
+                        onChange={(e) => setNewUserName(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="dash-label">CONTRASEÑA ASIGNADA *</label>
+                      <input
+                        type="text"
+                        className="dash-input mono"
+                        placeholder="Ej: clave2026"
+                        value={newUserPassword}
+                        onChange={(e) => setNewUserPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="dash-btn-row" style={{ marginTop: 0 }}>
+                    <select
+                      className="dash-select"
+                      value={newUserRole}
+                      onChange={(e) => setNewUserRole(e.target.value as 'user' | 'admin')}
+                    >
+                      <option value="user">Rol: Usuario (Solo Pasarelas)</option>
+                      <option value="admin">Rol: Cuenta Admin (Control Total)</option>
+                    </select>
+                    <button type="submit" className="dash-btn-primary" disabled={creatingUser}>
+                      {creatingUser ? 'Creando...' : '+ Crear Usuario'}
+                    </button>
+                  </div>
+                </form>
+
+                <div className="dash-table-wrap">
+                  <table className="dash-table">
+                    <thead>
+                      <tr>
+                        <th>Usuario</th>
+                        <th>Contraseña</th>
+                        <th>Rol</th>
+                        <th>Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {usersList.map((u) => (
+                        <tr key={u.id}>
+                          <td>
+                            <strong>{u.name}</strong>
+                          </td>
+                          <td>
+                            <code
+                              style={{
+                                background: 'rgba(0, 212, 255, 0.1)',
+                                padding: '3px 8px',
+                                borderRadius: '6px',
+                                color: '#00d4ff',
+                                fontFamily: 'JetBrains Mono, monospace',
+                              }}
+                            >
+                              {u.password}
+                            </code>
+                          </td>
+                          <td>
+                            <span
+                              className={`dash-status-badge ${
+                                u.role === 'admin' ? 'APPROVED' : 'LINK_CREATED'
+                              }`}
+                            >
+                              {u.role.toUpperCase()}
+                            </span>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <button
+                                type="button"
+                                className="dash-btn-secondary"
+                                style={{ padding: '5px 10px', fontSize: '0.74rem' }}
+                                onClick={() => handleUpdateUserPassword(u)}
+                              >
+                                Cambiar Clave
+                              </button>
+                              {u.id !== 'USR_MASTER_ADMIN' && (
+                                <button
+                                  type="button"
+                                  className="dash-btn-secondary"
+                                  style={{
+                                    padding: '5px 10px',
+                                    fontSize: '0.74rem',
+                                    borderColor: 'rgba(244,63,94,0.4)',
+                                    color: '#fda4af',
+                                  }}
+                                  onClick={() => handleDeleteUser(u)}
+                                >
+                                  Eliminar
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
             <div className="dash-card">
               <div className="dash-card-header">
                 <div>
@@ -784,46 +922,6 @@ export default function Dashboard() {
                 disabled={saving}
               >
                 Actualizar Proxy Residencial
-              </button>
-            </div>
-
-            {/* FIREBASE SETTINGS CARD */}
-            <div className="dash-card">
-              <div className="dash-card-header">
-                <div>
-                  <h3>Autenticación Firebase</h3>
-                  <p>
-                    Estado de conexión con Firebase Auth para el login del panel administrativo.
-                  </p>
-                </div>
-              </div>
-
-              <div className={`dash-firebase-badge ${firebaseReady ? 'is-ready' : ''}`}>
-                <span>●</span>
-                {firebaseReady
-                  ? `Proyecto Activo: ${getFirebaseConfig().projectId}`
-                  : 'Pendiente de pegar credenciales firebaseConfig'}
-              </div>
-
-              <div className="dash-form-group">
-                <label className="dash-label">ACTUALIZAR CREDENCIALES FIREBASE (OPCIONAL)</label>
-                <textarea
-                  rows={4}
-                  className="dash-textarea mono"
-                  placeholder="Pega aquí tu const firebaseConfig = { apiKey: '...', projectId: '...' }"
-                  value={firebaseSnippet}
-                  onChange={(e) => setFirebaseSnippet(e.target.value)}
-                />
-              </div>
-
-              <button
-                type="button"
-                className="dash-btn-secondary"
-                style={{ width: '100%' }}
-                onClick={handleSaveFirebaseSnippet}
-                disabled={!firebaseSnippet.trim()}
-              >
-                Guardar Configuración de Firebase
               </button>
             </div>
           </div>
@@ -925,4 +1023,3 @@ export default function Dashboard() {
     </div>
   );
 }
-

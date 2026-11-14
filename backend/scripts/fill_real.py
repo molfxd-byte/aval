@@ -289,6 +289,8 @@ def _detectar_redireccion(page, browser_context, url_inicial):
 
 def fill(data):
     import time
+    import random
+    import string
     headless_mode = os.environ.get("HEADLESS", "true").lower() not in ("false", "0", "no")
 
     # Configurar proxy desde variables de entorno
@@ -302,16 +304,15 @@ def fill(data):
     proxy_ip = None
     _socks5_stop = None  # stop_event del proxy local SOCKS5
 
-    # Preferir SOCKS5 (evita ERR_TUNNEL_CONNECTION_FAILED en Linux Docker).
-    # Chromium no soporta auth en SOCKS5 → se usa _start_local_socks5_proxy()
-    # para levantar un relay local sin auth que redirige al SOCKS5 de IPRoyal.
     use_socks5 = bool(proxy_host and proxy_socks_port)
     has_proxy = proxy_host and (proxy_socks_port or proxy_port)
 
     if has_proxy:
         for intento in range(1, 4):
-            session_id = f"s{int(time.time())}_{intento}"
-            full_pass = f"{proxy_pass}_session-{session_id}" if proxy_pass else ""
+            # IPRoyal exige session ID estrictamente alfanumérico de 8 caracteres (sin guiones bajos)
+            session_id = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
+            base_pass = proxy_pass.split("_session-")[0] if "_session-" in proxy_pass else proxy_pass
+            full_pass = f"{base_pass}_session-{session_id}_lifetime-10m" if base_pass else ""
 
             try:
                 import requests as _req
@@ -329,23 +330,19 @@ def fill(data):
                     "https://ipv4.icanhazip.com",
                     proxies=_proxies,
                     timeout=10,
-                    headers={"User-Agent": "Mozilla/5.0"}
+                    headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
                 )
                 if r.status_code == 200 and r.text.strip():
                     proxy_ip = r.text.strip()
-                    _log(f"Proxy {proto_label} asignado exitosamente (intento {intento}) → IP: {proxy_ip}")
+                    _log(f"Proxy {proto_label} asignado exitosamente (intento {intento}, sesion {session_id}) → IP: {proxy_ip}")
 
                     if use_socks5:
-                        # Chromium no acepta credenciales SOCKS5 directamente.
-                        # Levantamos un relay SOCKS5 local sin auth (stdlib puro)
-                        # que reenvía al SOCKS5 de IPRoyal con credenciales.
                         local_port, _socks5_stop = _start_local_socks5_proxy(
                             upstream_host=proxy_host,
                             upstream_port=proxy_socks_port,
                             upstream_user=proxy_user,
                             upstream_pass=full_pass,
                         )
-                        # Sin usuario/contraseña → Chromium acepta SOCKS5 local
                         proxy_config = {"server": f"socks5://127.0.0.1:{local_port}"}
                         _log(f"Relay SOCKS5 local sin auth en puerto {local_port} → {proxy_host}:{proxy_socks_port}")
                     else:
@@ -367,6 +364,19 @@ def fill(data):
     else:
         _log("Sin proxy configurado, conexión directa.")
 
+    user_agents = [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    ]
+    chosen_ua = random.choice(user_agents)
+    viewports = [
+        {"width": 1366, "height": 768},
+        {"width": 1440, "height": 900},
+        {"width": 1280, "height": 800},
+    ]
+    chosen_vp = random.choice(viewports)
+
     with sync_playwright() as p:
         launch_args = [
             "--no-sandbox",
@@ -380,11 +390,31 @@ def fill(data):
             args=launch_args
         )
         context = browser.new_context(
-            viewport={"width": 1100, "height": 1000},
+            viewport=chosen_vp,
             proxy=proxy_config,
-            ignore_https_errors=True
+            ignore_https_errors=True,
+            user_agent=chosen_ua,
+            locale="es-CO",
+            timezone_id="America/Bogota",
         )
         page = context.new_page()
+
+        # Huella limpia de navegador residencial en Colombia
+        page.add_init_script("""
+            Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+            window.chrome = { runtime: {}, loadTimes: function() {}, csi: function() {}, app: {} };
+            Object.defineProperty(navigator, 'languages', { get: () => ['es-CO', 'es-419', 'es', 'en-US'] });
+        """)
+
+        captured_pse_url = []
+
+        def _on_request(req):
+            if "registro.pse.com.co" in req.url or "pse.com.co" in req.url:
+                if req.url not in captured_pse_url:
+                    captured_pse_url.append(req.url)
+                    _log(f"URL PSE interceptada en red: {req.url}")
+
+        page.on("request", _on_request)
 
         try:
             target_url = data.get("url") or os.environ.get("PAYMENT_AUTOMATION_URL", "").strip()
@@ -407,10 +437,16 @@ def fill(data):
                     else:
                         raise e_nav
 
-            # Monto
+            page.wait_for_timeout(random.randint(600, 1100))
+
+            # Monto con escritura natural
             monto = _input(page, "text")
             monto.wait_for(state="visible", timeout=20000)
-            monto.fill(data["monto"])
+            monto.click()
+            page.wait_for_timeout(random.randint(150, 300))
+            monto.fill("")
+            monto.press_sequentially(str(data["monto"]).strip(), delay=random.randint(35, 75))
+            page.wait_for_timeout(random.randint(350, 650))
 
             # Banco
             banco = _select(
@@ -418,6 +454,7 @@ def fill(data):
                 "Elige tu banco",
                 data["banco"]
             )
+            page.wait_for_timeout(random.randint(350, 650))
 
             # Tipo de documento
             tipo = _select(
@@ -425,12 +462,16 @@ def fill(data):
                 "Elige tipo de documento",
                 data["tipo"]
             )
+            page.wait_for_timeout(random.randint(350, 650))
 
-            # Documento
+            # Documento con escritura natural
             doc_limpio = data["doc"].strip()[:10]
             doc = _input(page, "document")
-            doc.fill(doc_limpio)
-            page.wait_for_timeout(300)
+            doc.click()
+            page.wait_for_timeout(random.randint(150, 300))
+            doc.fill("")
+            doc.press_sequentially(doc_limpio, delay=random.randint(40, 80))
+            page.wait_for_timeout(random.randint(450, 800))
 
             # Validación de los campos
             banco_text = _norm(banco.inner_text())
@@ -507,6 +548,15 @@ def fill(data):
             # Guardar URL inicial
             url_inicial = page.url
 
+            # Movimiento natural de mouse sobre el botón Transferir antes de hacer clic
+            try:
+                box = boton.bounding_box()
+                if box:
+                    page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+                    page.wait_for_timeout(random.randint(250, 450))
+            except Exception:
+                pass
+
             # Hacer clic
             boton.click()
             _log("Se hizo clic en Transferir.")
@@ -519,8 +569,15 @@ def fill(data):
             )
 
             # Captura de la página final
-            png = pagina_final.screenshot(full_page=True)
+            png = None
+            try:
+                png = pagina_final.screenshot(full_page=True)
+            except Exception:
+                pass
             url_destino = pagina_final.url
+            if (not url_destino or url_destino == url_inicial or "linkdepagospse.rappipay.co" in url_destino) and captured_pse_url:
+                url_destino = captured_pse_url[0]
+                _log(f"Usando URL PSE interceptada en tráfico de red: {url_destino}")
 
             # Revisar si la pasarela rechazó el link o la transacción
             texto_pantalla = ""

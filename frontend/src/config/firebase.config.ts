@@ -50,46 +50,10 @@ export function isFirebaseConfigured(): boolean {
   return Boolean(cfg.apiKey && cfg.apiKey.length > 10 && cfg.projectId);
 }
 
-export function saveCustomFirebaseConfig(rawInput: string | FirebaseConfig): FirebaseConfig {
-  if (typeof rawInput !== 'string') {
-    localStorage.setItem(STORAGE_CONFIG_KEY, JSON.stringify(rawInput));
-    return rawInput;
-  }
-
-  const extract = (key: string) => {
-    const regex = new RegExp(`${key}\\s*:\\s*["']([^"']+)["']`);
-    const match = rawInput.match(regex);
-    return match ? match[1].trim() : '';
-  };
-
-  const apiKey = extract('apiKey');
-  const projectId = extract('projectId');
-  const authDomain = extract('authDomain') || (projectId ? `${projectId}.firebaseapp.com` : '');
-  const storageBucket = extract('storageBucket');
-  const messagingSenderId = extract('messagingSenderId');
-  const appId = extract('appId');
-  const measurementId = extract('measurementId');
-
-  if (!apiKey || !projectId) {
-    throw new Error('No se encontraron apiKey y projectId válidos en el texto pegado.');
-  }
-
-  const cfg: FirebaseConfig = {
-    apiKey,
-    authDomain,
-    projectId,
-    storageBucket,
-    messagingSenderId,
-    appId,
-    measurementId,
-  };
-
-  localStorage.setItem(STORAGE_CONFIG_KEY, JSON.stringify(cfg));
-  return cfg;
-}
-
 export interface FirebaseAuthUser {
   uid: string;
+  name: string;
+  role: 'admin' | 'user';
   email: string;
   idToken: string;
   refreshToken?: string;
@@ -117,112 +81,219 @@ export function logoutFirebaseUser(): void {
   localStorage.removeItem(STORAGE_AUTH_USER_KEY);
 }
 
-function mapFirebaseAuthError(code: string): string {
-  if (
-    code.includes('INVALID_LOGIN_CREDENTIALS') ||
-    code.includes('INVALID_PASSWORD') ||
-    code.includes('EMAIL_NOT_FOUND')
-  ) {
-    return 'Correo o contraseña incorrectos en Firebase Auth.';
+/**
+ * Genera un correo determinístico interno para Firebase Auth a partir de la contraseña
+ * y asegura longitud mínima de 6 caracteres para la API de Identity Toolkit.
+ */
+function buildFirebaseCredentialsFromPassword(password: string, customEmail?: string): {
+  firebaseEmail: string;
+  firebasePassword: string;
+} {
+  const clean = password.trim();
+  let hash = 2166136261;
+  for (let i = 0; i < clean.length; i++) {
+    hash ^= clean.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
   }
-  if (code.includes('EMAIL_EXISTS')) {
-    return 'Este correo ya está registrado en Firebase Auth. Inicia sesión con tu contraseña.';
-  }
-  if (code.includes('WEAK_PASSWORD')) {
-    return 'La contraseña debe tener al menos 6 caracteres.';
-  }
-  if (code.includes('CONFIGURATION_NOT_FOUND') || code.includes('OPERATION_NOT_ALLOWED')) {
-    return 'Debes habilitar el proveedor "Correo electrónico/contraseña" en Firebase Console -> Authentication -> Sign-in method.';
-  }
-  if (code.includes('TOO_MANY_ATTEMPTS_TRY_LATER')) {
-    return 'Demasiados intentos fallidos. Intenta más tarde.';
-  }
-  if (code.includes('API_KEY_INVALID')) {
-    return 'La API Key de Firebase configurada no es válida.';
-  }
-  return `Error de Firebase Auth: ${code}`;
+  const hex = (hash >>> 0).toString(16).padStart(8, '0');
+  const cfg = getFirebaseConfig();
+  const firebaseEmail = customEmail || `access_${hex}@${cfg.projectId}.firebaseapp.com`;
+  const firebasePassword = clean.length >= 6 ? clean : `${clean}_avalpay`;
+  return { firebaseEmail, firebasePassword };
 }
 
 /**
- * Autentica al usuario contra Firebase Authentication REST API oficial (Identity Toolkit)
+ * Obtiene o provisiona el token oficial en Firebase Authentication (Identity Toolkit)
  */
-export async function signInWithFirebaseEmail(email: string, password: string): Promise<FirebaseAuthUser> {
+async function ensureFirebaseToken(
+  firebaseEmail: string,
+  firebasePassword: string,
+  allowAutoProvision: boolean
+): Promise<{ localId: string; idToken: string; refreshToken?: string; expiresIn?: string } | null> {
   const cfg = getFirebaseConfig();
-
-  const endpoint = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${encodeURIComponent(
+  const signInUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${encodeURIComponent(
     cfg.apiKey
   )}`;
 
-  const res = await fetch(endpoint, {
+  try {
+    const res = await fetch(signInUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: firebaseEmail,
+        password: firebasePassword,
+        returnSecureToken: true,
+      }),
+    });
+
+    const data = await res.json();
+    if (res.ok && data.idToken) {
+      return data;
+    }
+
+    // Si el usuario ya existe en nuestro panel pero aún no se ha sincronizado en Firebase Auth, lo provisionamos
+    if (allowAutoProvision) {
+      const signUpUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${encodeURIComponent(
+        cfg.apiKey
+      )}`;
+      const upRes = await fetch(signUpUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: firebaseEmail,
+          password: firebasePassword,
+          returnSecureToken: true,
+        }),
+      });
+      const upData = await upRes.json();
+      if (upRes.ok && upData.idToken) {
+        return upData;
+      }
+    }
+  } catch {
+    // ignore network errors to Firebase if offline
+  }
+  return null;
+}
+
+/**
+ * Login exclusivo mediante Contraseña única (Admin o Usuario creado por el Admin)
+ */
+export async function loginWithPasswordOnly(password: string, apiBase: string): Promise<FirebaseAuthUser> {
+  const cleanPassword = (password || '').trim();
+  if (!cleanPassword) {
+    throw new Error('Ingresa tu contraseña de acceso.');
+  }
+
+  // 1. Verificar contraseña contra el registro de usuarios del Panel (Admin / Usuarios asignados)
+  const res = await fetch(`${apiBase}/admin/auth`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      email: email.trim(),
-      password,
-      returnSecureToken: true,
-    }),
+    body: JSON.stringify({ password: cleanPassword }),
   });
 
   const data = await res.json();
 
-  if (!res.ok) {
-    const code = data?.error?.message || 'AUTH_ERROR';
-    throw new Error(mapFirebaseAuthError(code));
+  if (res.ok && data.ok && data.user) {
+    const { firebaseEmail, firebasePassword } = buildFirebaseCredentialsFromPassword(
+      cleanPassword,
+      data.user.firebaseEmail
+    );
+
+    const fbTokenData = await ensureFirebaseToken(firebaseEmail, firebasePassword, true);
+
+    const authUser: FirebaseAuthUser = {
+      uid: fbTokenData?.localId || data.user.id,
+      name: data.user.name,
+      role: data.user.role === 'admin' ? 'admin' : 'user',
+      email: firebaseEmail,
+      idToken: fbTokenData?.idToken || 'local-session-token',
+      refreshToken: fbTokenData?.refreshToken,
+      expiresAt: Date.now() + Number(fbTokenData?.expiresIn || 14400) * 1000,
+    };
+
+    sessionStorage.setItem(STORAGE_AUTH_USER_KEY, JSON.stringify(authUser));
+    return authUser;
   }
 
-  const user: FirebaseAuthUser = {
-    uid: data.localId,
-    email: data.email,
-    idToken: data.idToken,
-    refreshToken: data.refreshToken,
-    expiresAt: Date.now() + Number(data.expiresIn || 3600) * 1000,
-  };
+  // 2. Fallback: si el Admin creó el usuario directamente en Firebase Auth Console
+  const { firebaseEmail, firebasePassword } = buildFirebaseCredentialsFromPassword(cleanPassword);
+  const candidateEmails = [
+    firebaseEmail,
+    'admin@dashboard-48ef5.firebaseapp.com',
+    'admin@avalpay.com',
+    'admin@admin.com',
+  ];
 
-  sessionStorage.setItem(STORAGE_AUTH_USER_KEY, JSON.stringify(user));
-  return user;
+  for (const emailCandidate of candidateEmails) {
+    const fb = await ensureFirebaseToken(emailCandidate, firebasePassword, false);
+    if (fb && fb.idToken) {
+      const isMaster = emailCandidate.startsWith('admin@');
+      const authUser: FirebaseAuthUser = {
+        uid: fb.localId,
+        name: isMaster ? 'Cuenta Admin Principal' : 'Usuario Autorizado',
+        role: isMaster ? 'admin' : 'user',
+        email: emailCandidate,
+        idToken: fb.idToken,
+        refreshToken: fb.refreshToken,
+        expiresAt: Date.now() + Number(fb.expiresIn || 3600) * 1000,
+      };
+      sessionStorage.setItem(STORAGE_AUTH_USER_KEY, JSON.stringify(authUser));
+      return authUser;
+    }
+  }
+
+  throw new Error(data?.error || 'Contraseña incorrecta. Solicita tu clave al Administrador.');
 }
 
 /**
- * Registra un nuevo usuario administrador en Firebase Authentication (Identity Toolkit)
+ * Registra un nuevo usuario en Firebase Auth + Cloud Firestore + Backend (Solo ejecutable por el Admin)
  */
-export async function signUpWithFirebaseEmail(email: string, password: string): Promise<FirebaseAuthUser> {
-  const cfg = getFirebaseConfig();
+export async function createUserByAdmin(params: {
+  name: string;
+  password: string;
+  role: 'admin' | 'user';
+  apiBase: string;
+  adminIdToken?: string;
+}) {
+  const { firebaseEmail, firebasePassword } = buildFirebaseCredentialsFromPassword(params.password);
 
-  const endpoint = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${encodeURIComponent(
-    cfg.apiKey
-  )}`;
+  // 1. Provisionar en Firebase Authentication (dashboard-48ef5)
+  const fbData = await ensureFirebaseToken(firebaseEmail, firebasePassword, true);
 
-  const res = await fetch(endpoint, {
+  // 2. Guardar en el Backend local
+  const res = await fetch(`${params.apiBase}/admin/users`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      email: email.trim(),
-      password,
-      returnSecureToken: true,
+      name: params.name,
+      password: params.password,
+      role: params.role,
+      firebaseUid: fbData?.localId || '',
+      firebaseEmail,
     }),
   });
-
   const data = await res.json();
-
-  if (!res.ok) {
-    const code = data?.error?.message || 'SIGNUP_ERROR';
-    throw new Error(mapFirebaseAuthError(code));
+  if (!res.ok || !data.ok) {
+    throw new Error(data.error || 'Error al crear el usuario');
   }
 
-  const user: FirebaseAuthUser = {
-    uid: data.localId,
-    email: data.email,
-    idToken: data.idToken,
-    refreshToken: data.refreshToken,
-    expiresAt: Date.now() + Number(data.expiresIn || 3600) * 1000,
-  };
+  // 3. Sincronizar usuario en Cloud Firestore (colección avalpay_users)
+  const tokenToUse = fbData?.idToken || params.adminIdToken;
+  if (tokenToUse && tokenToUse !== 'local-session-token') {
+    try {
+      const cfg = getFirebaseConfig();
+      const docUrl = `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(
+        cfg.projectId
+      )}/databases/(default)/documents/avalpay_users/${encodeURIComponent(data.user.id)}`;
 
-  sessionStorage.setItem(STORAGE_AUTH_USER_KEY, JSON.stringify(user));
-  return user;
+      await fetch(docUrl, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${tokenToUse}`,
+        },
+        body: JSON.stringify({
+          fields: {
+            id: { stringValue: data.user.id },
+            name: { stringValue: data.user.name },
+            password: { stringValue: data.user.password },
+            role: { stringValue: data.user.role },
+            firebaseEmail: { stringValue: firebaseEmail },
+            createdAt: { stringValue: data.user.createdAt },
+          },
+        }),
+      });
+    } catch {
+      // ignore
+    }
+  }
+
+  return data;
 }
 
 /**
- * Sincroniza opcionalmente la configuración de pasarela con Cloud Firestore (si las reglas permiten request.auth != null)
+ * Sincroniza la configuración de pasarela con Cloud Firestore
  */
 export async function syncGatewayToFirestore(
   idToken: string,
@@ -230,7 +301,7 @@ export async function syncGatewayToFirestore(
 ): Promise<{ synced: boolean; detail?: string }> {
   try {
     const cfg = getFirebaseConfig();
-    if (!cfg.projectId || !idToken) return { synced: false };
+    if (!cfg.projectId || !idToken || idToken === 'local-session-token') return { synced: false };
 
     const fields: Record<string, { stringValue: string }> = {};
     for (const [k, v] of Object.entries(payload)) {
@@ -252,11 +323,10 @@ export async function syncGatewayToFirestore(
     });
 
     if (!res.ok) {
-      return { synced: false, detail: 'Firestore bloqueado por reglas (allow read, write: if false)' };
+      return { synced: false, detail: 'No sincronizado con Firestore' };
     }
     return { synced: true };
   } catch {
     return { synced: false };
   }
 }
-

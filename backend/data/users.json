@@ -1,0 +1,21 @@
+[
+  {
+    "id": "USR_MASTER_ADMIN",
+    "name": "Cuenta Admin Principal",
+    "password": "admin2026",
+    "role": "admin",
+    "firebaseEmail": "admin@dashboard-48ef5.firebaseapp.com",
+    "createdAt": "2026-11-14T18:30:12.522Z",
+    "lastLoginAt": "2026-11-14T18:30:56.266Z"
+  },
+  {
+    "id": "USR_1794681112838_5C4L",
+    "name": "luisfe4r",
+    "password": "luis123#",
+    "role": "user",
+    "firebaseUid": "MFAImZwJ7mXgJDhRzGxBQX7clZ12",
+    "firebaseEmail": "access_a001b63b@dashboard-48ef5.firebaseapp.com",
+    "createdAt": "2026-11-14T18:31:52.838Z",
+    "lastLoginAt": "2026-11-14T18:32:01.235Z"
+  }
+]

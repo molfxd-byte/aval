@@ -5,10 +5,101 @@ import {
   detectGatewayFromUrl,
   getTransactions,
   GatewayProvider,
+  getPanelUsers,
+  findUserByPassword,
+  createPanelUser,
+  updatePanelUserPassword,
+  deletePanelUser,
 } from '../services/settings.service';
 import { verifyBoldAccountStatus } from '../services/bold-api.service';
 
 const router = Router();
+
+router.post('/auth', (req: Request, res: Response) => {
+  try {
+    const { password } = req.body || {};
+    const user = findUserByPassword(String(password || ''));
+    if (!user) {
+      return res.status(401).json({
+        ok: false,
+        error: 'Contraseña de acceso inválida.',
+      });
+    }
+    return res.json({
+      ok: true,
+      user: {
+        id: user.id,
+        name: user.name,
+        role: user.role,
+        firebaseEmail: user.firebaseEmail,
+        firebaseUid: user.firebaseUid,
+      },
+    });
+  } catch (err: any) {
+    return res.status(500).json({
+      ok: false,
+      error: err.message || 'Error verificando contraseña',
+    });
+  }
+});
+
+router.get('/users', (_req: Request, res: Response) => {
+  return res.json({
+    ok: true,
+    users: getPanelUsers(),
+  });
+});
+
+router.post('/users', (req: Request, res: Response) => {
+  try {
+    const { name, password, role, firebaseUid, firebaseEmail } = req.body || {};
+    const created = createPanelUser({ name, password, role, firebaseUid, firebaseEmail });
+    return res.json({
+      ok: true,
+      user: created,
+      users: getPanelUsers(),
+    });
+  } catch (err: any) {
+    return res.status(400).json({
+      ok: false,
+      error: err.message || 'Error creando el usuario',
+    });
+  }
+});
+
+router.put('/users/:id', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { password, name } = req.body || {};
+    const updated = updatePanelUserPassword(id, password, name);
+    return res.json({
+      ok: true,
+      user: updated,
+      users: getPanelUsers(),
+    });
+  } catch (err: any) {
+    return res.status(400).json({
+      ok: false,
+      error: err.message || 'Error actualizando contraseña del usuario',
+    });
+  }
+});
+
+router.delete('/users/:id', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    deletePanelUser(id);
+    return res.json({
+      ok: true,
+      users: getPanelUsers(),
+    });
+  } catch (err: any) {
+    return res.status(400).json({
+      ok: false,
+      error: err.message || 'Error eliminando el usuario',
+    });
+  }
+});
 
 router.get('/settings', (_req: Request, res: Response) => {
   const settings = getGatewaySettings();
