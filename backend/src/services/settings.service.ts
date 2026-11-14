@@ -143,6 +143,24 @@ function getDefaultSettings(): GatewaySettings {
 let cachedSettings: GatewaySettings | null = null;
 let cachedTransactions: TransactionRecord[] | null = null;
 
+type DashboardListener = () => void;
+const dashboardListeners = new Set<DashboardListener>();
+
+export function subscribeDashboardUpdates(fn: DashboardListener): () => void {
+  dashboardListeners.add(fn);
+  return () => dashboardListeners.delete(fn);
+}
+
+export function emitDashboardUpdate(): void {
+  for (const fn of dashboardListeners) {
+    try {
+      fn();
+    } catch {
+      // ignore
+    }
+  }
+}
+
 export function getGatewaySettings(): GatewaySettings {
   if (cachedSettings) return cachedSettings;
 
@@ -198,6 +216,7 @@ export function updateGatewaySettings(patch: Partial<GatewaySettings>): GatewayS
   fs.writeFileSync(SETTINGS_FILE, JSON.stringify(next, null, 2), 'utf-8');
   cachedSettings = next;
   console.log(`[Settings] Configuración actualizada -> Pasarela: ${next.gatewayProvider.toUpperCase()} | URL: ${next.paymentUrl}`);
+  emitDashboardUpdate();
   return next;
 }
 
@@ -234,6 +253,7 @@ export function recordTransaction(tx: Omit<TransactionRecord, 'id' | 'createdAt'
   } catch {
     // ignore disk errors
   }
+  emitDashboardUpdate();
   return item;
 }
 
@@ -260,6 +280,7 @@ export function updateTransactionStatus(
     } catch {
       // ignore
     }
+    emitDashboardUpdate();
   }
 }
 
@@ -431,6 +452,7 @@ function saveRappiPool(pool: RappiLinkItem[]): void {
   ensureDataDir();
   fs.writeFileSync(POOL_FILE, JSON.stringify(pool, null, 2), 'utf-8');
   cachedPool = pool;
+  emitDashboardUpdate();
 }
 
 export function getPoolSummary() {

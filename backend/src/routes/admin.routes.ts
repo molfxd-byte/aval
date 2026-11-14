@@ -21,6 +21,8 @@ import {
   incrementRappiLinkUse,
   recordTransaction,
   updateTransactionStatus,
+  subscribeDashboardUpdates,
+  TransactionRecord,
 } from '../services/settings.service';
 import { verifyBoldAccountStatus } from '../services/bold-api.service';
 import { executeFillReal, executeFillBold, executeFillBoldApi } from '../services/fill.service';
@@ -114,17 +116,21 @@ router.delete('/users/:id', (req: Request, res: Response) => {
   }
 });
 
-router.get('/settings', (_req: Request, res: Response) => {
+function buildDashboardSnapshot() {
   const settings = getGatewaySettings();
   const detectedInfo = detectGatewayFromUrl(settings.paymentUrl);
   const transactions = getTransactions();
 
   const totalGenerated = transactions.length;
   const approvedList = transactions.filter((t) => t.status === 'APPROVED');
+  const pendingList = transactions.filter(
+    (t) => t.status === 'GENERATED' || t.status === 'PROCESSING' || t.status === 'INITIATED'
+  );
   const totalApprovedAmount = approvedList.reduce((acc, t) => acc + (t.monto || 0), 0);
+  const totalPendingAmount = pendingList.reduce((acc, t) => acc + (t.monto || 0), 0);
   const totalGeneratedAmount = transactions.reduce((acc, t) => acc + (t.monto || 0), 0);
 
-  return res.json({
+  return {
     ok: true,
     settings,
     detectedInfo,
@@ -134,12 +140,70 @@ router.get('/settings', (_req: Request, res: Response) => {
     stats: {
       totalGenerated,
       totalApproved: approvedList.length,
+      totalPending: pendingList.length,
       totalErrors: transactions.filter((t) => t.status === 'ERROR' || t.status === 'REJECTED').length,
       totalApprovedAmount,
+      totalPendingAmount,
       totalGeneratedAmount,
     },
     transactions: transactions.slice(0, 50),
+  };
+}
+
+router.get('/settings', (_req: Request, res: Response) => {
+  return res.json(buildDashboardSnapshot());
+});
+
+router.get('/stream', (req: Request, res: Response) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders?.();
+
+  const sendSnapshot = () => {
+    try {
+      res.write(`data: ${JSON.stringify(buildDashboardSnapshot())}\n\n`);
+    } catch {
+      // ignore
+    }
+  };
+
+  sendSnapshot();
+  const unsubscribe = subscribeDashboardUpdates(sendSnapshot);
+  const keepAlive = setInterval(() => {
+    try {
+      res.write(': ping\n\n');
+    } catch {
+      // ignore
+    }
+  }, 15000);
+
+  req.on('close', () => {
+    clearInterval(keepAlive);
+    unsubscribe();
   });
+});
+
+router.put('/transactions/:id/status', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body || {};
+    const validStatuses: TransactionRecord['status'][] = [
+      'INITIATED',
+      'PROCESSING',
+      'GENERATED',
+      'APPROVED',
+      'REJECTED',
+      'ERROR',
+    ];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ ok: false, error: 'Estado no válido' });
+    }
+    updateTransactionStatus(id, status);
+    return res.json(buildDashboardSnapshot());
+  } catch (err: any) {
+    return res.status(500).json({ ok: false, error: err.message });
+  }
 });
 
 router.put('/settings', (req: Request, res: Response) => {
