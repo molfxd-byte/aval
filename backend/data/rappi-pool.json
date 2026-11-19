@@ -1,21 +1,30 @@
 [
   {
     "addedAt": "2026-11-14T19:41:21.734Z",
+    "blockReason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion icz3vekf) → IP: 186.169.20.22\nRelay SOCKS5 local sin auth en puerto 35627 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'NIT' (ok: True), Doc: '901434090' (ok: True), Monto: '30153599' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nAPI RappiPay /payment-url devolvió status: REJECTED\nFirebase RappiPay rechazó la transacción -> Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.\nRechazo recibido vía WebSocket Firebase, saliendo de espera inmediatamente.\nLa pasarela RappiPay rechazó el link (Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.).\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: Link de pago PSE rechazado por RappiPay (Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.).\n",
+    "blockedAt": "2026-11-19T21:54:10.131Z",
     "id": "RPL_1794685281734",
     "linkCode": "v9eMyD",
-    "status": "ACTIVE",
+    "status": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD",
     "usesCount": 14
   },
   {
     "addedAt": "2026-11-19T20:34:52.338Z",
-    "blockReason": "Fallo en prueba manual: El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion n4dfyr02) → IP: 181.53.12.240\nRelay SOCKS5 local sin auth en puerto 33517 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/yM8z5E\nError: Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"https://linkdepagospse.rappipay.co/yM8z5E\", waiting until \"domcontentloaded\"\n\n",
-    "blockedAt": "2026-11-19T20:38:22.988Z",
     "id": "RPL_1795120492338_5KS7",
     "linkCode": "yM8z5E",
     "ownerId": "USR_1794693344824_YGPM",
-    "status": "BLOCKED",
+    "status": "ACTIVE",
     "url": "https://linkdepagospse.rappipay.co/yM8z5E",
     "usesCount": 0
+  },
+  {
+    "addedAt": "2026-11-19T21:39:09.945Z",
+    "id": "RPL_1795124349945",
+    "linkCode": "yM8z5E",
+    "ownerId": "USR_1794684071631_720H",
+    "status": "ACTIVE",
+    "url": "https://linkdepagospse.rappipay.co/yM8z5E",
+    "usesCount": 1
   }
 ]

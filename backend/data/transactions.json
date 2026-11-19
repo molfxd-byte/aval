@@ -1,6 +1,56 @@
 [
   {
     "banco": "BANCOLOMBIA",
+    "createdAt": "2026-11-19T21:53:33.698Z",
+    "doc": "901434090",
+    "gateway": "rappipay",
+    "id": "TX_1795125213698_PXT5",
+    "monto": 30153599,
+    "nombre": "SERVINDUSTRIALES",
+    "ownerId": "USR_MASTER_ADMIN",
+    "sessionId": "f87daa5e-0f65-4eca-9bb9-9d939dd44646",
+    "status": "PROCESSING"
+  },
+  {
+    "banco": "DAVIPLATA",
+    "createdAt": "2026-11-19T21:42:40.807Z",
+    "doc": "1002336555",
+    "errorMessage": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion bxppt9x1) → IP: 181.55.97.40\nRelay SOCKS5 local sin auth en puerto 33833 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'DAVIPLATA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '1002336555' (ok: True), Monto: '$ 10.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nAPI RappiPay /payment-url devolvió status: REJECTED\nFirebase RappiPay rechazó la transacción -> Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.\nRechazo recibido vía WebSocket Firebase, saliendo de espera inmediatamente.\nLa pasarela RappiPay rechazó el link (Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.).\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: Link de pago PSE rechazado por RappiPay (Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.).\n",
+    "gateway": "rappipay",
+    "id": "TX_1795124560807_DO50",
+    "monto": 10000,
+    "nombre": "raul",
+    "ownerId": "USR_MASTER_ADMIN",
+    "sessionId": "dcab8e1d-8a7d-4110-bf19-ec1ec1e6d786",
+    "status": "ERROR"
+  },
+  {
+    "banco": "NEQUI",
+    "createdAt": "2026-11-19T21:40:22.236Z",
+    "doc": "1000023124",
+    "gateway": "rappipay",
+    "id": "TX_1795124422236_DIPD",
+    "monto": 100000,
+    "nombre": "martina figueroa",
+    "ownerId": "USR_MASTER_ADMIN",
+    "sessionId": "dcab8e1d-8a7d-4110-bf19-ec1ec1e6d786",
+    "status": "PROCESSING"
+  },
+  {
+    "banco": "NEQUI",
+    "createdAt": "2026-11-19T21:38:35.989Z",
+    "doc": "1032456789",
+    "errorMessage": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion 25fvy35y) → IP: 181.132.197.101\nRelay SOCKS5 local sin auth en puerto 33005 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/yM8z5E\nError: Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"https://linkdepagospse.rappipay.co/yM8z5E\", waiting until \"domcontentloaded\"\n\n",
+    "gateway": "rappipay",
+    "id": "TX_1795124315989_LI2C",
+    "monto": 15000,
+    "nombre": "[PRUEBA] Carlos Rodriguez",
+    "ownerId": "USR_1794684071631_720H",
+    "sessionId": "test_1795124315988",
+    "status": "ERROR"
+  },
+  {
+    "banco": "BANCOLOMBIA",
     "createdAt": "2026-11-19T21:30:20.953Z",
     "doc": "1098647580",
     "errorMessage": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion 6b2xlhjb) → IP: 161.18.45.228\nRelay SOCKS5 local sin auth en puerto 34431 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '1098647580' (ok: True), Monto: '$ 323.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado' para esta transacción. El link permanece ACTIVO.\nError: ERROR_TRANSACCION_RECHAZADA: La pasarela RappiPay rechazó este intento de pago ('Link de pago PSE rechazado'). El link de pago sigue activo.\n",

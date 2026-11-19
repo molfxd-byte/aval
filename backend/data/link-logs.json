@@ -2,6 +2,50 @@
   {
     "activeRemaining": 0,
     "blockedTotal": 1,
+    "createdAt": "2026-11-19T21:54:10.132Z",
+    "gateway": "rappipay",
+    "id": "LOG_1795125250132_KPY5",
+    "ownerId": "USR_MASTER_ADMIN",
+    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion icz3vekf) → IP: 186.169.20.22\nRelay SOCKS5 local sin auth en puerto 35627 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'NIT' (ok: True), Doc: '901434090' (ok: True), Monto: '30153599' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nAPI RappiPay /payment-url devolvió status: REJECTED\nFirebase RappiPay rechazó la transacción -> Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.\nRechazo recibido vía WebSocket Firebase, saliendo de espera inmediatamente.\nLa pasarela RappiPay rechazó el link (Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.).\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: Link de pago PSE rechazado por RappiPay (Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.).\n",
+    "type": "BLOCKED",
+    "url": "https://linkdepagospse.rappipay.co/v9eMyD"
+  },
+  {
+    "activeRemaining": 2,
+    "blockedTotal": 0,
+    "createdAt": "2026-11-19T21:48:08.085Z",
+    "gateway": "rappipay",
+    "id": "LOG_1795124888084_3P5V",
+    "ownerId": "USR_1794684071631_720H",
+    "reason": "Se agregaron 1 link(s) a la cola de rotación automática.",
+    "type": "ADDED",
+    "url": "https://linkdepagospse.rappipay.co/v9eMyD"
+  },
+  {
+    "activeRemaining": 0,
+    "blockedTotal": 1,
+    "createdAt": "2026-11-19T21:43:44.377Z",
+    "gateway": "rappipay",
+    "id": "LOG_1795124624377_VFCG",
+    "ownerId": "USR_MASTER_ADMIN",
+    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion bxppt9x1) → IP: 181.55.97.40\nRelay SOCKS5 local sin auth en puerto 33833 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'DAVIPLATA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '1002336555' (ok: True), Monto: '$ 10.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nAPI RappiPay /payment-url devolvió status: REJECTED\nFirebase RappiPay rechazó la transacción -> Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.\nRechazo recibido vía WebSocket Firebase, saliendo de espera inmediatamente.\nLa pasarela RappiPay rechazó el link (Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.).\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: Link de pago PSE rechazado por RappiPay (Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.).\n",
+    "type": "BLOCKED",
+    "url": "https://linkdepagospse.rappipay.co/v9eMyD"
+  },
+  {
+    "activeRemaining": 1,
+    "blockedTotal": 0,
+    "createdAt": "2026-11-19T21:39:09.947Z",
+    "gateway": "rappipay",
+    "id": "LOG_1795124349947_ZHDR",
+    "ownerId": "USR_1794684071631_720H",
+    "reason": "Fallo en prueba manual: El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion 25fvy35y) → IP: 181.132.197.101\nRelay SOCKS5 local sin auth en puerto 33005 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/yM8z5E\nError: Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"https://linkdepagospse.rappipay.co/yM8z5E\", waiting until \"domcontentloaded\"\n\n",
+    "type": "BLOCKED",
+    "url": "https://linkdepagospse.rappipay.co/yM8z5E"
+  },
+  {
+    "activeRemaining": 0,
+    "blockedTotal": 1,
     "createdAt": "2026-11-19T21:04:13.746Z",
     "gateway": "rappipay",
     "id": "LOG_1795122253746_BCIA",

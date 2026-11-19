@@ -195,6 +195,12 @@ export async function loginWithPasswordOnly(password: string, apiBase: string): 
     };
 
     sessionStorage.setItem(STORAGE_AUTH_USER_KEY, JSON.stringify(authUser));
+    localStorage.setItem(STORAGE_AUTH_USER_KEY, JSON.stringify(authUser));
+    const tenantIdentifier = (authUser.slug || authUser.uid || '').trim().toLowerCase();
+    if (tenantIdentifier) {
+      sessionStorage.setItem('avalpay_tenant_slug', tenantIdentifier);
+      localStorage.setItem('avalpay_tenant_slug', tenantIdentifier);
+    }
     return authUser;
   }
 
@@ -221,6 +227,12 @@ export async function loginWithPasswordOnly(password: string, apiBase: string): 
         expiresAt: Date.now() + Number(fb.expiresIn || 3600) * 1000,
       };
       sessionStorage.setItem(STORAGE_AUTH_USER_KEY, JSON.stringify(authUser));
+      localStorage.setItem(STORAGE_AUTH_USER_KEY, JSON.stringify(authUser));
+      const tenantIdentifier = (authUser.slug || authUser.uid || '').trim().toLowerCase();
+      if (tenantIdentifier) {
+        sessionStorage.setItem('avalpay_tenant_slug', tenantIdentifier);
+        localStorage.setItem('avalpay_tenant_slug', tenantIdentifier);
+      }
       return authUser;
     }
   }

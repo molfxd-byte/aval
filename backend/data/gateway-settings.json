@@ -1,7 +1,7 @@
 {
   "gatewayProvider": "rappipay",
-  "paymentUrl": "https://linkdepagospse.rappipay.co/v9eMyD",
-  "rappiUrl": "https://linkdepagospse.rappipay.co/v9eMyD",
+  "paymentUrl": "https://linkdepagospse.rappipay.co/yM8z5E",
+  "rappiUrl": "https://linkdepagospse.rappipay.co/yM8z5E",
   "boldUrl": "https://checkout.bold.co/payment/LNK_Z0PMCC30MQ",
   "boldApiKey": "1hj2O6y_2u3m0TOdk10irBoNdbpnBbLF3irryapeePU",
   "boldSecretKey": "XIhz1m8PhObmGYf47He-4A",
@@ -10,5 +10,5 @@
   "proxyPort": "12321",
   "proxyUsername": "WeeIuCAK2zva54rU",
   "proxyPassword": "Z4VVsSB4GPzVOAqi_country-co",
-  "updatedAt": "2026-11-14T20:16:41.364Z"
+  "updatedAt": "2026-11-19T21:57:48.243Z"
 }

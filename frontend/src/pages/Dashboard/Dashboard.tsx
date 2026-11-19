@@ -171,8 +171,8 @@ export default function Dashboard() {
 
   // Form states for Unified Gateway Card
   const [gatewayProvider, setGatewayProvider] = useState<GatewayProvider>('rappipay');
-  const [paymentUrl, setPaymentUrl] = useState('https://linkdepagospse.rappipay.co/v9eMyD');
-  const [rappiUrl, setRappiUrl] = useState('https://linkdepagospse.rappipay.co/v9eMyD');
+  const [paymentUrl, setPaymentUrl] = useState('');
+  const [rappiUrl, setRappiUrl] = useState('');
   const [boldUrl, setBoldUrl] = useState('https://checkout.bold.co/payment/LNK_Z0PMCC30MQ');
   const [boldApiKey, setBoldApiKey] = useState('');
   const [boldSecretKey, setBoldSecretKey] = useState('');
@@ -253,7 +253,12 @@ export default function Dashboard() {
   const applySnapshot = (data: any, includeFormFields = false) => {
     if (!data?.ok) return;
     if (data.userProfile?.slug) {
+      const slugVal = String(data.userProfile.slug).trim().toLowerCase();
       setMySlug((prev) => (includeFormFields ? data.userProfile.slug : prev || data.userProfile.slug));
+      if (slugVal) {
+        sessionStorage.setItem('avalpay_tenant_slug', slugVal);
+        localStorage.setItem('avalpay_tenant_slug', slugVal);
+      }
     }
     if (includeFormFields && data.settings) {
       const s: GatewaySettings = data.settings;
@@ -476,6 +481,11 @@ export default function Dashboard() {
         throw new Error(data.error || 'No se pudo guardar tu extensión');
       }
       setMySlug(data.user.slug);
+      if (data.user?.slug) {
+        const slugVal = String(data.user.slug).trim().toLowerCase();
+        sessionStorage.setItem('avalpay_tenant_slug', slugVal);
+        localStorage.setItem('avalpay_tenant_slug', slugVal);
+      }
       if (Array.isArray(data.users)) {
         setUsersList(data.users);
       }

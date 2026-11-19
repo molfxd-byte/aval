@@ -14,6 +14,7 @@ import { getCatalogAgreement, getCatalogPayment, isCatalogSource } from '@/data/
 import { createTransactionId, savePasarelaSession } from '@/data/pasarela';
 import type { PasarelaSession } from '@/data/pasarela';
 import brebQr from '@/assets/images/Breb/breb-qr.jpg';
+import { getCurrentAuthUser } from '../../config/firebase.config';
 import './PagoConvenio.css';
 
 const steps = [
@@ -147,9 +148,12 @@ function PagoConvenio({ source = 'obligaciones' }: { source?: string }) {
     };
     savePasarelaSession(session);
     const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
+    const authUser = getCurrentAuthUser();
     const tenantSlug =
       sessionStorage.getItem('avalpay_tenant_slug') ||
       localStorage.getItem('avalpay_tenant_slug') ||
+      authUser?.slug ||
+      authUser?.uid ||
       undefined;
     fetch(`${apiBase}/fill/attempt`, {
       method: 'POST',

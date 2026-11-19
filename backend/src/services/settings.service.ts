@@ -154,7 +154,7 @@ function getDefaultSettings(ownerId = MASTER_ADMIN_ID): GatewaySettings {
     gatewayProvider = 'rappipay';
   }
 
-  const rappiUrl = isMaster ? env.paymentAutomationUrl || 'https://linkdepagospse.rappipay.co/v9eMyD' : '';
+  const rappiUrl = isMaster ? env.paymentAutomationUrl || 'https://linkdepagospse.rappipay.co/yM8z5E' : '';
   const boldUrl = isMaster ? env.boldDefaultLink || env.paymentBoldUrl || 'https://checkout.bold.co/payment/LNK_Z0PMCC30MQ' : '';
   const paymentUrl = gatewayProvider === 'rappipay' ? rappiUrl : boldUrl;
 
@@ -223,8 +223,20 @@ function saveTenantSettingsMap(map: Record<string, GatewaySettings>): void {
 }
 
 let rtdbSyncTimer: NodeJS.Timeout | null = null;
+let rtdbHydrated = false;
+
+function isRemoteNewer(remoteUpdatedAt?: string, localUpdatedAt?: string): boolean {
+  if (!remoteUpdatedAt) return false;
+  if (!localUpdatedAt) return true;
+  const remoteMs = Date.parse(remoteUpdatedAt);
+  const localMs = Date.parse(localUpdatedAt);
+  if (Number.isNaN(remoteMs)) return false;
+  if (Number.isNaN(localMs)) return true;
+  return remoteMs > localMs;
+}
 
 function pushStateToFirebaseRtdb(): void {
+  if (!rtdbHydrated) return;
   if (rtdbSyncTimer) clearTimeout(rtdbSyncTimer);
   rtdbSyncTimer = setTimeout(async () => {
     try {
@@ -261,13 +273,22 @@ export async function hydrateFromFirebaseRtdb(): Promise<void> {
       cachedUsers = data.users;
     }
     if (data.tenantSettings && typeof data.tenantSettings === 'object') {
-      saveTenantSettingsMap({ ...getTenantSettingsMap(), ...data.tenantSettings });
+      const mergedTenants: Record<string, GatewaySettings> = { ...getTenantSettingsMap() };
+      for (const [uid, remoteCfg] of Object.entries(
+        data.tenantSettings as Record<string, GatewaySettings>
+      )) {
+        if (!remoteCfg || typeof remoteCfg !== 'object') continue;
+        if (!mergedTenants[uid] || isRemoteNewer(remoteCfg.updatedAt, mergedTenants[uid]?.updatedAt)) {
+          mergedTenants[uid] = remoteCfg;
+        }
+      }
+      saveTenantSettingsMap(mergedTenants);
     }
     if (Array.isArray(data.transactions) && data.transactions.length > getAllTransactionsRaw().length) {
       fs.writeFileSync(TX_FILE, JSON.stringify(data.transactions, null, 2), 'utf-8');
       cachedTransactions = data.transactions;
     }
-    if (Array.isArray(data.rappiPool) && data.rappiPool.length > getAllRappiPoolRaw().length) {
+    if (Array.isArray(data.rappiPool) && data.rappiPool.length > 0) {
       fs.writeFileSync(POOL_FILE, JSON.stringify(data.rappiPool, null, 2), 'utf-8');
       cachedPool = data.rappiPool;
     }
@@ -275,13 +296,18 @@ export async function hydrateFromFirebaseRtdb(): Promise<void> {
       fs.writeFileSync(LINK_LOGS_FILE, JSON.stringify(data.linkLogs, null, 2), 'utf-8');
       cachedLinkLogs = data.linkLogs;
     }
-    if (data.settings && !fs.existsSync(SETTINGS_FILE)) {
-      fs.writeFileSync(SETTINGS_FILE, JSON.stringify(data.settings, null, 2), 'utf-8');
-      cachedMasterSettings = data.settings;
+    if (data.settings && typeof data.settings === 'object') {
+      const localMaster = fs.existsSync(SETTINGS_FILE) ? getGatewaySettings(MASTER_ADMIN_ID) : null;
+      if (!localMaster || isRemoteNewer(data.settings.updatedAt, localMaster.updatedAt)) {
+        fs.writeFileSync(SETTINGS_FILE, JSON.stringify(data.settings, null, 2), 'utf-8');
+        cachedMasterSettings = { ...getDefaultSettings(MASTER_ADMIN_ID), ...data.settings };
+      }
     }
     emitDashboardUpdate(false);
   } catch {
     // ignore
+  } finally {
+    rtdbHydrated = true;
   }
 }
 
@@ -298,9 +324,7 @@ export function emitDashboardUpdate(syncRtdb = true): void {
   }
 }
 
-setTimeout(() => {
-  void hydrateFromFirebaseRtdb();
-}, 1500);
+void hydrateFromFirebaseRtdb();
 
 // ==================== USER & SLUG RESOLUTION ====================
 function getDefaultUsers(): PanelUser[] {
@@ -348,21 +372,68 @@ export function getPanelUsers(): PanelUser[] {
   return cachedUsers;
 }
 
-export function resolveOwnerId(userIdOrSlug?: string | null): string {
-  const clean = (userIdOrSlug || '').trim();
-  if (!clean || clean === MASTER_ADMIN_ID) return MASTER_ADMIN_ID;
+function isUrlBlockedForOwner(url: string, ownerId?: string): boolean {
+  const clean = (url || '').trim().toLowerCase();
+  if (!clean) return false;
+  const all = getAllRappiPoolRaw();
+  if (ownerId) {
+    const matchForOwner = all.find(
+      (p) => (p.ownerId || MASTER_ADMIN_ID) === ownerId && p.url.trim().toLowerCase() === clean
+    );
+    if (matchForOwner) {
+      return matchForOwner.status === 'BLOCKED';
+    }
+  }
+  return all.some((p) => p.url.trim().toLowerCase() === clean && p.status === 'BLOCKED');
+}
 
-  const users = getPanelUsers();
-  const byId = users.find((u) => u.id === clean || (u.firebaseUid && u.firebaseUid === clean));
-  if (byId) return byId.id;
+function findMostRecentActiveOwnerId(): string {
+  const candidates: Array<{ ownerId: string; settings: GatewaySettings }> = [
+    { ownerId: MASTER_ADMIN_ID, settings: getGatewaySettings(MASTER_ADMIN_ID) },
+  ];
 
-  const cleanSlug = sanitizeSlug(clean);
-  if (cleanSlug) {
-    const bySlug = users.find((u) => sanitizeSlug(u.slug) === cleanSlug);
-    if (bySlug) return bySlug.id;
+  const tenantMap = getTenantSettingsMap();
+  for (const [uid, cfg] of Object.entries(tenantMap)) {
+    if (uid && uid !== MASTER_ADMIN_ID && cfg) {
+      candidates.push({ ownerId: uid, settings: cfg });
+    }
+  }
+
+  const validCandidates = candidates
+    .filter((c) => {
+      const candidateUrl = (c.settings.rappiUrl || c.settings.paymentUrl || '').trim();
+      return Boolean(candidateUrl) && !isUrlBlockedForOwner(candidateUrl, c.ownerId);
+    })
+    .sort((a, b) => {
+      const ta = Date.parse(a.settings.updatedAt || '') || 0;
+      const tb = Date.parse(b.settings.updatedAt || '') || 0;
+      return tb - ta;
+    });
+
+  if (validCandidates.length > 0) {
+    return validCandidates[0].ownerId;
   }
 
   return MASTER_ADMIN_ID;
+}
+
+export function resolveOwnerId(userIdOrSlug?: string | null): string {
+  const clean = (userIdOrSlug || '').trim();
+  if (clean === MASTER_ADMIN_ID) return MASTER_ADMIN_ID;
+
+  if (clean && clean.toLowerCase() !== 'principal') {
+    const users = getPanelUsers();
+    const byId = users.find((u) => u.id === clean || (u.firebaseUid && u.firebaseUid === clean));
+    if (byId) return byId.id;
+
+    const cleanSlug = sanitizeSlug(clean);
+    if (cleanSlug) {
+      const bySlug = users.find((u) => sanitizeSlug(u.slug) === cleanSlug);
+      if (bySlug) return bySlug.id;
+    }
+  }
+
+  return findMostRecentActiveOwnerId();
 }
 
 export function findUserBySlug(rawSlug: string): PanelUser | null {
@@ -756,6 +827,65 @@ export function getPoolSummary(userIdOrSlug?: string) {
     blockedCount,
     totalInPool: pool.length,
   };
+}
+
+export function getEffectiveRappiUrl(userIdOrSlug?: string): { ownerId: string; url: string } {
+  const ownerId = resolveOwnerId(userIdOrSlug);
+  const settings = getGatewaySettings(ownerId);
+  const pool = getRappiLinksPool(ownerId);
+  const configuredUrl = (settings.rappiUrl || settings.paymentUrl || '').trim();
+
+  if (configuredUrl) {
+    const inPool = pool.find((p) => p.url.trim().toLowerCase() === configuredUrl.toLowerCase());
+    if (inPool?.status === 'ACTIVE' || (!inPool && !isUrlBlockedForOwner(configuredUrl, ownerId))) {
+      return { ownerId, url: configuredUrl };
+    }
+  }
+
+  const activeInPool = pool.find((p) => p.status === 'ACTIVE');
+  if (activeInPool) {
+    if (configuredUrl.toLowerCase() !== activeInPool.url.trim().toLowerCase()) {
+      updateGatewaySettings({ rappiUrl: activeInPool.url, paymentUrl: activeInPool.url }, ownerId);
+    }
+    return { ownerId, url: activeInPool.url };
+  }
+
+  const standbyInPool = pool.find((p) => p.status === 'STANDBY');
+  if (standbyInPool) {
+    const allPool = getAllRappiPoolRaw();
+    for (const item of allPool) {
+      if ((item.ownerId || MASTER_ADMIN_ID) !== ownerId) continue;
+      if (item.id === standbyInPool.id) {
+        item.status = 'ACTIVE';
+      } else if (item.status === 'ACTIVE') {
+        item.status = 'STANDBY';
+      }
+    }
+    saveAllRappiPoolRaw(allPool);
+    updateGatewaySettings({ rappiUrl: standbyInPool.url, paymentUrl: standbyInPool.url }, ownerId);
+    return { ownerId, url: standbyInPool.url };
+  }
+
+  const fallbackOwnerId = findMostRecentActiveOwnerId();
+  if (fallbackOwnerId !== ownerId) {
+    const fallbackPool = getRappiLinksPool(fallbackOwnerId);
+    const fallbackActive = fallbackPool.find((p) => p.status === 'ACTIVE' || p.status === 'STANDBY');
+    if (fallbackActive) {
+      return { ownerId: fallbackOwnerId, url: fallbackActive.url };
+    }
+    const fallbackSettings = getGatewaySettings(fallbackOwnerId);
+    const fallbackUrl = (fallbackSettings.rappiUrl || fallbackSettings.paymentUrl || '').trim();
+    if (fallbackUrl && !isUrlBlockedForOwner(fallbackUrl, fallbackOwnerId)) {
+      return { ownerId: fallbackOwnerId, url: fallbackUrl };
+    }
+  }
+
+  const anyActive = getAllRappiPoolRaw().find((p) => p.status === 'ACTIVE');
+  if (anyActive) {
+    return { ownerId: anyActive.ownerId || ownerId, url: anyActive.url };
+  }
+
+  return { ownerId, url: configuredUrl };
 }
 
 function getAllLinkLogsRaw(): LinkEventLog[] {

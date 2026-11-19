@@ -5,13 +5,13 @@
     "boldSecretKey": "",
     "boldUrl": "",
     "gatewayProvider": "rappipay",
-    "paymentUrl": "",
+    "paymentUrl": "https://linkdepagospse.rappipay.co/yM8z5E",
     "proxyHost": "geo.iproyal.com",
     "proxyPassword": "Z4VVsSB4GPzVOAqi_country-co",
     "proxyPort": "12321",
     "proxyUsername": "WeeIuCAK2zva54rU",
-    "rappiUrl": "",
-    "updatedAt": "2026-11-14T20:48:24.091Z"
+    "rappiUrl": "https://linkdepagospse.rappipay.co/yM8z5E",
+    "updatedAt": "2026-11-19T21:48:08.083Z"
   },
   "USR_1794693344824_YGPM": {
     "boldApiKey": "",

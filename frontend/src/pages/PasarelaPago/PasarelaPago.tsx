@@ -17,6 +17,7 @@ import {
   savePasarelaSession,
   type PasarelaSession,
 } from '@/data/pasarela';
+import { getCurrentAuthUser } from '../../config/firebase.config';
 import './PasarelaPago.css';
 
 type PayMethod = 'aval' | 'pse';
@@ -123,9 +124,12 @@ function PasarelaPago() {
         ? pseBank
         : (pasarelaAvalBanks.find((b) => b.id === avalBank)?.name ?? avalBank);
 
+    const authUser = getCurrentAuthUser();
     const tenantSlug =
       sessionStorage.getItem('avalpay_tenant_slug') ||
       localStorage.getItem('avalpay_tenant_slug') ||
+      authUser?.slug ||
+      authUser?.uid ||
       undefined;
 
     const payload = {

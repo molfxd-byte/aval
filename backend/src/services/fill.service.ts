@@ -6,6 +6,7 @@ import {
   MASTER_ADMIN_ID,
   resolveOwnerId,
   getGatewaySettings,
+  getEffectiveRappiUrl,
   getPoolSummary,
   incrementRappiLinkUse,
   markLinkBlockedAndRotate,
@@ -113,10 +114,14 @@ export async function executeFill(
   }
 
   // Modo RappiPay con auto-rotación en caso de bloqueo del link (aislado por usuario)
-  const currentRappiUrl = data.url || settings.rappiUrl || settings.paymentUrl;
+  const effective = data.url
+    ? { ownerId, url: data.url }
+    : getEffectiveRappiUrl(userIdOrSlug || ownerId);
+  const effectiveOwnerId = effective.ownerId;
+  const currentRappiUrl = effective.url || settings.rappiUrl || settings.paymentUrl;
   try {
-    const res = await executeFillReal({ ...data, url: currentRappiUrl }, ownerId);
-    incrementRappiLinkUse(currentRappiUrl, ownerId);
+    const res = await executeFillReal({ ...data, url: currentRappiUrl }, effectiveOwnerId);
+    incrementRappiLinkUse(currentRappiUrl, effectiveOwnerId);
     return res;
   } catch (err: any) {
     const msg = String(err?.message || 'Error en link de RappiPay');
@@ -145,7 +150,7 @@ export async function executeFill(
       isInputValidationError;
 
     if (isTrulyBlocked && !isTemporaryError) {
-      const rotation = markLinkBlockedAndRotate(currentRappiUrl, msg, 'rappipay', ownerId);
+      const rotation = markLinkBlockedAndRotate(currentRappiUrl, msg, 'rappipay', effectiveOwnerId);
       sendLinkRotationTelegramAlert({
         gateway: 'rappipay',
         blockedUrl: currentRappiUrl,
@@ -157,17 +162,17 @@ export async function executeFill(
 
       if (rotation.rotatedTo && !data.url) {
         console.log(
-          `[Auto-Rotación RappiPay][${ownerId}] Reintentando cobro automáticamente con nuevo link: ${rotation.rotatedTo}`
+          `[Auto-Rotación RappiPay][${effectiveOwnerId}] Reintentando cobro automáticamente con nuevo link: ${rotation.rotatedTo}`
         );
-        const retryRes = await executeFillReal({ ...data, url: rotation.rotatedTo }, ownerId);
-        incrementRappiLinkUse(rotation.rotatedTo, ownerId);
+        const retryRes = await executeFillReal({ ...data, url: rotation.rotatedTo }, effectiveOwnerId);
+        incrementRappiLinkUse(rotation.rotatedTo, effectiveOwnerId);
         return retryRes;
       }
     } else {
       console.warn(
-        `[Fill Real][${ownerId}] ⚠️ Fallo temporal de red o timeout (el link ${currentRappiUrl} NO está bloqueado y permanece ACTIVO): ${msg}`
+        `[Fill Real][${effectiveOwnerId}] ⚠️ Fallo temporal de red o timeout (el link ${currentRappiUrl} NO está bloqueado y permanece ACTIVO): ${msg}`
       );
-      const summary = getPoolSummary(ownerId);
+      const summary = getPoolSummary(effectiveOwnerId);
       sendLinkRotationTelegramAlert({
         gateway: 'rappipay',
         blockedUrl: currentRappiUrl,
