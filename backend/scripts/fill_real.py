@@ -409,6 +409,29 @@ def fill(data):
 
         captured_pse_url = []
         captured_kushki_url = []
+        captured_firebase_error = []
+
+        def _inspect_firebase_node(node):
+            if not isinstance(node, dict):
+                return
+            params = node.get("params") if isinstance(node.get("params"), dict) else {}
+            data_node = node.get("data") if isinstance(node.get("data"), dict) else {}
+            link = params.get("link") or data_node.get("link") or node.get("link")
+            if isinstance(link, str) and "kushkipagos.com" in link and "token=" in link:
+                m = re.search(r'[?&]token=([^&#\s]+)', link)
+                if m and not m.group(1).startswith("eyJ"):
+                    if link not in captured_kushki_url:
+                        captured_kushki_url.append(link)
+                        _log(f"URL Kushki Token REAL obtenida directamente de Firebase: {link}")
+
+            err_code = params.get("error_code") or node.get("error_code")
+            err_msg = params.get("error_message") or node.get("error_message")
+            status_val = params.get("status") or node.get("status")
+            if err_code or err_msg:
+                detail = f"Código: {err_code or 'N/A'} | Mensaje: {err_msg or status_val or 'Rechazado'}"
+                if detail not in captured_firebase_error:
+                    captured_firebase_error.append(detail)
+                    _log(f"Firebase RappiPay rechazó la transacción -> {detail}")
 
         def _on_request(req):
             url = req.url
@@ -429,21 +452,17 @@ def fill(data):
 
         def _on_response(res):
             try:
+                if "/integration/pse/api/payment-url" in res.url:
+                    try:
+                        body = res.json()
+                        if isinstance(body, dict) and str(body.get("status", "")).upper() == "REJECTED":
+                            _log("API RappiPay /payment-url devolvió status: REJECTED")
+                    except Exception:
+                        pass
                 # Interceptar cuando Firebase Realtime Database devuelve el nodo con el link real de Kushki
                 if "firebaseio.com" in res.url and "cash_flow_cash_in_pse_link_transaction" in res.url:
                     body = res.json()
-                    if isinstance(body, dict):
-                        link = (
-                            body.get("params", {}).get("link") or
-                            body.get("data", {}).get("link") or
-                            body.get("link")
-                        )
-                        if link and "kushkipagos.com" in link and "token=" in link:
-                            m = re.search(r'[?&]token=([^&#\s]+)', link)
-                            if m and not m.group(1).startswith("eyJ"):
-                                if link not in captured_kushki_url:
-                                    captured_kushki_url.append(link)
-                                    _log(f"URL Kushki Token REAL obtenida directamente de Firebase: {link}")
+                    _inspect_firebase_node(body)
                 elif res.status >= 400 and ("rappipay" in res.url or "firebase" in res.url or "kushki" in res.url):
                     try:
                         err_text = res.text()[:250]
@@ -453,8 +472,28 @@ def fill(data):
             except Exception:
                 pass
 
+        def _on_websocket(ws):
+            if "firebaseio.com" not in ws.url:
+                return
+
+            def _on_frame_received(payload):
+                try:
+                    raw = payload.decode("utf-8", errors="replace") if isinstance(payload, (bytes, bytearray)) else str(payload)
+                    if "cash_flow_cash_in_pse_link_transaction" not in raw:
+                        return
+                    parsed = json.loads(raw)
+                    d_outer = parsed.get("d") if isinstance(parsed, dict) else None
+                    b_node = d_outer.get("b") if isinstance(d_outer, dict) else None
+                    data_payload = b_node.get("d") if isinstance(b_node, dict) else None
+                    _inspect_firebase_node(data_payload)
+                except Exception:
+                    pass
+
+            ws.on("framereceived", _on_frame_received)
+
         page.on("request", _on_request)
         page.on("response", _on_response)
+        page.on("websocket", _on_websocket)
 
         try:
             target_url = data.get("url") or os.environ.get("PAYMENT_AUTOMATION_URL", "").strip()
@@ -612,6 +651,9 @@ def fill(data):
                     url_destino = captured_kushki_url[0]
                     _log(f"URL Kushki interceptada (lista para el cliente): {url_destino}")
                     break
+                if captured_firebase_error:
+                    _log("Rechazo recibido vía WebSocket Firebase, saliendo de espera inmediatamente.")
+                    break
                 if captured_pse_url:
                     url_destino = captured_pse_url[0]
                     _log(f"Redirección PSE interceptada en tráfico de red: {url_destino}")
@@ -641,9 +683,10 @@ def fill(data):
             except Exception:
                 pass
 
-            if "Link de pago PSE rechazado" in texto_pantalla or "no podemos continuar con la transacción" in texto_pantalla:
-                _log("La pasarela RappiPay mostró: 'Link de pago PSE rechazado' para esta transacción. El link permanece ACTIVO.")
-                raise Exception("ERROR_TRANSACCION_RECHAZADA: La pasarela RappiPay rechazó este intento de pago ('Link de pago PSE rechazado'). El link de pago sigue activo.")
+            if "Link de pago PSE rechazado" in texto_pantalla or "no podemos continuar con la transacción" in texto_pantalla or captured_firebase_error:
+                fb_detail = captured_firebase_error[0] if captured_firebase_error else "Link de pago PSE rechazado en pantalla"
+                _log(f"La pasarela RappiPay rechazó el link ({fb_detail}).")
+                raise Exception(f"LINK_DEFINITIVAMENTE_BLOQUEADO: Link de pago PSE rechazado por RappiPay ({fb_detail}).")
 
             if "El link de pago con PSE expiró" in texto_pantalla or "este link ya no existe" in texto_pantalla.lower() or "link expirado" in texto_pantalla.lower():
                 _log("La pasarela RappiPay mostró: 'El link de pago con PSE expiró'.")
