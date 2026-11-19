@@ -1,10 +1,21 @@
 [
   {
+    "addedAt": "2026-11-14T19:41:21.734Z",
     "id": "RPL_1794685281734",
-    "url": "https://linkdepagospse.rappipay.co/v9eMyD",
     "linkCode": "v9eMyD",
     "status": "ACTIVE",
-    "usesCount": 1,
-    "addedAt": "2026-11-14T19:41:21.734Z"
+    "url": "https://linkdepagospse.rappipay.co/v9eMyD",
+    "usesCount": 14
+  },
+  {
+    "addedAt": "2026-11-19T20:34:52.338Z",
+    "blockReason": "Fallo en prueba manual: El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion n4dfyr02) → IP: 181.53.12.240\nRelay SOCKS5 local sin auth en puerto 33517 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/yM8z5E\nError: Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"https://linkdepagospse.rappipay.co/yM8z5E\", waiting until \"domcontentloaded\"\n\n",
+    "blockedAt": "2026-11-19T20:38:22.988Z",
+    "id": "RPL_1795120492338_5KS7",
+    "linkCode": "yM8z5E",
+    "ownerId": "USR_1794693344824_YGPM",
+    "status": "BLOCKED",
+    "url": "https://linkdepagospse.rappipay.co/yM8z5E",
+    "usesCount": 0
   }
 ]

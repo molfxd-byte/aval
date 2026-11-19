@@ -444,6 +444,12 @@ def fill(data):
                                 if link not in captured_kushki_url:
                                     captured_kushki_url.append(link)
                                     _log(f"URL Kushki Token REAL obtenida directamente de Firebase: {link}")
+                elif res.status >= 400 and ("rappipay" in res.url or "firebase" in res.url or "kushki" in res.url):
+                    try:
+                        err_text = res.text()[:250]
+                        _log(f"Aviso API Pasarela HTTP {res.status} en {res.url}: {err_text}")
+                    except Exception:
+                        pass
             except Exception:
                 pass
 
@@ -636,10 +642,10 @@ def fill(data):
                 pass
 
             if "Link de pago PSE rechazado" in texto_pantalla or "no podemos continuar con la transacción" in texto_pantalla:
-                _log("La pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.")
-                raise Exception("LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.")
+                _log("La pasarela RappiPay mostró: 'Link de pago PSE rechazado' para esta transacción. El link permanece ACTIVO.")
+                raise Exception("ERROR_TRANSACCION_RECHAZADA: La pasarela RappiPay rechazó este intento de pago ('Link de pago PSE rechazado'). El link de pago sigue activo.")
 
-            if "El link de pago con PSE expiró" in texto_pantalla or "expiró" in texto_pantalla.lower():
+            if "El link de pago con PSE expiró" in texto_pantalla or "este link ya no existe" in texto_pantalla.lower() or "link expirado" in texto_pantalla.lower():
                 _log("La pasarela RappiPay mostró: 'El link de pago con PSE expiró'.")
                 raise Exception("LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago con PSE expiró en RappiPay.")
 

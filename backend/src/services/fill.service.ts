@@ -121,15 +121,19 @@ export async function executeFill(
     const msg = String(err?.message || 'Error en link de RappiPay');
     const isInputValidationError = msg.includes('inferior al mínimo permitido');
 
-    // Criterio estricto de bloqueo: SOLO rotar si el link fue explícitamente rechazado o quemado por RappiPay
+    // Criterio estricto de bloqueo: El link SOLO se marca inactivo si fue expirado o eliminado por RappiPay
+    // NUNCA marcar bloqueado por 'Link de pago PSE rechazado' (rechazo puntual de transacción/antifraude), el link sigue activo.
     const isTrulyBlocked =
-      msg.includes('LINK_DEFINITIVAMENTE_BLOQUEADO') ||
-      msg.includes('Link de pago PSE rechazado') ||
-      msg.includes('El link de pago con PSE expiró') ||
-      msg.toLowerCase().includes('inhabilitado por la pasarela') ||
-      msg.includes('422');
+      (msg.includes('LINK_DEFINITIVAMENTE_BLOQUEADO') ||
+        msg.includes('El link de pago con PSE expiró') ||
+        msg.includes('404') ||
+        msg.includes('Página no encontrada')) &&
+      !msg.includes('Link de pago PSE rechazado') &&
+      !msg.includes('ERROR_TRANSACCION_RECHAZADA');
 
-    const isTemporaryError =
+    const isTemporaryOrTxError =
+      msg.includes('Link de pago PSE rechazado') ||
+      msg.includes('ERROR_TRANSACCION_RECHAZADA') ||
       msg.includes('ERROR_TEMPORAL_REINTENTABLE') ||
       msg.includes('No se generó redirección') ||
       msg.includes('No se detectó URL de redirección') ||
@@ -139,7 +143,7 @@ export async function executeFill(
       msg.includes('Connection failed') ||
       isInputValidationError;
 
-    if (isTrulyBlocked && !isTemporaryError) {
+    if (isTrulyBlocked && !isTemporaryOrTxError) {
       const rotation = markLinkBlockedAndRotate(currentRappiUrl, msg, 'rappipay', ownerId);
       sendLinkRotationTelegramAlert({
         gateway: 'rappipay',

@@ -703,6 +703,28 @@ function getAllRappiPoolRaw(): RappiLinkItem[] {
       const raw = fs.readFileSync(POOL_FILE, 'utf-8');
       const parsed = JSON.parse(raw) as RappiLinkItem[];
       if (Array.isArray(parsed)) {
+        // Auto-recuperar links falsamente marcados como bloqueados por rechazo puntual de transacción
+        let modified = false;
+        for (const item of parsed) {
+          if (
+            item.status === 'BLOCKED' &&
+            item.blockReason &&
+            (item.blockReason.includes('Link de pago PSE rechazado') ||
+              item.blockReason.includes('TRANSACCION_RECHAZADA'))
+          ) {
+            item.status = 'ACTIVE';
+            item.blockReason = undefined;
+            item.blockedAt = undefined;
+            modified = true;
+          }
+        }
+        if (modified) {
+          try {
+            fs.writeFileSync(POOL_FILE, JSON.stringify(parsed, null, 2), 'utf-8');
+          } catch {
+            // ignore
+          }
+        }
         cachedPool = parsed;
         return cachedPool;
       }
@@ -740,7 +762,24 @@ function saveAllRappiPoolRaw(pool: RappiLinkItem[]): void {
 export function getRappiLinksPool(userIdOrSlug?: string): RappiLinkItem[] {
   const ownerId = resolveOwnerId(userIdOrSlug);
   const all = getAllRappiPoolRaw();
-  return all.filter((p) => (p.ownerId || MASTER_ADMIN_ID) === ownerId);
+  const userPool = all.filter((p) => (p.ownerId || MASTER_ADMIN_ID) === ownerId);
+
+  // Auto-protección: Si todos los links del usuario quedaron en BLOCKED por rechazos temporales,
+  // reactivar automáticamente el link principal para que el portal nunca quede en 0 links activos.
+  const hasActiveOrStandby = userPool.some((p) => p.status === 'ACTIVE' || p.status === 'STANDBY');
+  if (!hasActiveOrStandby && userPool.length > 0) {
+    const candidate = userPool[userPool.length - 1];
+    candidate.status = 'ACTIVE';
+    candidate.blockReason = undefined;
+    candidate.blockedAt = undefined;
+    saveAllRappiPoolRaw(all);
+    const settings = getGatewaySettings(ownerId);
+    if (!settings.rappiUrl || settings.rappiUrl !== candidate.url) {
+      updateGatewaySettings({ rappiUrl: candidate.url, paymentUrl: candidate.url }, ownerId);
+    }
+  }
+
+  return userPool;
 }
 
 export function getPoolSummary(userIdOrSlug?: string) {
