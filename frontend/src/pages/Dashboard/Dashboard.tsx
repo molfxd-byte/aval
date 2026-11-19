@@ -134,6 +134,45 @@ function detectUrlClientSide(rawUrl: string): {
   return { detected: 'unknown', linkId: '', cleanUrl };
 }
 
+function formatShortBlockReason(raw?: string): string {
+  const clean = (raw || '').trim();
+  if (!clean) return 'Link bloqueado por la pasarela';
+
+  if (
+    clean.includes('Activado manualmente') ||
+    clean.includes('Se agregaron') ||
+    clean.includes('Prueba exitosa')
+  ) {
+    return clean;
+  }
+
+  const lower = clean.toLowerCase();
+  if (
+    clean.includes('006_0769_FRAUD_TRANSACTION_BAD') ||
+    clean.includes('Link de pago PSE rechazado') ||
+    clean.includes('LINK_DEFINITIVAMENTE_BLOQUEADO')
+  ) {
+    return 'Link bloqueado por RappiPay (Rechazado por la pasarela)';
+  }
+  if (lower.includes('expiró') || lower.includes('expired')) {
+    return 'Link bloqueado (Expirado en RappiPay)';
+  }
+  if (clean.includes('404') || clean.includes('Página no encontrada')) {
+    return 'Link bloqueado (No encontrado o eliminado)';
+  }
+  if (
+    lower.includes('timeout') ||
+    clean.includes('No se generó redirección') ||
+    clean.includes('No se detectó URL de redirección')
+  ) {
+    return 'Tiempo de espera agotado en la pasarela';
+  }
+  if (clean.length > 100) {
+    return 'Link bloqueado por la pasarela';
+  }
+  return clean;
+}
+
 export default function Dashboard() {
   // ==================== THEME, SIDEBAR & VIEW STATE ====================
   const [theme, setTheme] = useState<'editorial' | 'obsidian'>(() => {
@@ -1312,7 +1351,7 @@ export default function Dashboard() {
                               <div>{item.url}</div>
                               {item.blockReason && (
                                 <div style={{ color: 'var(--accent-bold)', fontSize: '0.73rem', marginTop: '4px' }}>
-                                  Motivo bloqueo: {item.blockReason}
+                                  Motivo bloqueo: {formatShortBlockReason(item.blockReason)}
                                 </div>
                               )}
                             </td>
@@ -1902,7 +1941,7 @@ export default function Dashboard() {
                   </div>
 
                   <p style={{ margin: '10px 0', fontSize: '0.92rem', fontWeight: 600 }}>
-                    {testResult.detail}
+                    {testResult.ok ? testResult.detail : formatShortBlockReason(testResult.detail)}
                   </p>
 
                   {testResult.rotatedTo && (
@@ -2062,7 +2101,7 @@ export default function Dashboard() {
                               '—'
                             )}
                           </td>
-                          <td style={{ fontSize: '0.82rem', maxWidth: '320px' }}>{log.reason}</td>
+                          <td style={{ fontSize: '0.82rem', maxWidth: '320px' }}>{formatShortBlockReason(log.reason)}</td>
                           <td style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.76rem' }}>
                             {log.activeRemaining} act / {log.blockedTotal} bloq
                           </td>

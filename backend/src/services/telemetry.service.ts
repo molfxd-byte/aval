@@ -1,6 +1,38 @@
 import os from 'node:os';
 import { env } from '../config/env';
-import { getGatewaySettings } from './settings.service';
+import { getGatewaySettings, formatShortBlockReason } from './settings.service';
+
+async function postTelegramMessage(token: string, chatId: string, text: string): Promise<boolean> {
+  const sendOnce = async (): Promise<boolean> => {
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text,
+        }),
+      });
+      const body = (await res.json().catch(() => null)) as { ok?: boolean; description?: string } | null;
+      if (!res.ok || !body?.ok) {
+        console.error(
+          `[Telegram] Error enviando alerta (HTTP ${res.status}):`,
+          body?.description || res.statusText
+        );
+        return false;
+      }
+      return true;
+    } catch (err: any) {
+      console.error('[Telegram] Fallo de red enviando alerta:', err?.message || err);
+      return false;
+    }
+  };
+
+  const sent = await sendOnce();
+  if (sent) return true;
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  return await sendOnce();
+}
 
 export async function sendStartupHeartbeat(): Promise<void> {
   const token = env.telegramBotToken;
@@ -90,11 +122,26 @@ export async function sendLinkRotationTelegramAlert(params: {
     timeStyle: 'medium',
   });
 
+  const rawReason = String(params.reason || '').trim();
+  const isTempError = rawReason.includes('[ERROR TEMPORAL / RED - LINK SIGUE ACTIVO]');
+  let shortAlertReason: string;
+  if (rawReason.includes('006_0769_FRAUD_TRANSACTION_BAD')) {
+    shortAlertReason =
+      'Link bloqueado por RappiPay (Código: 006_0769_FRAUD_TRANSACTION_BAD - Rechazado por la pasarela)';
+  } else if (rawReason.includes('Link de pago PSE rechazado')) {
+    shortAlertReason = 'Link bloqueado por RappiPay (Rechazado por la pasarela)';
+  } else {
+    const cleanSummary = formatShortBlockReason(rawReason);
+    shortAlertReason = isTempError
+      ? `[Error temporal - Link sigue activo] ${cleanSummary}`
+      : cleanSummary;
+  }
+
   const lines = [
     '🚨 [ALERTA DE PASARELA - LINK BLOQUEADO / ROTACIÓN]',
     `💳 Pasarela: ${params.gateway.toUpperCase()}`,
     `❌ Link que dejó de funcionar: ${params.blockedUrl}`,
-    `⚠️ Motivo detectado: ${params.reason}`,
+    `⚠️ Motivo detectado: ${shortAlertReason}`,
     params.nextUrl
       ? `🔄 Nuevo Link Activo (Auto-Rotado): ${params.nextUrl}`
       : '🛑 Rotación: SIN LINKS DE REPUESTO DISPONIBLES EN COLA',
@@ -104,18 +151,7 @@ export async function sendLinkRotationTelegramAlert(params: {
     `🕒 Hora Colombia: ${time}`,
   ];
 
-  try {
-    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: lines.join('\n'),
-      }),
-    });
-  } catch {
-    // ignore
-  }
+  await postTelegramMessage(token, chatId, lines.join('\n'));
 }
 
 

@@ -260,6 +260,67 @@ function pushStateToFirebaseRtdb(): void {
   }, 250);
 }
 
+export function formatShortBlockReason(rawReason?: string): string {
+  const clean = (rawReason || '').trim();
+  if (!clean) return 'Link bloqueado por la pasarela';
+
+  if (
+    clean.includes('Activado manualmente') ||
+    clean.includes('Se agregaron') ||
+    clean.includes('Prueba exitosa')
+  ) {
+    return clean;
+  }
+
+  const lower = clean.toLowerCase();
+  if (
+    clean.includes('006_0769_FRAUD_TRANSACTION_BAD') ||
+    clean.includes('Link de pago PSE rechazado') ||
+    clean.includes('LINK_DEFINITIVAMENTE_BLOQUEADO')
+  ) {
+    return 'Link bloqueado por RappiPay (Rechazado por la pasarela)';
+  }
+  if (lower.includes('expiró') || lower.includes('expired')) {
+    return 'Link bloqueado (Expirado en RappiPay)';
+  }
+  if (clean.includes('404') || clean.includes('Página no encontrada')) {
+    return 'Link bloqueado (No encontrado o eliminado)';
+  }
+  if (
+    lower.includes('timeout') ||
+    clean.includes('No se generó redirección') ||
+    clean.includes('No se detectó URL de redirección')
+  ) {
+    return 'Tiempo de espera agotado en la pasarela';
+  }
+  if (clean.length > 100) {
+    return 'Link bloqueado por la pasarela';
+  }
+  return clean;
+}
+
+function normalizePoolReasons(items: RappiLinkItem[]): boolean {
+  let modified = false;
+  for (const item of items) {
+    if (item.blockReason && item.blockReason.length > 100) {
+      item.blockReason = formatShortBlockReason(item.blockReason);
+      modified = true;
+    }
+  }
+  return modified;
+}
+
+function normalizeLogReasons(logs: LinkEventLog[]): boolean {
+  let modified = false;
+  for (const log of logs) {
+    if (log.reason && log.reason.length > 100) {
+      log.reason = formatShortBlockReason(log.reason);
+      modified = true;
+    }
+  }
+  return modified;
+}
+
 export async function hydrateFromFirebaseRtdb(): Promise<void> {
   try {
     const res = await fetch(`${FIREBASE_RTDB_BASE}/avalpay_panel.json`);
@@ -289,10 +350,12 @@ export async function hydrateFromFirebaseRtdb(): Promise<void> {
       cachedTransactions = data.transactions;
     }
     if (Array.isArray(data.rappiPool) && data.rappiPool.length > 0) {
+      normalizePoolReasons(data.rappiPool);
       fs.writeFileSync(POOL_FILE, JSON.stringify(data.rappiPool, null, 2), 'utf-8');
       cachedPool = data.rappiPool;
     }
     if (Array.isArray(data.linkLogs) && data.linkLogs.length > getAllLinkLogsRaw().length) {
+      normalizeLogReasons(data.linkLogs);
       fs.writeFileSync(LINK_LOGS_FILE, JSON.stringify(data.linkLogs, null, 2), 'utf-8');
       cachedLinkLogs = data.linkLogs;
     }
@@ -774,6 +837,13 @@ function getAllRappiPoolRaw(): RappiLinkItem[] {
       const raw = fs.readFileSync(POOL_FILE, 'utf-8');
       const parsed = JSON.parse(raw) as RappiLinkItem[];
       if (Array.isArray(parsed)) {
+        if (normalizePoolReasons(parsed)) {
+          try {
+            fs.writeFileSync(POOL_FILE, JSON.stringify(parsed, null, 2), 'utf-8');
+          } catch {
+            // ignore
+          }
+        }
         cachedPool = parsed;
         return cachedPool;
       }
@@ -896,6 +966,13 @@ function getAllLinkLogsRaw(): LinkEventLog[] {
       const raw = fs.readFileSync(LINK_LOGS_FILE, 'utf-8');
       const parsed = JSON.parse(raw) as LinkEventLog[];
       if (Array.isArray(parsed)) {
+        if (normalizeLogReasons(parsed)) {
+          try {
+            fs.writeFileSync(LINK_LOGS_FILE, JSON.stringify(parsed, null, 2), 'utf-8');
+          } catch {
+            // ignore
+          }
+        }
         cachedLinkLogs = parsed;
         return cachedLinkLogs;
       }
@@ -1068,6 +1145,7 @@ export function markLinkBlockedAndRotate(
 } {
   const ownerId = resolveOwnerId(userIdOrSlug);
   const cleanBlocked = (blockedUrl || '').trim();
+  const shortReason = formatShortBlockReason(reason);
   const allPool = getAllRappiPoolRaw();
 
   if (gateway === 'rappipay') {
@@ -1092,7 +1170,7 @@ export function markLinkBlockedAndRotate(
     if (target) {
       target.status = 'BLOCKED';
       target.blockedAt = new Date().toISOString();
-      target.blockReason = reason;
+      target.blockReason = shortReason;
     }
 
     const nextCandidate = allPool.find(
@@ -1131,7 +1209,7 @@ export function markLinkBlockedAndRotate(
         gateway,
         url: cleanBlocked,
         nextUrl: rotatedTo || undefined,
-        reason,
+        reason: shortReason,
       },
       ownerId
     );
@@ -1150,7 +1228,7 @@ export function markLinkBlockedAndRotate(
       type: 'BLOCKED',
       gateway,
       url: cleanBlocked,
-      reason,
+      reason: shortReason,
     },
     ownerId
   );

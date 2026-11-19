@@ -2,11 +2,22 @@
   {
     "activeRemaining": 0,
     "blockedTotal": 1,
+    "createdAt": "2026-11-19T22:08:12.803Z",
+    "gateway": "rappipay",
+    "id": "LOG_1795126092803_OZ6Y",
+    "ownerId": "USR_1794684071631_720H",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
+    "type": "BLOCKED",
+    "url": "https://linkdepagospse.rappipay.co/v9eMyD"
+  },
+  {
+    "activeRemaining": 0,
+    "blockedTotal": 1,
     "createdAt": "2026-11-19T21:54:10.132Z",
     "gateway": "rappipay",
     "id": "LOG_1795125250132_KPY5",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion icz3vekf) → IP: 186.169.20.22\nRelay SOCKS5 local sin auth en puerto 35627 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'NIT' (ok: True), Doc: '901434090' (ok: True), Monto: '30153599' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nAPI RappiPay /payment-url devolvió status: REJECTED\nFirebase RappiPay rechazó la transacción -> Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.\nRechazo recibido vía WebSocket Firebase, saliendo de espera inmediatamente.\nLa pasarela RappiPay rechazó el link (Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.).\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: Link de pago PSE rechazado por RappiPay (Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.).\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -28,7 +39,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795124624377_VFCG",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion bxppt9x1) → IP: 181.55.97.40\nRelay SOCKS5 local sin auth en puerto 33833 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'DAVIPLATA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '1002336555' (ok: True), Monto: '$ 10.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nAPI RappiPay /payment-url devolvió status: REJECTED\nFirebase RappiPay rechazó la transacción -> Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.\nRechazo recibido vía WebSocket Firebase, saliendo de espera inmediatamente.\nLa pasarela RappiPay rechazó el link (Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.).\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: Link de pago PSE rechazado por RappiPay (Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.).\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -39,7 +50,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795124349947_ZHDR",
     "ownerId": "USR_1794684071631_720H",
-    "reason": "Fallo en prueba manual: El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion 25fvy35y) → IP: 181.132.197.101\nRelay SOCKS5 local sin auth en puerto 33005 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/yM8z5E\nError: Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"https://linkdepagospse.rappipay.co/yM8z5E\", waiting until \"domcontentloaded\"\n\n",
+    "reason": "Tiempo de espera agotado en la pasarela",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/yM8z5E"
   },
@@ -50,7 +61,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795122253746_BCIA",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion j3lme4r0) → IP: 206.84.81.215\nRelay SOCKS5 local sin auth en puerto 33823 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'NIT' (ok: True), Doc: '901434090' (ok: True), Monto: '30153599' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -61,7 +72,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121979465_M429",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion ia225qzg) → IP: 179.51.114.243\nRelay SOCKS5 local sin auth en puerto 34645 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'NIT' (ok: True), Doc: '901434090' (ok: True), Monto: '30153599' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -72,7 +83,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121896616_I3BE",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion hrkmkw6k) → IP: 45.230.33.252\nRelay SOCKS5 local sin auth en puerto 33517 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'NIT' (ok: True), Doc: '901434090' (ok: True), Monto: '30153599' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -83,7 +94,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121764102_J07R",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion icwqmavn) → IP: 190.145.240.29\nRelay SOCKS5 local sin auth en puerto 33493 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'NIT' (ok: True), Doc: '901434090' (ok: True), Monto: '30153599' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -94,7 +105,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121665196_QEG6",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion nkf62l79) → IP: 191.95.150.83\nRelay SOCKS5 local sin auth en puerto 35537 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'NIT' (ok: True), Doc: '901434090' (ok: True), Monto: '30153599' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -105,7 +116,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121608401_Q0UJ",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion 18elx1vo) → IP: 190.24.20.34\nRelay SOCKS5 local sin auth en puerto 35641 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCO DAVIVIENDA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '37550520' (ok: True), Monto: '$ 820.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -116,7 +127,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121545742_6PRH",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion 07gx3p2u) → IP: 186.154.36.105\nRelay SOCKS5 local sin auth en puerto 34685 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCO DAVIVIENDA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '37550520' (ok: True), Monto: '$ 820.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -127,7 +138,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121497412_PB9G",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion uih2xf0e) → IP: 201.221.176.75\nRelay SOCKS5 local sin auth en puerto 34519 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCO DAVIVIENDA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '37550520' (ok: True), Monto: '$ 820.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -138,7 +149,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121395172_2BB0",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion 6ul40p3r) → IP: 186.121.101.70\nRelay SOCKS5 local sin auth en puerto 34413 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'NIT' (ok: True), Doc: '901434090' (ok: True), Monto: '30153599' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -149,7 +160,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121355734_9NWK",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion 46p1dfgz) → IP: 181.237.65.58\nRelay SOCKS5 local sin auth en puerto 34553 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCO FALABELLA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '93399777' (ok: True), Monto: '$ 190.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -160,7 +171,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121342642_ONWZ",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion ycxhpcyd) → IP: 181.63.25.37\nRelay SOCKS5 local sin auth en puerto 34249 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'NIT' (ok: True), Doc: '901434090' (ok: True), Monto: '30153599' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -171,7 +182,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121307333_CZ03",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion r5blrh3b) → IP: 179.1.241.2\nRelay SOCKS5 local sin auth en puerto 33047 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCO FALABELLA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '93399777' (ok: True), Monto: '$ 190.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -182,7 +193,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121257370_0MCR",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion 01rxye96) → IP: 170.78.40.2\nRelay SOCKS5 local sin auth en puerto 35631 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'NEQUI' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '88135759' (ok: True), Monto: '$ 75.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -193,7 +204,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121250190_QEBX",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion t9uk5ock) → IP: 186.116.141.67\nRelay SOCKS5 local sin auth en puerto 34067 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'NIT' (ok: True), Doc: '901434090' (ok: True), Monto: '30153599' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -204,7 +215,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121214024_P42N",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion bkorxb3m) → IP: 181.68.140.122\nRelay SOCKS5 local sin auth en puerto 35155 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '98642846' (ok: True), Monto: '$ 4.465.449' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -215,7 +226,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121188428_OPBQ",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion 9v9chkdf) → IP: 186.28.148.17\nRelay SOCKS5 local sin auth en puerto 33125 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCO FALABELLA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '93399777' (ok: True), Monto: '$ 190.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -226,7 +237,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121178177_MD4P",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion isqryhyf) → IP: 186.155.115.248\nRelay SOCKS5 local sin auth en puerto 35271 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'NEQUI' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '35195191' (ok: True), Monto: '$ 500.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -237,7 +248,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121162992_75J6",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion yjor7d96) → IP: 186.146.178.39\nRelay SOCKS5 local sin auth en puerto 34379 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '1098647580' (ok: True), Monto: '$ 323.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -248,7 +259,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121158803_3HU3",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion x6jiqwry) → IP: 179.1.143.34\nRelay SOCKS5 local sin auth en puerto 33187 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCO DAVIVIENDA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '9692379' (ok: True), Monto: '$ 381.600' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -259,7 +270,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121147304_XMJ5",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion 90gg6fde) → IP: 181.128.33.146\nRelay SOCKS5 local sin auth en puerto 33601 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '98642846' (ok: True), Monto: '$ 4.465.449' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -270,7 +281,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121104546_DB9B",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion jtn5btk7) → IP: 38.191.81.175\nRelay SOCKS5 local sin auth en puerto 33427 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCO FALABELLA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '93399777' (ok: True), Monto: '$ 190.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -281,7 +292,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121089270_LVCO",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion dgcujwl7) → IP: 186.30.167.45\nRelay SOCKS5 local sin auth en puerto 35317 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '1098647580' (ok: True), Monto: '$ 323.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -292,7 +303,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121082281_V8O3",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion ywfo1iwb) → IP: 191.88.162.125\nRelay SOCKS5 local sin auth en puerto 33787 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '98642846' (ok: True), Monto: '$ 4.465.449' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -303,7 +314,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121076653_F3U7",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion jrwdilmz) → IP: 200.118.80.253\nRelay SOCKS5 local sin auth en puerto 34737 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCO DAVIVIENDA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '9692379' (ok: True), Monto: '$ 381.600' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -314,7 +325,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121040870_4WKU",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Intento 1/3 con IP falló (SOCKSHTTPSConnectionPool(host='ipv4.icanhazip.com', port=443): Max retries exceeded with url: / (Caused by NewConnectionError(\"SOCKSHTTPSConnection(host='ipv4.icanhazip.com', port=443): Failed to establish a new connection: 0x04: Host unreachable\"))), rotando nodo...\nProxy SOCKS5 asignado exitosamente (intento 2, sesion ce7ztsny) → IP: 181.234.163.139\nRelay SOCKS5 local sin auth en puerto 34557 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '1016005691' (ok: True), Monto: '$ 140.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -325,7 +336,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121028029_E9FK",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion 25tffzzq) → IP: 186.81.59.62\nRelay SOCKS5 local sin auth en puerto 33213 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCO FALABELLA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '93399777' (ok: True), Monto: '$ 190.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -336,7 +347,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121023103_ISM8",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion h638kmhh) → IP: 181.78.4.250\nRelay SOCKS5 local sin auth en puerto 33497 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '98642846' (ok: True), Monto: '$ 4.465.449' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -347,7 +358,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121015815_E914",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion gayc6966) → IP: 45.229.73.2\nRelay SOCKS5 local sin auth en puerto 34913 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '1098647580' (ok: True), Monto: '$ 323.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -358,7 +369,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795121009976_M2AC",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion 9e54f6h8) → IP: 191.88.34.188\nRelay SOCKS5 local sin auth en puerto 35435 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCO DE OCCIDENTE' (ok: True), Tipo: 'NIT' (ok: True), Doc: '900594793' (ok: True), Monto: '$ 384.130' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -369,7 +380,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795120998897_1CYI",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion 0ot55k4w) → IP: 201.185.75.172\nRelay SOCKS5 local sin auth en puerto 34177 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '1016005691' (ok: True), Monto: '$ 140.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -380,7 +391,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795120995465_9FH9",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion u73j0f33) → IP: 179.1.238.181\nRelay SOCKS5 local sin auth en puerto 33935 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'NEQUI' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '35195191' (ok: True), Monto: '$ 500.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -391,7 +402,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795120970317_AZRC",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion skw1uxa7) → IP: 186.113.146.34\nRelay SOCKS5 local sin auth en puerto 33553 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'NEQUI' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '1002966885' (ok: True), Monto: '$ 1.088.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -402,7 +413,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795120959213_WABH",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion 3ily9cc8) → IP: 186.145.124.79\nRelay SOCKS5 local sin auth en puerto 35327 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCO FALABELLA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '93399777' (ok: True), Monto: '$ 190.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -413,7 +424,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795120947290_RQO8",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion oqv30vvl) → IP: 186.148.187.2\nRelay SOCKS5 local sin auth en puerto 35535 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCO DE OCCIDENTE' (ok: True), Tipo: 'NIT' (ok: True), Doc: '900594793' (ok: True), Monto: '$ 384.130' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -424,7 +435,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795120914578_1EYL",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion 5jtrackx) → IP: 190.121.136.172\nRelay SOCKS5 local sin auth en puerto 35257 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCO FALABELLA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '93399777' (ok: True), Monto: '$ 190.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -435,7 +446,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795120905100_UF3N",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion 9ypm67lw) → IP: 181.56.53.54\nRelay SOCKS5 local sin auth en puerto 32809 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'NEQUI' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '1002966885' (ok: True), Monto: '$ 1.088.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -446,7 +457,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795120904713_6NTJ",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion xljebswh) → IP: 190.253.84.237\nRelay SOCKS5 local sin auth en puerto 34451 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '1044505716' (ok: True), Monto: '$ 220.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -457,7 +468,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795120882878_B28P",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion 2nku7qxp) → IP: 186.85.186.33\nRelay SOCKS5 local sin auth en puerto 35393 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'NEQUI' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '64552145' (ok: True), Monto: '$ 375.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -468,7 +479,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795120848310_NSXK",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion ofx05lfb) → IP: 186.84.20.159\nRelay SOCKS5 local sin auth en puerto 33901 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '39675638' (ok: True), Monto: '$ 145.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -479,7 +490,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795120844113_2929",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion mfdpwish) → IP: 191.104.114.17\nRelay SOCKS5 local sin auth en puerto 33047 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '65823956' (ok: True), Monto: '$ 637.597' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -490,7 +501,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795120830691_HQHI",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion qd2z4icq) → IP: 190.27.178.5\nRelay SOCKS5 local sin auth en puerto 33521 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '1044505716' (ok: True), Monto: '$ 220.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -501,7 +512,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795120816167_ZR0E",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion 0k3t2y6a) → IP: 190.69.223.52\nRelay SOCKS5 local sin auth en puerto 34963 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'NU' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '1002966885' (ok: True), Monto: '$ 1.088.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -512,7 +523,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795120810968_21FG",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion j5a42b2v) → IP: 181.63.178.1\nRelay SOCKS5 local sin auth en puerto 35093 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'NEQUI' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '64552145' (ok: True), Monto: '$ 375.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -523,7 +534,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795120782649_WNU6",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Intento 1/3 con IP falló (SOCKSHTTPSConnectionPool(host='ipv4.icanhazip.com', port=443): Max retries exceeded with url: / (Caused by NewConnectionError(\"SOCKSHTTPSConnection(host='ipv4.icanhazip.com', port=443): Failed to establish a new connection: 0x04: Host unreachable\"))), rotando nodo...\nProxy SOCKS5 asignado exitosamente (intento 2, sesion vxxwqqvh) → IP: 190.145.240.135\nRelay SOCKS5 local sin auth en puerto 35643 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '1044505716' (ok: True), Monto: '$ 220.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -534,7 +545,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795120771864_I4D5",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion 6si8cz0e) → IP: 167.0.137.129\nRelay SOCKS5 local sin auth en puerto 34803 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '65823956' (ok: True), Monto: '$ 637.597' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -545,7 +556,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795120761090_SEWD",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion x11w1rbu) → IP: 181.135.121.209\nRelay SOCKS5 local sin auth en puerto 35239 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'NU' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '1002966885' (ok: True), Monto: '$ 1.088.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -556,7 +567,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795120702988_8L9R",
     "ownerId": "USR_1794693344824_YGPM",
-    "reason": "Fallo en prueba manual: El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion n4dfyr02) → IP: 181.53.12.240\nRelay SOCKS5 local sin auth en puerto 33517 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/yM8z5E\nError: Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"https://linkdepagospse.rappipay.co/yM8z5E\", waiting until \"domcontentloaded\"\n\n",
+    "reason": "Tiempo de espera agotado en la pasarela",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/yM8z5E"
   },
@@ -567,7 +578,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795120699811_RLOK",
     "ownerId": "USR_MASTER_ADMIN",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion fysbk1ii) → IP: 181.51.34.85\nRelay SOCKS5 local sin auth en puerto 33085 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCO DAVIVIENDA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '1061688165' (ok: True), Monto: '$ 91.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/v9eMyD"
   },
@@ -589,7 +600,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795120444223_48RK",
     "ownerId": "USR_1794693344824_YGPM",
-    "reason": "Fallo en prueba manual: El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion lyaad9al) → IP: 181.174.228.94\nRelay SOCKS5 local sin auth en puerto 34673 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/xoRVBZ\nValores ingresados -> Banco: 'NEQUI' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '1032456789' (ok: True), Monto: '$ 15.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/xoRVBZ"
   },
@@ -634,7 +645,7 @@
     "gateway": "rappipay",
     "id": "LOG_1795114235839_4AX2",
     "ownerId": "USR_1794693344824_YGPM",
-    "reason": "Fallo en prueba manual: El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion gdkbdx8s) → IP: 186.82.101.69\nRelay SOCKS5 local sin auth en puerto 34115 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/RavlBX\nValores ingresados -> Banco: 'NEQUI' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '1032456789' (ok: True), Monto: '$ 15.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nLa pasarela RappiPay mostró: 'Link de pago PSE rechazado'. Este link específico está inhabilitado/quemado por la pasarela.\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: El link de pago PSE fue rechazado por RappiPay ('Link de pago PSE rechazado'). Debe generarse un nuevo link.\n",
+    "reason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "type": "BLOCKED",
     "url": "https://linkdepagospse.rappipay.co/RavlBX"
   },
@@ -656,7 +667,7 @@
     "gateway": "rappipay",
     "id": "LOG_1794692373753_DM7K",
     "ownerId": "USR_1794684071631_720H",
-    "reason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion i8jbydz2) → IP: 38.236.224.209\nRelay SOCKS5 local sin auth en puerto 35537 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'DAVIPLATA' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '1002541136' (ok: True), Monto: '$ 20.000' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nNo se detectó ninguna redirección.\nURL capturada para el frontend: https://linkdepagospse.rappipay.co/v9eMyD\nError: No se generó redirección bancaria tras el envío; URL destino inválida: https://linkdepagospse.rappipay.co/v9eMyD\n",
+    "reason": "Tiempo de espera agotado en la pasarela",
     "type": "BLOCKED",
     "url": ""
   },

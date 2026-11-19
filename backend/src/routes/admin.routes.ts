@@ -573,7 +573,7 @@ router.post('/test-link', async (req: Request, res: Response) => {
       gatewayToTest,
       ownerId
     );
-    sendLinkRotationTelegramAlert({
+    await sendLinkRotationTelegramAlert({
       gateway: gatewayToTest,
       blockedUrl: targetUrl,
       nextUrl: rotation.rotatedTo,

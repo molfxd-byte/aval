@@ -1,11 +1,12 @@
 import { Request, Response } from 'express';
 import { executeFill } from '../services/fill.service';
-import { notifySessionPayment } from './track.controller';
+import { notifySessionPayment, notifySessionPaymentError } from './track.controller';
 import { startTrackingBoldPayment } from '../services/bold-tracker.service';
 import { startTrackingRappiPayment } from '../services/rappi-tracker.service';
 import {
   resolveOwnerId,
   getGatewaySettings,
+  formatShortBlockReason,
   recordTransaction,
   updateTransactionStatus,
 } from '../services/settings.service';
@@ -144,8 +145,17 @@ export async function postFill(req: Request, res: Response) {
     return res.json(result);
   } catch (err: any) {
     console.error('Error en /api/fill:', err);
+    const shortReason = formatShortBlockReason(err?.message);
     updateTransactionStatus(initialTx.id, 'ERROR', {
-      errorMessage: err.message || 'Error en pasarela',
+      errorMessage: shortReason,
+    });
+    notifySessionPaymentError(sid, {
+      nombre: String(nombre || 'No provisto').trim(),
+      monto: cleanMonto || '0',
+      cc: cleanDoc || 'Sin documento',
+      banco: String(banco || 'Pendiente').trim(),
+      gateway: settings.gatewayProvider,
+      reason: shortReason,
     });
     return res.status(500).json({
       error: err.message || 'Error al procesar la automatización de pago',

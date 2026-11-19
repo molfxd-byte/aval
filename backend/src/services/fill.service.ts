@@ -75,7 +75,7 @@ export async function executeFill(
         msg.includes('PL_000')
       ) {
         const rot = markLinkBlockedAndRotate(settings.boldUrl, msg, 'bold_api', ownerId);
-        sendLinkRotationTelegramAlert({
+        await sendLinkRotationTelegramAlert({
           gateway: 'bold_api',
           blockedUrl: settings.boldUrl,
           nextUrl: null,
@@ -100,7 +100,7 @@ export async function executeFill(
         msg.toLowerCase().includes('disabled')
       ) {
         const rot = markLinkBlockedAndRotate(usedUrl, msg, 'bold', ownerId);
-        sendLinkRotationTelegramAlert({
+        await sendLinkRotationTelegramAlert({
           gateway: 'bold',
           blockedUrl: usedUrl,
           nextUrl: null,
@@ -151,7 +151,7 @@ export async function executeFill(
 
     if (isTrulyBlocked && !isTemporaryError) {
       const rotation = markLinkBlockedAndRotate(currentRappiUrl, msg, 'rappipay', effectiveOwnerId);
-      sendLinkRotationTelegramAlert({
+      await sendLinkRotationTelegramAlert({
         gateway: 'rappipay',
         blockedUrl: currentRappiUrl,
         nextUrl: rotation.rotatedTo,
@@ -173,7 +173,7 @@ export async function executeFill(
         `[Fill Real][${effectiveOwnerId}] ⚠️ Fallo temporal de red o timeout (el link ${currentRappiUrl} NO está bloqueado y permanece ACTIVO): ${msg}`
       );
       const summary = getPoolSummary(effectiveOwnerId);
-      sendLinkRotationTelegramAlert({
+      await sendLinkRotationTelegramAlert({
         gateway: 'rappipay',
         blockedUrl: currentRappiUrl,
         nextUrl: `${currentRappiUrl} (LINK SIGUE ACTIVO - NO BLOQUEADO)`,

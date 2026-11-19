@@ -1,5 +1,44 @@
 [
   {
+    "banco": "BANCO POPULAR",
+    "createdAt": "2026-11-19T22:10:36.021Z",
+    "doc": "123132",
+    "gateway": "rappipay",
+    "id": "TX_1795126236021_UU7W",
+    "monto": 123132,
+    "nombre": "sebastian rodelo",
+    "ownerId": "USR_1794684071631_720H",
+    "redirectUrl": "https://api.kushkipagos.com/transfer/v1/agent?token=2fde63b450fc48a9ad1a87d7e2e9a63f&mid=20000000102117147000&rg=002",
+    "sessionId": "dcab8e1d-8a7d-4110-bf19-ec1ec1e6d786",
+    "status": "GENERATED"
+  },
+  {
+    "banco": "BANCO POPULAR",
+    "createdAt": "2026-11-19T22:07:09.699Z",
+    "doc": "123132",
+    "errorMessage": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion wxh57xpb) → IP: 181.237.74.108\nRelay SOCKS5 local sin auth en puerto 34675 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCO POPULAR' (ok: True), Tipo: 'Cédula de ciudadania' (ok: True), Doc: '123132' (ok: True), Monto: '$ 123.132' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nAPI RappiPay /payment-url devolvió status: REJECTED\nFirebase RappiPay rechazó la transacción -> Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.\nRechazo recibido vía WebSocket Firebase, saliendo de espera inmediatamente.\nLa pasarela RappiPay rechazó el link (Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.).\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: Link de pago PSE rechazado por RappiPay (Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.).\n",
+    "gateway": "rappipay",
+    "id": "TX_1795126029699_RETF",
+    "monto": 123132,
+    "nombre": "sebastian rodelo",
+    "ownerId": "USR_1794684071631_720H",
+    "sessionId": "dcab8e1d-8a7d-4110-bf19-ec1ec1e6d786",
+    "status": "ERROR"
+  },
+  {
+    "banco": "BANCOLOMBIA",
+    "createdAt": "2026-11-19T22:04:31.056Z",
+    "doc": "100214411",
+    "gateway": "rappipay",
+    "id": "TX_1795125871056_5PVO",
+    "monto": 10000,
+    "nombre": "sebastian rodelo",
+    "ownerId": "USR_MASTER_ADMIN",
+    "redirectUrl": "https://api.kushkipagos.com/transfer/v1/agent?token=b8eb4a16a7674f5b8ea9c57a542f2c68&mid=20000000102117147000&rg=001",
+    "sessionId": "dcab8e1d-8a7d-4110-bf19-ec1ec1e6d786",
+    "status": "GENERATED"
+  },
+  {
     "banco": "BANCOLOMBIA",
     "createdAt": "2026-11-19T21:53:33.698Z",
     "doc": "901434090",

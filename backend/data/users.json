@@ -6,8 +6,7 @@
     "lastLoginAt": "2026-11-14T21:54:42.103Z",
     "name": "Cuenta Admin Principal",
     "password": "admin2026",
-    "role": "admin",
-    "slug": "principal"
+    "role": "admin"
   },
   {
     "createdAt": "2026-11-14T18:31:52.838Z",
@@ -17,8 +16,7 @@
     "lastLoginAt": "2026-11-14T18:32:01.235Z",
     "name": "luisfe4r",
     "password": "luis123#",
-    "role": "user",
-    "slug": "luisfe4r"
+    "role": "user"
   },
   {
     "createdAt": "2026-11-14T19:21:11.631Z",

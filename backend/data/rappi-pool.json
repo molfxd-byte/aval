@@ -1,7 +1,7 @@
 [
   {
     "addedAt": "2026-11-14T19:41:21.734Z",
-    "blockReason": "El proceso de llenado falló (código 1): Proxy SOCKS5 asignado exitosamente (intento 1, sesion icz3vekf) → IP: 186.169.20.22\nRelay SOCKS5 local sin auth en puerto 35627 → geo.iproyal.com:12321\nNavegando a: https://linkdepagospse.rappipay.co/v9eMyD\nValores ingresados -> Banco: 'BANCOLOMBIA' (ok: True), Tipo: 'NIT' (ok: True), Doc: '901434090' (ok: True), Monto: '30153599' (ok: True)\nTransferir habilitado: True\nSe hizo clic en Transferir.\nAPI RappiPay /payment-url devolvió status: REJECTED\nFirebase RappiPay rechazó la transacción -> Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.\nRechazo recibido vía WebSocket Firebase, saliendo de espera inmediatamente.\nLa pasarela RappiPay rechazó el link (Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.).\nError: LINK_DEFINITIVAMENTE_BLOQUEADO: Link de pago PSE rechazado por RappiPay (Código: 006_0769_FRAUD_TRANSACTION_BAD | Mensaje: Estamos haciendo validaciones adicionales de tus datos y transacciones recientes. Para finalizar el proceso por favor contáctate con soporte.).\n",
+    "blockReason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
     "blockedAt": "2026-11-19T21:54:10.131Z",
     "id": "RPL_1794685281734",
     "linkCode": "v9eMyD",
@@ -19,8 +19,19 @@
     "usesCount": 0
   },
   {
-    "addedAt": "2026-11-19T21:39:09.945Z",
-    "id": "RPL_1795124349945",
+    "addedAt": "2026-11-19T22:06:35.574Z",
+    "blockReason": "Link bloqueado por RappiPay (Rechazado por la pasarela)",
+    "blockedAt": "2026-11-19T22:08:12.802Z",
+    "id": "RPL_1795125995574_BMD8",
+    "linkCode": "v9eMyD",
+    "ownerId": "USR_1794684071631_720H",
+    "status": "BLOCKED",
+    "url": "https://linkdepagospse.rappipay.co/v9eMyD",
+    "usesCount": 0
+  },
+  {
+    "addedAt": "2026-11-19T22:10:02.854Z",
+    "id": "RPL_1795126202854_XC0E",
     "linkCode": "yM8z5E",
     "ownerId": "USR_1794684071631_720H",
     "status": "ACTIVE",
