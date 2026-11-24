@@ -1034,11 +1034,23 @@ export function recordLinkEvent(
   return entry;
 }
 
-export function addRappiLinksToPool(rawUrls: string[], userIdOrSlug?: string): RappiLinkItem[] {
+export function addRappiLinksToPool(
+  rawUrls: string[],
+  userIdOrSlug?: string,
+  makeFirstActive = false
+): RappiLinkItem[] {
   const ownerId = resolveOwnerId(userIdOrSlug);
   const allPool = getAllRappiPoolRaw();
   const userPool = allPool.filter((p) => (p.ownerId || MASTER_ADMIN_ID) === ownerId);
-  let hasActive = userPool.some((p) => p.status === 'ACTIVE');
+  let hasActive = makeFirstActive ? false : userPool.some((p) => p.status === 'ACTIVE');
+
+  if (makeFirstActive && rawUrls.some((u) => (u || '').trim().length > 0)) {
+    for (const item of allPool) {
+      if ((item.ownerId || MASTER_ADMIN_ID) === ownerId && item.status === 'ACTIVE') {
+        item.status = 'STANDBY';
+      }
+    }
+  }
 
   for (const raw of rawUrls) {
     const clean = (raw || '').trim();
@@ -1048,7 +1060,12 @@ export function addRappiLinksToPool(rawUrls: string[], userIdOrSlug?: string): R
       (p) => (p.ownerId || MASTER_ADMIN_ID) === ownerId && p.url.toLowerCase() === clean.toLowerCase()
     );
     if (existing) {
-      if (existing.status === 'BLOCKED') {
+      if (makeFirstActive && !hasActive) {
+        existing.status = 'ACTIVE';
+        existing.blockedAt = undefined;
+        existing.blockReason = undefined;
+        hasActive = true;
+      } else if (existing.status === 'BLOCKED') {
         existing.status = hasActive ? 'STANDBY' : 'ACTIVE';
         existing.blockedAt = undefined;
         existing.blockReason = undefined;
@@ -1076,7 +1093,13 @@ export function addRappiLinksToPool(rawUrls: string[], userIdOrSlug?: string): R
   const updatedUserPool = getRappiLinksPool(ownerId);
   const activeNow = updatedUserPool.find((p) => p.status === 'ACTIVE');
   if (activeNow) {
-    updateGatewaySettings({ rappiUrl: activeNow.url, paymentUrl: activeNow.url }, ownerId);
+    const currentSettings = getGatewaySettings(ownerId);
+    if (
+      currentSettings.rappiUrl !== activeNow.url ||
+      (currentSettings.gatewayProvider === 'rappipay' && currentSettings.paymentUrl !== activeNow.url)
+    ) {
+      updateGatewaySettings({ rappiUrl: activeNow.url, paymentUrl: activeNow.url }, ownerId);
+    }
   }
 
   return updatedUserPool;

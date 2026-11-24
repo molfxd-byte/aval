@@ -295,6 +295,36 @@ export function executeFillReal(
 
     let stdoutData = '';
     let stderrData = '';
+    let settled = false;
+
+    const killTimer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      try {
+        proc.kill('SIGKILL');
+      } catch {
+        // ignore
+      }
+      reject(
+        new Error(
+          'ERROR_TEMPORAL_REINTENTABLE: Timeout excedido (55s) esperando respuesta de la pasarela RappiPay.'
+        )
+      );
+    }, 55000);
+
+    const finishResolve = (val: FillResponse) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(killTimer);
+      resolve(val);
+    };
+
+    const finishReject = (err: Error) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(killTimer);
+      reject(err);
+    };
 
     proc.stdout.on('data', (chunk) => {
       stdoutData += chunk.toString();
@@ -306,12 +336,13 @@ export function executeFillReal(
     });
 
     proc.on('error', (err) => {
-      reject(new Error(`No se pudo ejecutar el proceso de automatización de RappiPay: ${err.message}`));
+      finishReject(new Error(`No se pudo ejecutar el proceso de automatización de RappiPay: ${err.message}`));
     });
 
     proc.on('close', (code) => {
+      if (settled) return;
       if (code !== 0) {
-        return reject(
+        return finishReject(
           new Error(
             `El proceso de llenado falló (código ${code}): ${stderrData || stdoutData || 'Error desconocido'}`
           )
@@ -337,9 +368,9 @@ export function executeFillReal(
 
         const result = JSON.parse(jsonString) as FillResponse;
         result.gateway_used = 'rappipay';
-        resolve(result);
+        finishResolve(result);
       } catch (err: any) {
-        reject(new Error(`Respuesta inválida del script: ${err.message}. Salida: ${stdoutData}`));
+        finishReject(new Error(`Respuesta inválida del script: ${err.message}. Salida: ${stdoutData}`));
       }
     });
 

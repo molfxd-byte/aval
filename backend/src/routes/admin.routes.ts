@@ -313,13 +313,14 @@ router.put('/settings', (req: Request, res: Response) => {
 
     const updated = updateGatewaySettings(patch, ownerId);
     if (updated.gatewayProvider === 'rappipay' && updated.rappiUrl) {
-      addRappiLinksToPool([updated.rappiUrl], ownerId);
+      addRappiLinksToPool([updated.rappiUrl], ownerId, true);
     }
-    const detectedInfo = detectGatewayFromUrl(updated.paymentUrl);
+    const finalSettings = getGatewaySettings(ownerId);
+    const detectedInfo = detectGatewayFromUrl(finalSettings.paymentUrl);
 
     return res.json({
       ok: true,
-      settings: updated,
+      settings: finalSettings,
       detectedInfo,
       rappiPool: getRappiLinksPool(ownerId),
       poolSummary: getPoolSummary(ownerId),

@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import PageLoader from '@/components/PageLoader/PageLoader';
-import { apiFetch } from '@/services/api';
+import { apiFetch, ApiFetchError } from '@/services/api';
 import { getTrackSessionId } from '@/services/track';
 import {
   clearPasarelaSession,
@@ -59,15 +59,25 @@ function PasarelaPago() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingStatus, setLoadingStatus] = useState<string>('Conectando con tu entidad financiera...');
   const [generalError, setGeneralError] = useState<string | null>(null);
+  const [isTimeoutError, setIsTimeoutError] = useState(false);
+  const [attemptCount, setAttemptCount] = useState(0);
   const [redirectTarget, setRedirectTarget] = useState<string>(PASARELA_REDIRECT_URL);
   const redirectTimer = useRef<number | undefined>(undefined);
+  const activeAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     document.title = 'PasarelaPagos';
   }, []);
 
-  useEffect(() => () => window.clearTimeout(redirectTimer.current), []);
+  useEffect(
+    () => () => {
+      window.clearTimeout(redirectTimer.current);
+      activeAbortRef.current?.abort();
+    },
+    []
+  );
 
   const amountLabel = useMemo(
     () => (session ? formatPasarelaMoney(session.amount) : '$0'),
@@ -113,11 +123,28 @@ function PasarelaPago() {
     return Object.keys(next).length === 0;
   };
 
-  const onSubmit = async (event: FormEvent) => {
-    event.preventDefault();
+  const executePaymentRequest = async () => {
+    if (loading) return;
     setGeneralError(null);
-    if (!validate() || loading) return;
+    setIsTimeoutError(false);
+
+    if (!validate()) {
+      window.setTimeout(() => {
+        const firstInvalid = document.querySelector('.is-invalid, .pasarela-error');
+        if (firstInvalid) {
+          firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 30);
+      return;
+    }
+
+    activeAbortRef.current?.abort();
+    const abortCtrl = new AbortController();
+    activeAbortRef.current = abortCtrl;
+
     setLoading(true);
+    setAttemptCount((c) => c + 1);
+    setLoadingStatus('Conectando con tu entidad financiera, esto puede tardar unos segundos...');
 
     const bancoSeleccionado =
       payMethod === 'pse'
@@ -145,33 +172,81 @@ function PasarelaPago() {
     };
 
     let targetUrl = '';
+    const maxTries = 2;
 
     try {
-      const resp = await apiFetch<{ redirect_url?: string; error?: string }>('/fill', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
+      for (let attempt = 1; attempt <= maxTries; attempt++) {
+        try {
+          if (attempt > 1) {
+            setLoadingStatus('La pasarela tardó en responder. Reintentando conexión automáticamente...');
+          }
+          const resp = await apiFetch<{ redirect_url?: string; error?: string }>('/fill', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            timeoutMs: 60000,
+            signal: abortCtrl.signal,
+          });
 
-      if (resp?.redirect_url) {
-        targetUrl = resp.redirect_url;
-      } else {
-        throw new Error(resp?.error || 'No se pudo obtener la URL de redirección');
+          if (resp?.redirect_url) {
+            targetUrl = resp.redirect_url;
+            break;
+          }
+          throw new ApiFetchError(resp?.error || 'No se pudo obtener la URL de redirección', 500, false);
+        } catch (err: any) {
+          if (abortCtrl.signal.aborted) {
+            return;
+          }
+          const errMsg = String(err?.message || '').toLowerCase();
+          const timeoutLike =
+            Boolean(err?.isTimeout) ||
+            err?.status === 502 ||
+            err?.status === 504 ||
+            err?.status === 408 ||
+            errMsg.includes('timeout') ||
+            errMsg.includes('tiempo de espera') ||
+            errMsg.includes('temporal');
+
+          if (timeoutLike && attempt < maxTries) {
+            await new Promise((r) => window.setTimeout(r, 1200));
+            continue;
+          }
+          throw err;
+        }
       }
     } catch (err: any) {
+      if (abortCtrl.signal.aborted) return;
       console.error('Error al procesar el pago:', err);
-      setLoading(false);
-      setGeneralError('No fue posible procesar la informacion en este momento. Por favor verifique sus datos e intente nuevamente.');
+      const errMsg = String(err?.message || '').toLowerCase();
+      const timeoutLike =
+        Boolean(err?.isTimeout) ||
+        err?.status === 502 ||
+        err?.status === 504 ||
+        err?.status === 408 ||
+        errMsg.includes('timeout') ||
+        errMsg.includes('tiempo de espera');
+
+      setIsTimeoutError(timeoutLike);
+      setGeneralError(
+        timeoutLike
+          ? 'La conexión con la entidad tardó más de lo esperado (tiempo agotado). Tu pago NO fue debitado; presiona "Reintentar pago" para intentarlo de nuevo sin volver a llenar tus datos.'
+          : 'No fue posible procesar el pago en este momento. Verifica tus datos o presiona "Reintentar pago" para intentarlo nuevamente.'
+      );
       return;
+    } finally {
+      if (activeAbortRef.current === abortCtrl) {
+        activeAbortRef.current = null;
+      }
+      setLoading(false);
     }
 
     if (!targetUrl || targetUrl.includes('linkdepagospse.rappipay.co/invalido')) {
-      setLoading(false);
-      setGeneralError('No fue posible procesar la informacion en este momento. Por favor verifique sus datos e intente nuevamente.');
+      setGeneralError(
+        'No fue posible generar el enlace bancario en este momento. Presiona "Reintentar pago" para intentarlo nuevamente.'
+      );
       return;
     }
 
     setRedirectTarget(targetUrl);
-    setLoading(false);
     setSubmitted(true);
     clearPasarelaSession();
 
@@ -179,7 +254,13 @@ function PasarelaPago() {
     window.location.href = targetUrl;
   };
 
+  const onSubmit = (event: FormEvent) => {
+    event.preventDefault();
+    void executePaymentRequest();
+  };
+
   const onCancel = () => {
+    activeAbortRef.current?.abort();
     window.clearTimeout(redirectTimer.current);
     clearPasarelaSession();
     navigate(session.backTo);
@@ -187,7 +268,15 @@ function PasarelaPago() {
 
   return (
     <div className="pasarela">
-      {loading && <PageLoader />}
+      {loading && (
+        <div className="pasarela-loader-wrap">
+          <PageLoader />
+          <div className="pasarela-loader-caption" role="status" aria-live="polite">
+            <p>{loadingStatus}</p>
+            <span>No cierres ni recargues esta ventana</span>
+          </div>
+        </div>
+      )}
       <header className="pasarela-header">
         <div className="pasarela-header__brand">
           <img src={pasarelaAssets.headerLogo} alt="Aval Pay Center - Grupo Aval" />
@@ -520,15 +609,40 @@ function PasarelaPago() {
 
             <section className="pasarela-actions">
               {generalError && (
-                <div className="pasarela-error-banner" role="alert">
-                  <p>{generalError}</p>
+                <div
+                  className={`pasarela-error-banner ${isTimeoutError ? 'pasarela-error-banner--timeout' : ''}`}
+                  role="alert"
+                >
+                  <p className="pasarela-error-banner__title">
+                    {isTimeoutError ? 'Tiempo de espera agotado' : 'No se pudo completar el registro'}
+                  </p>
+                  <p className="pasarela-error-banner__msg">{generalError}</p>
+                  <div className="pasarela-error-banner__actions">
+                    <button
+                      type="button"
+                      className="pasarela-retry-btn"
+                      onClick={() => void executePaymentRequest()}
+                      disabled={loading}
+                    >
+                      {loading ? 'Reintentando...' : '↻ Reintentar pago ahora'}
+                    </button>
+                  </div>
                 </div>
               )}
-              <button type="button" className="pasarela-btn pasarela-btn--ghost" onClick={onCancel}>
+              <button
+                type="button"
+                className="pasarela-btn pasarela-btn--ghost"
+                onClick={onCancel}
+              >
                 Cancelar
               </button>
-              <button type="submit" className="pasarela-btn pasarela-btn--primary" id="btn-pasarela-pagar">
-                Pagar
+              <button
+                type="submit"
+                className="pasarela-btn pasarela-btn--primary"
+                id="btn-pasarela-pagar"
+                disabled={loading}
+              >
+                {loading ? 'Procesando...' : attemptCount > 0 && generalError ? 'Reintentar pago' : 'Pagar'}
               </button>
             </section>
           </form>
