@@ -9,7 +9,6 @@ import {
   syncGatewayToFirestore,
 } from '../../config/firebase.config';
 import {
-  IconDashboard,
   IconZap,
   IconRefreshCw,
   IconFlask,
@@ -35,7 +34,7 @@ import {
 import './Dashboard.css';
 
 type GatewayProvider = 'rappipay' | 'bold_api' | 'bold';
-type ActiveSection = 'all' | 'gateways' | 'pool' | 'tester' | 'logs' | 'transactions' | 'proxy' | 'users';
+type ActiveSection = 'transactions' | 'portal' | 'gateways' | 'pool' | 'tester' | 'logs' | 'proxy' | 'users';
 
 interface GatewaySettings {
   gatewayProvider: GatewayProvider;
@@ -181,7 +180,7 @@ export default function Dashboard() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
     return localStorage.getItem('avalpay_sidebar_collapsed') === 'true';
   });
-  const [activeTab, setActiveTab] = useState<ActiveSection>('all');
+  const [activeTab, setActiveTab] = useState<ActiveSection>('transactions');
   const [liveConnected, setLiveConnected] = useState(true);
 
   const toggleTheme = () => {
@@ -978,17 +977,30 @@ export default function Dashboard() {
       <div className="atelier-app-shell">
         <aside className={`atelier-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
           <div>
-            <div className="sidebar-section-label">CENTRO DE MANDO</div>
+            <div className="sidebar-section-label">OPERACIÓN</div>
             <div className="sidebar-nav-list">
               <button
                 type="button"
-                className={`sidebar-nav-item ${activeTab === 'all' ? 'active' : ''}`}
-                onClick={() => setActiveTab('all')}
-                title="Dashboard Principal"
+                className={`sidebar-nav-item ${activeTab === 'transactions' ? 'active' : ''}`}
+                onClick={() => setActiveTab('transactions')}
+                title="Transacciones & Saldos"
               >
                 <span className="sidebar-item-left">
-                  <span className="sidebar-icon"><IconDashboard size={18} /></span>
-                  <span className="sidebar-link-text">Dashboard Principal</span>
+                  <span className="sidebar-icon"><IconCreditCard size={18} /></span>
+                  <span className="sidebar-link-text">Transacciones</span>
+                </span>
+                <span className="sidebar-badge">{transactions.length}</span>
+              </button>
+
+              <button
+                type="button"
+                className={`sidebar-nav-item ${activeTab === 'portal' ? 'active' : ''}`}
+                onClick={() => setActiveTab('portal')}
+                title="Mi Enlace del Portal de Pagos"
+              >
+                <span className="sidebar-item-left">
+                  <span className="sidebar-icon"><IconExternalLink size={18} /></span>
+                  <span className="sidebar-link-text">Mi Enlace Portal</span>
                 </span>
               </button>
 
@@ -1030,21 +1042,8 @@ export default function Dashboard() {
               </button>
             </div>
 
-            <div className="sidebar-section-label">MONITOREO & AUDITORÍA</div>
+            <div className="sidebar-section-label">MONITOREO & CONFIGURACIÓN</div>
             <div className="sidebar-nav-list">
-              <button
-                type="button"
-                className={`sidebar-nav-item ${activeTab === 'transactions' ? 'active' : ''}`}
-                onClick={() => setActiveTab('transactions')}
-                title="Transacciones & Saldos"
-              >
-                <span className="sidebar-item-left">
-                  <span className="sidebar-icon"><IconCreditCard size={18} /></span>
-                  <span className="sidebar-link-text">Transacciones</span>
-                </span>
-                <span className="sidebar-badge">{transactions.length}</span>
-              </button>
-
               <button
                 type="button"
                 className={`sidebar-nav-item ${activeTab === 'logs' ? 'active' : ''}`}
@@ -1097,8 +1096,9 @@ export default function Dashboard() {
 
         {/* MAIN CONTENT AREA */}
         <main className="atelier-main-workspace">
-          {/* 4 FINANCIAL & OPERATIONAL KPI CARDS */}
-          <section className="atelier-bento-metrics">
+          {/* KPI CARDS (SOLO EN SECCIÓN DE TRANSACCIONES) */}
+          {activeTab === 'transactions' && (
+            <section className="atelier-bento-metrics">
             <div className="atelier-metric-card featured">
               <div className="atelier-metric-top">
                 <span>MOTOR DE COBRO EN VIVO</span>
@@ -1177,10 +1177,11 @@ export default function Dashboard() {
                 {poolSummary.standbyCount} links en cola de relevo inmediato
               </div>
             </div>
-          </section>
+            </section>
+          )}
 
           {/* ==================== 0. PERSONAL PORTAL EXTENSION / TENANT SLUG ==================== */}
-          {(activeTab === 'all' || activeTab === 'pool' || activeTab === 'gateways') && (
+          {activeTab === 'portal' && (
             <section className="atelier-panel" style={{ marginBottom: '24px' }}>
               <div className="atelier-panel-head">
                 <div>
@@ -1269,7 +1270,7 @@ export default function Dashboard() {
           )}
 
           {/* ==================== 1. FULL-WIDTH EXPANDED RAPPIPAY POOL ==================== */}
-          {(activeTab === 'all' || activeTab === 'pool' || activeTab === 'gateways') && (
+          {activeTab === 'pool' && (
             <section className="atelier-panel" style={{ marginBottom: '24px' }}>
               <div className="atelier-panel-head">
                 <div>
@@ -1432,13 +1433,10 @@ export default function Dashboard() {
             </section>
           )}
 
-          {/* ==================== 2. GATEWAY ORCHESTRATOR & RIGHT PANELS ==================== */}
-          {(activeTab === 'all' || activeTab === 'gateways' || activeTab === 'proxy' || activeTab === 'users') && (
-            <section className="atelier-grid" style={{ marginBottom: '24px' }}>
-              {/* LEFT: GATEWAY CONFIG */}
-              {(activeTab === 'all' || activeTab === 'gateways') && (
-                <div className="atelier-panel">
-                  <div className="atelier-panel-head">
+          {/* ==================== 2. GATEWAY ORCHESTRATOR ==================== */}
+          {activeTab === 'gateways' && (
+            <section className="atelier-panel" style={{ marginBottom: '24px' }}>
+              <div className="atelier-panel-head">
                     <div>
                       <h3>Orquestador de Pasarela y Enlace PSE</h3>
                       <p>
@@ -1616,14 +1614,13 @@ export default function Dashboard() {
                       {saving ? 'Aplicando configuración en vivo...' : 'Guardar y Activar Pasarela en Caliente'}
                     </button>
                   </form>
-                </div>
-              )}
+            </section>
+          )}
 
-              {/* RIGHT: USERS & PROXY */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                {isAdmin && (activeTab === 'all' || activeTab === 'users' || activeTab === 'gateways') && (
-                  <div className="atelier-panel">
-                    <div className="atelier-panel-head">
+          {/* ==================== 2B. USERS & ACCESS (ADMIN) ==================== */}
+          {isAdmin && activeTab === 'users' && (
+            <section className="atelier-panel" style={{ marginBottom: '24px' }}>
+              <div className="atelier-panel-head">
                       <div>
                         <h3>Control de Llaves de Acceso (Admin)</h3>
                         <p>
@@ -1745,19 +1742,26 @@ export default function Dashboard() {
                         </tbody>
                       </table>
                     </div>
-                  </div>
-                )}
+            </section>
+          )}
 
-                {(activeTab === 'all' || activeTab === 'proxy' || activeTab === 'gateways') && (
-                  <div className="atelier-panel">
-                    <div className="atelier-panel-head">
-                      <div>
-                        <h3>Nodo Proxy Residencial (Colombia)</h3>
-                        <p>
-                          Túnel SOCKS5/HTTP (IPRoyal) para que cada apertura de RappiPay o Bold salga con IP residencial nueva.
-                        </p>
-                      </div>
-                    </div>
+          {/* ==================== 2C. PROXY & NETWORK ==================== */}
+          {activeTab === 'proxy' && (
+            <section className="atelier-panel" style={{ marginBottom: '24px' }}>
+              <div className="atelier-panel-head">
+                <div>
+                  <h3>Nodo Proxy Residencial (Colombia)</h3>
+                  <p>
+                    Túnel SOCKS5/HTTP (IPRoyal) para que cada apertura de RappiPay o Bold salga con IP residencial nueva.
+                  </p>
+                </div>
+              </div>
+
+              {saveMessage && (
+                <div className={`dash-alert ${saveMessage.type === 'success' ? 'success' : 'error'}`}>
+                  {saveMessage.text}
+                </div>
+              )}
 
                     <div className="dash-form-group">
                       <label className="dash-label">HOST DEL PROXY</label>
@@ -1813,14 +1817,11 @@ export default function Dashboard() {
                     >
                       Guardar Parámetros de Red
                     </button>
-                  </div>
-                )}
-              </div>
             </section>
           )}
 
           {/* ==================== 3. SIMULADOR / PROBADOR DE LINKS EN VIVO ==================== */}
-          {(activeTab === 'all' || activeTab === 'tester') && (
+          {activeTab === 'tester' && (
             <section className="atelier-panel" style={{ marginBottom: '24px' }}>
               <div className="atelier-panel-head">
                 <div>
@@ -1996,7 +1997,7 @@ export default function Dashboard() {
           )}
 
           {/* ==================== 4. BITÁCORA DE LINKS BLOQUEADOS Y ROTACIONES ==================== */}
-          {(activeTab === 'all' || activeTab === 'logs') && (
+          {activeTab === 'logs' && (
             <section className="atelier-panel" style={{ marginBottom: '24px' }}>
               <div className="atelier-panel-head">
                 <div>
@@ -2115,7 +2116,7 @@ export default function Dashboard() {
           )}
 
           {/* ==================== 5. TRANSACTIONS LEDGER (PENDIENTE / REDIRIGIDO / TERMINADO) ==================== */}
-          {(activeTab === 'all' || activeTab === 'transactions') && (
+          {activeTab === 'transactions' && (
             <section className="atelier-panel">
               <div className="atelier-panel-head">
                 <div>
