@@ -77,9 +77,29 @@ export function getCurrentAuthUser(): FirebaseAuthUser | null {
   }
 }
 
+export function updateStoredAuthUserSlug(slug: string): FirebaseAuthUser | null {
+  const cleanSlug = (slug || '').trim().toLowerCase();
+  if (!cleanSlug) return getCurrentAuthUser();
+  sessionStorage.setItem('avalpay_tenant_slug', cleanSlug);
+  localStorage.setItem('avalpay_tenant_slug', cleanSlug);
+  try {
+    const current = getCurrentAuthUser();
+    if (!current) return null;
+    const updated: FirebaseAuthUser = { ...current, slug: cleanSlug };
+    const serialized = JSON.stringify(updated);
+    sessionStorage.setItem(STORAGE_AUTH_USER_KEY, serialized);
+    localStorage.setItem(STORAGE_AUTH_USER_KEY, serialized);
+    return updated;
+  } catch {
+    return null;
+  }
+}
+
 export function logoutFirebaseUser(): void {
   sessionStorage.removeItem(STORAGE_AUTH_USER_KEY);
   localStorage.removeItem(STORAGE_AUTH_USER_KEY);
+  sessionStorage.removeItem('avalpay_tenant_slug');
+  localStorage.removeItem('avalpay_tenant_slug');
 }
 
 /**

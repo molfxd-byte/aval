@@ -3,6 +3,7 @@ import {
   MASTER_ADMIN_ID,
   resolveOwnerId,
   updatePanelUserSlug,
+  persistUsersToFirebaseRtdbNow,
   getGatewaySettings,
   updateGatewaySettings,
   detectGatewayFromUrl,
@@ -75,11 +76,12 @@ router.post('/auth', (req: Request, res: Response) => {
   }
 });
 
-router.put('/my-slug', (req: Request, res: Response) => {
+router.put('/my-slug', async (req: Request, res: Response) => {
   try {
     const ownerId = extractUserId(req);
     const { slug } = req.body || {};
     const updatedUser = updatePanelUserSlug(ownerId, String(slug || ''));
+    await persistUsersToFirebaseRtdbNow();
     return res.json({
       ok: true,
       user: updatedUser,
@@ -452,10 +454,10 @@ router.post('/test-link', async (req: Request, res: Response) => {
     detected.detected === 'rappipay'
       ? 'rappipay'
       : detected.detected === 'bold'
-      ? settings.gatewayProvider === 'bold_api'
-        ? 'bold_api'
-        : 'bold'
-      : settings.gatewayProvider;
+        ? settings.gatewayProvider === 'bold_api'
+          ? 'bold_api'
+          : 'bold'
+        : settings.gatewayProvider;
 
   const testTx = recordTransaction(
     {
@@ -580,7 +582,7 @@ router.post('/test-link', async (req: Request, res: Response) => {
       reason: `Prueba desde Dashboard: ${reason}`,
       activeRemaining: rotation.activeRemaining,
       blockedTotal: rotation.blockedTotal,
-    }).catch(() => {});
+    }).catch(() => { });
 
     return res.json({
       ok: false,

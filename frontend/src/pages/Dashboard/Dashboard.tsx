@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import {
   FirebaseAuthUser,
   getCurrentAuthUser,
@@ -7,6 +7,7 @@ import {
   loginWithPasswordOnly,
   createUserByAdmin,
   syncGatewayToFirestore,
+  updateStoredAuthUserSlug,
 } from '../../config/firebase.config';
 import {
   IconZap,
@@ -275,7 +276,9 @@ export default function Dashboard() {
   const [creatingUser, setCreatingUser] = useState(false);
 
   // Custom Portal Extension (Slug) per User
-  const [mySlug, setMySlug] = useState<string>(() => authUser?.slug || 'principal');
+  const [savedSlug, setSavedSlug] = useState<string>(() => authUser?.slug || '');
+  const [mySlug, setMySlug] = useState<string>(() => authUser?.slug || '');
+  const lastServerSlugRef = useRef<string>(authUser?.slug || '');
   const [savingSlug, setSavingSlug] = useState(false);
   const [slugMessage, setSlugMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -291,12 +294,13 @@ export default function Dashboard() {
   const applySnapshot = (data: any, includeFormFields = false) => {
     if (!data?.ok) return;
     if (data.userProfile?.slug) {
-      const slugVal = String(data.userProfile.slug).trim().toLowerCase();
-      setMySlug((prev) => (includeFormFields ? data.userProfile.slug : prev || data.userProfile.slug));
-      if (slugVal) {
-        sessionStorage.setItem('avalpay_tenant_slug', slugVal);
-        localStorage.setItem('avalpay_tenant_slug', slugVal);
+      const serverSlug = String(data.userProfile.slug).trim().toLowerCase();
+      setSavedSlug(serverSlug);
+      if (includeFormFields || lastServerSlugRef.current !== serverSlug) {
+        setMySlug(serverSlug);
+        lastServerSlugRef.current = serverSlug;
       }
+      updateStoredAuthUserSlug(serverSlug);
     }
     if (includeFormFields && data.settings) {
       const s: GatewaySettings = data.settings;
@@ -518,11 +522,17 @@ export default function Dashboard() {
       if (!res.ok || !data.ok) {
         throw new Error(data.error || 'No se pudo guardar tu extensión');
       }
-      setMySlug(data.user.slug);
-      if (data.user?.slug) {
-        const slugVal = String(data.user.slug).trim().toLowerCase();
-        sessionStorage.setItem('avalpay_tenant_slug', slugVal);
-        localStorage.setItem('avalpay_tenant_slug', slugVal);
+      const nextSlug = String(data.user.slug || '').trim().toLowerCase();
+      setSavedSlug(nextSlug);
+      setMySlug(nextSlug);
+      lastServerSlugRef.current = nextSlug;
+      if (nextSlug) {
+        const updatedAuth = updateStoredAuthUserSlug(nextSlug);
+        if (updatedAuth) {
+          setAuthUser(updatedAuth);
+        } else {
+          setAuthUser((prev) => (prev ? { ...prev, slug: nextSlug } : prev));
+        }
       }
       if (Array.isArray(data.users)) {
         setUsersList(data.users);
@@ -697,6 +707,11 @@ export default function Dashboard() {
     setAuthLoading(true);
     try {
       const user = await loginWithPasswordOnly(password, apiBase);
+      const userSlug = (user.slug || '').trim().toLowerCase();
+      setSavedSlug(userSlug);
+      setMySlug(userSlug);
+      lastServerSlugRef.current = userSlug;
+      setSlugMessage(null);
       setAuthUser(user);
       setPassword('');
     } catch (err: any) {
@@ -950,13 +965,13 @@ export default function Dashboard() {
             </button>
 
             <a
-              href={mySlug ? `/${mySlug}` : '/'}
+              href={savedSlug ? `/${savedSlug}` : '/'}
               target="_blank"
               rel="noreferrer"
               className="atelier-icon-btn"
-              title={mySlug ? `Abrir tu portal: /${mySlug}` : 'Abrir Portal Público Principal'}
+              title={savedSlug ? `Abrir tu portal: /${savedSlug}` : 'Abrir Portal Público Principal'}
             >
-              Portal Público {mySlug ? `(/${mySlug})` : ''} <IconExternalLink size={14} />
+              Portal Público {savedSlug ? `(/${savedSlug})` : ''} <IconExternalLink size={14} />
             </a>
 
             <button
@@ -964,6 +979,10 @@ export default function Dashboard() {
               className="atelier-icon-btn"
               onClick={() => {
                 logoutFirebaseUser();
+                setSavedSlug('');
+                setMySlug('');
+                lastServerSlugRef.current = '';
+                setSlugMessage(null);
                 setAuthUser(null);
               }}
             >
@@ -1201,6 +1220,46 @@ export default function Dashboard() {
                 </div>
               )}
 
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '14px 18px',
+                  marginBottom: '14px',
+                  borderRadius: '16px',
+                  background: 'var(--surface-2)',
+                  border: '1px solid var(--border-soft)',
+                }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span className="dash-label" style={{ marginBottom: 0 }}>
+                    TU ENLACE ACTIVO DEL PORTAL
+                  </span>
+                  <a
+                    href={savedSlug ? `/${savedSlug}` : '/'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mono"
+                    style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--ink-1)', wordBreak: 'break-all' }}
+                  >
+                    {(typeof window !== 'undefined'
+                      ? window.location.origin
+                      : 'https://avalpaycenter.up.railway.app') + (savedSlug ? `/${savedSlug}` : '/')}
+                  </a>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'right' }}>
+                  <span className="dash-label" style={{ marginBottom: 0 }}>
+                    LINK DE COBRO ACTIVO CONECTADO
+                  </span>
+                  <span className="mono" style={{ fontSize: '0.82rem', color: 'var(--accent-emerald)', fontWeight: 700 }}>
+                    {poolSummary.activeUrl || paymentUrl || 'Sin link activo configurado'}
+                  </span>
+                </div>
+              </div>
+
               <form
                 onSubmit={handleSaveMySlug}
                 style={{
@@ -1254,7 +1313,7 @@ export default function Dashboard() {
                       typeof window !== 'undefined'
                         ? window.location.origin
                         : 'https://avalpaycenter.up.railway.app';
-                    const clean = mySlug.trim().replace(/^\/+/, '');
+                    const clean = (savedSlug || mySlug).trim().replace(/^\/+/, '');
                     const fullUrl = clean ? `${origin}/${clean}` : `${origin}/`;
                     navigator.clipboard.writeText(fullUrl);
                     setSlugMessage({

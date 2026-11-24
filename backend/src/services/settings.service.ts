@@ -81,6 +81,7 @@ export interface PanelUser {
   firebaseEmail?: string;
   createdAt: string;
   lastLoginAt?: string;
+  slugUpdatedAt?: string;
 }
 
 const RESERVED_SLUGS = new Set([
@@ -506,6 +507,21 @@ export function findUserBySlug(rawSlug: string): PanelUser | null {
   return users.find((u) => sanitizeSlug(u.slug) === clean) || null;
 }
 
+export async function persistUsersToFirebaseRtdbNow(): Promise<void> {
+  try {
+    await fetch(`${FIREBASE_RTDB_BASE}/avalpay_panel.json`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        users: getPanelUsers(),
+        updatedAt: new Date().toISOString(),
+      }),
+    });
+  } catch {
+    // ignore network error
+  }
+}
+
 export function updatePanelUserSlug(userId: string, rawSlug: string): PanelUser {
   const cleanSlug = sanitizeSlug(rawSlug);
   if (!cleanSlug || cleanSlug.length < 2) {
@@ -528,6 +544,7 @@ export function updatePanelUserSlug(userId: string, rawSlug: string): PanelUser 
   }
 
   target.slug = cleanSlug;
+  target.slugUpdatedAt = new Date().toISOString();
   ensureDataDir();
   fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf-8');
   cachedUsers = users;
