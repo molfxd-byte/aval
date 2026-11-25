@@ -21,6 +21,8 @@ import {
   activateRappiLinkInPool,
   removeRappiLinkFromPool,
   markLinkBlockedAndRotate,
+  recordRappiLinkFailure,
+  formatShortBlockReason,
   recordLinkEvent,
   incrementRappiLinkUse,
   recordTransaction,
@@ -566,33 +568,111 @@ router.post('/test-link', async (req: Request, res: Response) => {
   } catch (err: any) {
     const durationMs = Date.now() - startMs;
     const reason = err.message || 'El link no respondió o fue rechazado por la pasarela.';
+    const shortReason = formatShortBlockReason(reason);
     updateTransactionStatus(testTx.id, 'ERROR', {
-      errorMessage: reason,
+      errorMessage: shortReason,
     });
 
-    const rotation = markLinkBlockedAndRotate(
-      targetUrl,
-      `Fallo en prueba manual: ${reason}`,
-      gatewayToTest,
+    let shouldBlockLink = false;
+    let consecutiveFailures = 0;
+
+    if (gatewayToTest === 'rappipay') {
+      const isInputValidationError = reason.includes('inferior al mínimo permitido');
+      const isInstantPermanentBlock =
+        reason.includes('El link de pago con PSE expiró') ||
+        reason.includes('404') ||
+        reason.includes('Página no encontrada');
+
+      const isGatewayRejection =
+        reason.includes('LINK_DEFINITIVAMENTE_BLOQUEADO') ||
+        reason.includes('Link de pago PSE rechazado') ||
+        reason.includes('006_0769_FRAUD_TRANSACTION_BAD') ||
+        reason.toLowerCase().includes('inhabilitado por la pasarela') ||
+        reason.includes('422');
+
+      const isTemporaryError =
+        reason.includes('ERROR_TEMPORAL_REINTENTABLE') ||
+        reason.includes('No se generó redirección') ||
+        reason.includes('No se detectó URL de redirección') ||
+        reason.includes('timeout') ||
+        reason.includes('Timeout') ||
+        reason.includes('ERR_') ||
+        reason.includes('Connection failed') ||
+        isInputValidationError;
+
+      shouldBlockLink = isInstantPermanentBlock;
+      if (!shouldBlockLink && isGatewayRejection && !isTemporaryError) {
+        const failInfo = recordRappiLinkFailure(targetUrl, ownerId);
+        consecutiveFailures = failInfo.consecutiveFailures;
+        if (consecutiveFailures >= 3) {
+          shouldBlockLink = true;
+        }
+      }
+    } else {
+      const lower = reason.toLowerCase();
+      shouldBlockLink =
+        lower.includes('not active') ||
+        lower.includes('inhabilitado') ||
+        lower.includes('rechazado') ||
+        lower.includes('disabled') ||
+        reason.includes('PL_000');
+    }
+
+    if (shouldBlockLink) {
+      const rotation = markLinkBlockedAndRotate(
+        targetUrl,
+        `Fallo en prueba manual: ${shortReason}`,
+        gatewayToTest,
+        ownerId
+      );
+      await sendLinkRotationTelegramAlert({
+        gateway: gatewayToTest,
+        blockedUrl: targetUrl,
+        nextUrl: rotation.rotatedTo,
+        reason: `Prueba desde Dashboard: ${shortReason}`,
+        activeRemaining: rotation.activeRemaining,
+        blockedTotal: rotation.blockedTotal,
+      }).catch(() => { });
+
+      return res.json({
+        ok: false,
+        status: 'BLOCKED',
+        gatewayTested: gatewayToTest,
+        testedUrl: targetUrl,
+        rotatedTo: rotation.rotatedTo,
+        durationMs,
+        detail: shortReason,
+        rappiPool: getRappiLinksPool(ownerId),
+        poolSummary: getPoolSummary(ownerId),
+        linkLogs: getLinkLogs(ownerId).slice(0, 60),
+        transactions: getTransactions(ownerId).slice(0, 50),
+        settings: getGatewaySettings(ownerId),
+      });
+    }
+
+    const transientDetail =
+      consecutiveFailures > 0
+        ? `${shortReason} (intento ${consecutiveFailures}/3 — posible rechazo puntual de IP proxy; el link permanece ACTIVO)`
+        : `${shortReason} (fallo temporal de red/proxy — el link permanece ACTIVO)`;
+
+    recordLinkEvent(
+      {
+        type: 'TEST_FAIL',
+        gateway: gatewayToTest,
+        url: targetUrl,
+        reason: transientDetail,
+      },
       ownerId
     );
-    await sendLinkRotationTelegramAlert({
-      gateway: gatewayToTest,
-      blockedUrl: targetUrl,
-      nextUrl: rotation.rotatedTo,
-      reason: `Prueba desde Dashboard: ${reason}`,
-      activeRemaining: rotation.activeRemaining,
-      blockedTotal: rotation.blockedTotal,
-    }).catch(() => { });
 
     return res.json({
       ok: false,
-      status: 'BLOCKED',
+      status: 'ACTIVE',
       gatewayTested: gatewayToTest,
       testedUrl: targetUrl,
-      rotatedTo: rotation.rotatedTo,
+      rotatedTo: null,
       durationMs,
-      detail: reason,
+      detail: transientDetail,
       rappiPool: getRappiLinksPool(ownerId),
       poolSummary: getPoolSummary(ownerId),
       linkLogs: getLinkLogs(ownerId).slice(0, 60),

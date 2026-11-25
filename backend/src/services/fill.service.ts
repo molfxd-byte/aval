@@ -7,8 +7,8 @@ import {
   resolveOwnerId,
   getGatewaySettings,
   getEffectiveRappiUrl,
-  getPoolSummary,
   incrementRappiLinkUse,
+  recordRappiLinkFailure,
   markLinkBlockedAndRotate,
 } from './settings.service';
 import { sendLinkRotationTelegramAlert } from './telemetry.service';
@@ -127,17 +127,17 @@ export async function executeFill(
     const msg = String(err?.message || 'Error en link de RappiPay');
     const isInputValidationError = msg.includes('inferior al mínimo permitido');
 
-    // Criterio de bloqueo: si RappiPay rechaza el link, expira o arroja antifraude 006_0769_FRAUD_TRANSACTION_BAD,
-    // se marca bloqueado/rota en la cola y se envía la alerta con el log completo a Telegram.
-    const isTrulyBlocked =
+    const isInstantPermanentBlock =
+      msg.includes('El link de pago con PSE expiró') ||
+      msg.includes('404') ||
+      msg.includes('Página no encontrada');
+
+    const isGatewayRejection =
       msg.includes('LINK_DEFINITIVAMENTE_BLOQUEADO') ||
       msg.includes('Link de pago PSE rechazado') ||
       msg.includes('006_0769_FRAUD_TRANSACTION_BAD') ||
-      msg.includes('El link de pago con PSE expiró') ||
       msg.toLowerCase().includes('inhabilitado por la pasarela') ||
-      msg.includes('422') ||
-      msg.includes('404') ||
-      msg.includes('Página no encontrada');
+      msg.includes('422');
 
     const isTemporaryError =
       msg.includes('ERROR_TEMPORAL_REINTENTABLE') ||
@@ -149,7 +149,24 @@ export async function executeFill(
       msg.includes('Connection failed') ||
       isInputValidationError;
 
-    if (isTrulyBlocked && !isTemporaryError) {
+    let shouldBlockLink = isInstantPermanentBlock;
+    let consecutiveFailures = 0;
+
+    if (!shouldBlockLink && isGatewayRejection && !isTemporaryError) {
+      const failInfo = recordRappiLinkFailure(currentRappiUrl, effectiveOwnerId);
+      consecutiveFailures = failInfo.consecutiveFailures;
+      // Exigir 3 rechazos consecutivos con distintas IPs antes de marcar un link como BLOQUEADO,
+      // evitando bloquear links activos por un rechazo puntual de IP residencial o antifraude momentáneo.
+      if (consecutiveFailures >= 3) {
+        shouldBlockLink = true;
+      } else {
+        console.warn(
+          `[Fill Real][${effectiveOwnerId}] ⚠️ Rechazo puntual (${consecutiveFailures}/3) en ${currentRappiUrl} (posible IP proxy; el link permanece ACTIVO): ${msg}`
+        );
+      }
+    }
+
+    if (shouldBlockLink) {
       const rotation = markLinkBlockedAndRotate(currentRappiUrl, msg, 'rappipay', effectiveOwnerId);
       await sendLinkRotationTelegramAlert({
         gateway: 'rappipay',
@@ -168,19 +185,10 @@ export async function executeFill(
         incrementRappiLinkUse(rotation.rotatedTo, effectiveOwnerId);
         return retryRes;
       }
-    } else {
+    } else if (isTemporaryError || !isGatewayRejection) {
       console.warn(
         `[Fill Real][${effectiveOwnerId}] ⚠️ Fallo temporal de red o timeout (el link ${currentRappiUrl} NO está bloqueado y permanece ACTIVO): ${msg}`
       );
-      const summary = getPoolSummary(effectiveOwnerId);
-      await sendLinkRotationTelegramAlert({
-        gateway: 'rappipay',
-        blockedUrl: currentRappiUrl,
-        nextUrl: `${currentRappiUrl} (LINK SIGUE ACTIVO - NO BLOQUEADO)`,
-        reason: `[ERROR TEMPORAL / RED - LINK SIGUE ACTIVO] ${msg}`,
-        activeRemaining: summary.activeTotal,
-        blockedTotal: summary.blockedCount,
-      }).catch(() => {});
     }
     throw err;
   }

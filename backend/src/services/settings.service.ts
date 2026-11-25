@@ -53,6 +53,7 @@ export interface RappiLinkItem {
   linkCode: string;
   status: 'ACTIVE' | 'STANDBY' | 'BLOCKED';
   usesCount: number;
+  consecutiveFailures?: number;
   addedAt: string;
   blockedAt?: string;
   blockReason?: string;
@@ -1121,6 +1122,7 @@ export function activateRappiLinkInPool(idOrUrl: string, userIdOrSlug?: string):
       item.status = 'ACTIVE';
       item.blockedAt = undefined;
       item.blockReason = undefined;
+      item.consecutiveFailures = 0;
     } else if (item.status === 'ACTIVE') {
       item.status = 'STANDBY';
     }
@@ -1161,15 +1163,66 @@ export function removeRappiLinkFromPool(idOrUrl: string, userIdOrSlug?: string):
 export function incrementRappiLinkUse(url: string, userIdOrSlug?: string): void {
   const ownerId = resolveOwnerId(userIdOrSlug);
   const allPool = getAllRappiPoolRaw();
+  const clean = (url || '').trim().toLowerCase();
   const found = allPool.find(
-    (p) =>
-      (p.ownerId || MASTER_ADMIN_ID) === ownerId &&
-      p.url.toLowerCase() === (url || '').trim().toLowerCase()
+    (p) => (p.ownerId || MASTER_ADMIN_ID) === ownerId && p.url.toLowerCase() === clean
   );
   if (found) {
     found.usesCount = (found.usesCount || 0) + 1;
+    found.consecutiveFailures = 0;
+    let reactivatedAsActive = false;
+    if (found.status === 'BLOCKED') {
+      const hasOtherActive = allPool.some(
+        (p) => (p.ownerId || MASTER_ADMIN_ID) === ownerId && p.id !== found.id && p.status === 'ACTIVE'
+      );
+      found.status = hasOtherActive ? 'STANDBY' : 'ACTIVE';
+      found.blockedAt = undefined;
+      found.blockReason = undefined;
+      reactivatedAsActive = found.status === 'ACTIVE';
+    }
     saveAllRappiPoolRaw(allPool);
+    if (reactivatedAsActive) {
+      const currentSettings = getGatewaySettings(ownerId);
+      if (currentSettings.rappiUrl !== found.url) {
+        updateGatewaySettings({ rappiUrl: found.url, paymentUrl: found.url }, ownerId);
+      }
+    }
   }
+}
+
+export function recordRappiLinkFailure(
+  url: string,
+  userIdOrSlug?: string
+): { consecutiveFailures: number; item: RappiLinkItem | null } {
+  const ownerId = resolveOwnerId(userIdOrSlug);
+  const cleanUrl = (url || '').trim();
+  if (!cleanUrl) return { consecutiveFailures: 1, item: null };
+
+  const allPool = getAllRappiPoolRaw();
+  let found = allPool.find(
+    (p) => (p.ownerId || MASTER_ADMIN_ID) === ownerId && p.url.toLowerCase() === cleanUrl.toLowerCase()
+  );
+  if (!found) {
+    const info = detectGatewayFromUrl(cleanUrl);
+    const hasActive = allPool.some(
+      (p) => (p.ownerId || MASTER_ADMIN_ID) === ownerId && p.status === 'ACTIVE'
+    );
+    found = {
+      id: `RPL_${Date.now()}_${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+      ownerId,
+      url: cleanUrl,
+      linkCode: info.linkId || cleanUrl.split('/').pop() || 'rappi',
+      status: hasActive ? 'STANDBY' : 'ACTIVE',
+      usesCount: 0,
+      consecutiveFailures: 0,
+      addedAt: new Date().toISOString(),
+    };
+    allPool.push(found);
+  }
+
+  found.consecutiveFailures = (found.consecutiveFailures || 0) + 1;
+  saveAllRappiPoolRaw(allPool);
+  return { consecutiveFailures: found.consecutiveFailures, item: found };
 }
 
 export function markLinkBlockedAndRotate(
