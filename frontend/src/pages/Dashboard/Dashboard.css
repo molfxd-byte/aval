@@ -1217,6 +1217,126 @@
   }
 }
 
+.rappi-slots-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 1080px) {
+  .rappi-slots-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.rappi-tier-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rappi-tier-card.high-amount {
+  border-color: rgba(200, 125, 32, 0.42);
+  background: linear-gradient(180deg, rgba(200, 125, 32, 0.06) 0%, var(--surface-2) 100%);
+}
+
+.rappi-tier-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.rappi-tier-title {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--ink-1);
+}
+
+.rappi-tier-sub {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: var(--ink-3);
+  line-height: 1.45;
+}
+
+.rappi-slot-row {
+  background: var(--surface-1);
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rappi-slot-row.is-active {
+  border-color: rgba(22, 163, 74, 0.45);
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.09);
+}
+
+.rappi-slot-row.is-blocked {
+  border-color: rgba(225, 29, 72, 0.4);
+}
+
+.rappi-slot-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rappi-slot-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.74rem;
+  color: var(--ink-3);
+}
+
+.rappi-slot-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.rappi-slot-input-row .dash-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.rappi-threshold-box {
+  background: var(--surface-1);
+  border: 1px dashed rgba(200, 125, 32, 0.45);
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.rappi-slots-savebar {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-soft);
+}
+
 .tx-state-pills {
   display: inline-flex;
   gap: 5px;

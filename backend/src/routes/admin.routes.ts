@@ -15,6 +15,8 @@ import {
   updatePanelUserPassword,
   deletePanelUser,
   getRappiLinksPool,
+  getRappiPoolSlots,
+  saveRappiPoolSlots,
   getPoolSummary,
   getLinkLogs,
   addRappiLinksToPool,
@@ -180,6 +182,7 @@ function buildDashboardSnapshot(userId = MASTER_ADMIN_ID) {
     settings,
     detectedInfo,
     rappiPool: getRappiLinksPool(ownerId),
+    rappiSlots: getRappiPoolSlots(ownerId),
     poolSummary: getPoolSummary(ownerId),
     linkLogs: getLinkLogs(ownerId).slice(0, 60),
     stats: {
@@ -350,6 +353,47 @@ router.post('/verify-bold', async (req: Request, res: Response) => {
 });
 
 // ==================== RAPPIPAY POOL ENDPOINTS (ISOLATED PER USER) ====================
+router.put('/rappi-pool/slots', (req: Request, res: Response) => {
+  try {
+    const ownerId = extractUserId(req);
+    const { slots, highAmountThreshold } = req.body || {};
+    if (!Array.isArray(slots)) {
+      return res.status(400).json({ ok: false, error: 'Se esperaba el listado de los 5 slots de RappiPay.' });
+    }
+
+    const result = saveRappiPoolSlots(slots, highAmountThreshold, ownerId);
+    const activeUrl =
+      result.slots.find((s) => s.tier === 'standard' && s.item?.status === 'ACTIVE')?.url ||
+      result.slots.find((s) => s.url)?.url ||
+      '';
+    const stdCount = result.slots.filter((s) => s.tier === 'standard' && s.url).length;
+    const highCount = result.slots.filter((s) => s.tier === 'high_amount' && s.url).length;
+
+    recordLinkEvent(
+      {
+        type: 'ADDED',
+        gateway: 'rappipay',
+        url: activeUrl || '5-slots-rappi',
+        reason: `5 Slots guardados: ${stdCount}/3 Estándar (rotan cada 3) | ${highCount}/2 Montos Grandes ≥$${Number(
+          result.settings.rappiHighAmountThreshold || 1000000
+        ).toLocaleString('es-CO')} (rotan cada 1).`,
+      },
+      ownerId
+    );
+
+    return res.json({
+      ok: true,
+      rappiPool: result.pool,
+      rappiSlots: result.slots,
+      poolSummary: getPoolSummary(ownerId),
+      linkLogs: getLinkLogs(ownerId).slice(0, 60),
+      settings: result.settings,
+    });
+  } catch (err: any) {
+    return res.status(400).json({ ok: false, error: err.message || 'Error guardando los 5 links de RappiPay' });
+  }
+});
+
 router.post('/rappi-pool', (req: Request, res: Response) => {
   try {
     const ownerId = extractUserId(req);
@@ -379,6 +423,7 @@ router.post('/rappi-pool', (req: Request, res: Response) => {
     return res.json({
       ok: true,
       rappiPool: pool,
+      rappiSlots: getRappiPoolSlots(ownerId),
       poolSummary: getPoolSummary(ownerId),
       linkLogs: getLinkLogs(ownerId).slice(0, 60),
       settings: getGatewaySettings(ownerId),
@@ -407,6 +452,7 @@ router.post('/rappi-pool/activate', (req: Request, res: Response) => {
     return res.json({
       ok: true,
       rappiPool: pool,
+      rappiSlots: getRappiPoolSlots(ownerId),
       poolSummary: getPoolSummary(ownerId),
       linkLogs: getLinkLogs(ownerId).slice(0, 60),
       settings,
@@ -424,6 +470,7 @@ router.delete('/rappi-pool/:id', (req: Request, res: Response) => {
     return res.json({
       ok: true,
       rappiPool: pool,
+      rappiSlots: getRappiPoolSlots(ownerId),
       poolSummary: getPoolSummary(ownerId),
       settings: getGatewaySettings(ownerId),
     });
@@ -492,7 +539,7 @@ router.post('/test-link', async (req: Request, res: Response) => {
         },
         ownerId
       );
-      incrementRappiLinkUse(targetUrl, ownerId);
+      incrementRappiLinkUse(targetUrl, ownerId, false);
     } else if (gatewayToTest === 'bold') {
       result = await executeFillBold(
         {

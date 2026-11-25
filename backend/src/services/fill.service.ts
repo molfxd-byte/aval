@@ -115,16 +115,23 @@ export async function executeFill(
     }
   }
 
-  // Modo RappiPay con auto-rotación en caso de bloqueo del link (aislado por usuario)
+  // Modo RappiPay con auto-rotación por uso (Estándar: 3 usos, Montos Grandes ≥$1M: 1 uso) y por bloqueo
   const effective = data.url
-    ? { ownerId, url: data.url }
-    : getEffectiveRappiUrl(userIdOrSlug || ownerId);
+    ? { ownerId, url: data.url, tier: 'standard' as const, slot: undefined }
+    : getEffectiveRappiUrl(userIdOrSlug || ownerId, data.monto);
   const effectiveOwnerId = effective.ownerId;
   const currentRappiUrl = effective.url || settings.rappiUrl || settings.paymentUrl;
+  console.log(
+    `[Fill Real][${effectiveOwnerId}] Seleccionado link RappiPay -> Monto: $${Number(
+      String(data.monto || '0').replace(/[^\d]/g, '') || 0
+    ).toLocaleString('es-CO')} | Grupo: ${
+      effective.tier === 'high_amount' ? 'MONTOS GRANDES (aislado)' : 'ESTÁNDAR'
+    }${effective.slot ? ` (Slot ${effective.slot})` : ''} | URL: ${currentRappiUrl}`
+  );
   try {
     const res = await executeFillReal({ ...data, url: currentRappiUrl }, effectiveOwnerId);
     res.source_url = currentRappiUrl;
-    incrementRappiLinkUse(currentRappiUrl, effectiveOwnerId);
+    incrementRappiLinkUse(currentRappiUrl, effectiveOwnerId, true);
     return res;
   } catch (err: any) {
     const msg = String(err?.message || 'Error en link de RappiPay');

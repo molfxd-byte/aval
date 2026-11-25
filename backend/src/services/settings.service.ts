@@ -10,6 +10,7 @@ export interface GatewaySettings {
   gatewayProvider: GatewayProvider;
   paymentUrl: string;
   rappiUrl: string;
+  rappiHighAmountThreshold?: number;
   boldUrl: string;
   boldApiKey: string;
   boldSecretKey: string;
@@ -47,19 +48,28 @@ const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const POOL_FILE = path.join(DATA_DIR, 'rappi-pool.json');
 const LINK_LOGS_FILE = path.join(DATA_DIR, 'link-logs.json');
 
+export type RappiLinkTier = 'standard' | 'high_amount';
+
 export interface RappiLinkItem {
   id: string;
   ownerId?: string;
+  slot?: 1 | 2 | 3 | 4 | 5;
+  tier?: RappiLinkTier;
   url: string;
   linkCode: string;
   status: 'ACTIVE' | 'STANDBY' | 'BLOCKED';
   usesCount: number;
+  rotationUsesCount?: number;
   consecutiveFailures?: number;
   consecutivePseRejections?: number;
   addedAt: string;
   blockedAt?: string;
   blockReason?: string;
 }
+
+export const DEFAULT_HIGH_AMOUNT_THRESHOLD = 1000000;
+export const STANDARD_ROTATE_EVERY = 3;
+export const HIGH_AMOUNT_ROTATE_EVERY = 1;
 
 export interface LinkEventLog {
   id: string;
@@ -166,6 +176,7 @@ function getDefaultSettings(ownerId = MASTER_ADMIN_ID): GatewaySettings {
     gatewayProvider,
     paymentUrl,
     rappiUrl,
+    rappiHighAmountThreshold: DEFAULT_HIGH_AMOUNT_THRESHOLD,
     boldUrl,
     boldApiKey: isMaster ? env.boldApiKey || '1hj2O6y_2u3m0TOdk10irBoNdbpnBbLF3irryapeePU' : '',
     boldSecretKey: isMaster ? env.boldSecretKey || 'XIhz1m8PhObmGYf47He-4A' : '',
@@ -909,84 +920,305 @@ function saveAllRappiPoolRaw(pool: RappiLinkItem[]): void {
   emitDashboardUpdate();
 }
 
+function getLinkTier(item?: Pick<RappiLinkItem, 'tier' | 'slot'> | null): RappiLinkTier {
+  if (item?.tier === 'high_amount' || item?.slot === 4 || item?.slot === 5) {
+    return 'high_amount';
+  }
+  return 'standard';
+}
+
+function getTierRotateEvery(tier: RappiLinkTier): number {
+  return tier === 'high_amount' ? HIGH_AMOUNT_ROTATE_EVERY : STANDARD_ROTATE_EVERY;
+}
+
+export function getRappiHighAmountThreshold(userIdOrSlug?: string): number {
+  const settings = getGatewaySettings(userIdOrSlug);
+  const val = Number(settings.rappiHighAmountThreshold);
+  return Number.isFinite(val) && val >= 10000 ? Math.round(val) : DEFAULT_HIGH_AMOUNT_THRESHOLD;
+}
+
 export function getRappiLinksPool(userIdOrSlug?: string): RappiLinkItem[] {
   const ownerId = resolveOwnerId(userIdOrSlug);
   const all = getAllRappiPoolRaw();
-  return all.filter((p) => (p.ownerId || MASTER_ADMIN_ID) === ownerId);
+  const userItems = all.filter((p) => (p.ownerId || MASTER_ADMIN_ID) === ownerId);
+
+  // Normalizar slots para links heredados sin número de slot asignado
+  const usedSlots = new Set<number>(userItems.map((p) => p.slot).filter((s): s is 1 | 2 | 3 | 4 | 5 => Boolean(s)));
+  for (const item of userItems) {
+    const tier = getLinkTier(item);
+    item.tier = tier;
+    if (!item.slot) {
+      const candidates: (1 | 2 | 3 | 4 | 5)[] = tier === 'high_amount' ? [4, 5] : [1, 2, 3];
+      const freeSlot = candidates.find((s) => !usedSlots.has(s));
+      if (freeSlot) {
+        item.slot = freeSlot;
+        usedSlots.add(freeSlot);
+      }
+    }
+  }
+
+  return userItems.sort((a, b) => (a.slot || 99) - (b.slot || 99));
+}
+
+export interface RappiSlotConfig {
+  slot: 1 | 2 | 3 | 4 | 5;
+  tier: RappiLinkTier;
+  rotateEvery: number;
+  url: string;
+  item: RappiLinkItem | null;
+}
+
+export function getRappiPoolSlots(userIdOrSlug?: string): RappiSlotConfig[] {
+  const pool = getRappiLinksPool(userIdOrSlug);
+  const slots: (1 | 2 | 3 | 4 | 5)[] = [1, 2, 3, 4, 5];
+  return slots.map((slot) => {
+    const tier: RappiLinkTier = slot >= 4 ? 'high_amount' : 'standard';
+    const item = pool.find((p) => p.slot === slot) || null;
+    return {
+      slot,
+      tier,
+      rotateEvery: getTierRotateEvery(tier),
+      url: item?.url || '',
+      item,
+    };
+  });
+}
+
+export function saveRappiPoolSlots(
+  slotsInput: Array<{ slot: number; url: string }>,
+  highAmountThreshold?: number,
+  userIdOrSlug?: string
+): { pool: RappiLinkItem[]; slots: RappiSlotConfig[]; settings: GatewaySettings } {
+  const ownerId = resolveOwnerId(userIdOrSlug);
+  const allPool = getAllRappiPoolRaw();
+  const existingUserItems = allPool.filter((p) => (p.ownerId || MASTER_ADMIN_ID) === ownerId);
+  const otherUsersItems = allPool.filter((p) => (p.ownerId || MASTER_ADMIN_ID) !== ownerId);
+
+  const normalizedThreshold =
+    Number.isFinite(Number(highAmountThreshold)) && Number(highAmountThreshold) >= 10000
+      ? Math.round(Number(highAmountThreshold))
+      : getRappiHighAmountThreshold(ownerId);
+
+  const slotMap = new Map<1 | 2 | 3 | 4 | 5, string>();
+  for (const entry of slotsInput || []) {
+    const slotNum = Number(entry?.slot);
+    if (slotNum >= 1 && slotNum <= 5) {
+      slotMap.set(slotNum as 1 | 2 | 3 | 4 | 5, String(entry?.url || '').trim());
+    }
+  }
+
+  const nextUserItems: RappiLinkItem[] = [];
+  const validSlots: (1 | 2 | 3 | 4 | 5)[] = [1, 2, 3, 4, 5];
+
+  for (const slot of validSlots) {
+    const tier: RappiLinkTier = slot >= 4 ? 'high_amount' : 'standard';
+    const cleanUrl = (slotMap.get(slot) || '').trim();
+    if (!cleanUrl) continue;
+
+    const existingSameSlot = existingUserItems.find(
+      (p) => p.slot === slot && p.url.trim().toLowerCase() === cleanUrl.toLowerCase()
+    );
+    const existingSameUrl =
+      existingSameSlot ||
+      existingUserItems.find(
+        (p) => getLinkTier(p) === tier && p.url.trim().toLowerCase() === cleanUrl.toLowerCase()
+      );
+
+    if (existingSameUrl) {
+      nextUserItems.push({
+        ...existingSameUrl,
+        ownerId,
+        slot,
+        tier,
+        url: cleanUrl,
+      });
+    } else {
+      const info = detectGatewayFromUrl(cleanUrl);
+      nextUserItems.push({
+        id: `RPL_${Date.now()}_S${slot}_${Math.random().toString(36).slice(2, 5).toUpperCase()}`,
+        ownerId,
+        slot,
+        tier,
+        url: cleanUrl,
+        linkCode: info.linkId || cleanUrl.split('/').pop() || `slot${slot}`,
+        status: 'STANDBY',
+        usesCount: 0,
+        rotationUsesCount: 0,
+        consecutiveFailures: 0,
+        consecutivePseRejections: 0,
+        addedAt: new Date().toISOString(),
+      });
+    }
+  }
+
+  // Garantizar exactamente 1 link ACTIVO por cada grupo (Estándar 1-3 y Montos Grandes 4-5)
+  for (const tier of ['standard', 'high_amount'] as RappiLinkTier[]) {
+    const tierItems = nextUserItems.filter((p) => getLinkTier(p) === tier);
+    const nonBlocked = tierItems.filter((p) => p.status !== 'BLOCKED');
+    const actives = nonBlocked.filter((p) => p.status === 'ACTIVE');
+    if (actives.length === 0 && nonBlocked.length > 0) {
+      nonBlocked[0].status = 'ACTIVE';
+    } else if (actives.length > 1) {
+      for (let i = 1; i < actives.length; i++) {
+        actives[i].status = 'STANDBY';
+      }
+    }
+  }
+
+  const nextAllPool = [...otherUsersItems, ...nextUserItems];
+  saveAllRappiPoolRaw(nextAllPool);
+
+  const activeStandard = nextUserItems.find(
+    (p) => getLinkTier(p) === 'standard' && p.status === 'ACTIVE'
+  );
+  const settingsPatch: Partial<GatewaySettings> = {
+    rappiHighAmountThreshold: normalizedThreshold,
+  };
+  if (activeStandard) {
+    settingsPatch.rappiUrl = activeStandard.url;
+    const currentSettings = getGatewaySettings(ownerId);
+    if (currentSettings.gatewayProvider === 'rappipay') {
+      settingsPatch.paymentUrl = activeStandard.url;
+    }
+  }
+  const updatedSettings = updateGatewaySettings(settingsPatch, ownerId);
+
+  return {
+    pool: getRappiLinksPool(ownerId),
+    slots: getRappiPoolSlots(ownerId),
+    settings: updatedSettings,
+  };
 }
 
 export function getPoolSummary(userIdOrSlug?: string) {
   const pool = getRappiLinksPool(userIdOrSlug);
-  const activeItem = pool.find((p) => p.status === 'ACTIVE');
+  const standardItems = pool.filter((p) => getLinkTier(p) === 'standard');
+  const highItems = pool.filter((p) => getLinkTier(p) === 'high_amount');
+
+  const activeStandard = standardItems.find((p) => p.status === 'ACTIVE');
+  const activeHigh = highItems.find((p) => p.status === 'ACTIVE');
+
+  const standardUsable = standardItems.filter((p) => p.status !== 'BLOCKED').length;
+  const highUsable = highItems.filter((p) => p.status !== 'BLOCKED').length;
   const standbyCount = pool.filter((p) => p.status === 'STANDBY').length;
   const blockedCount = pool.filter((p) => p.status === 'BLOCKED').length;
-  const activeTotal = (activeItem ? 1 : 0) + standbyCount;
+  const activeTotal = standardUsable + highUsable;
+
   return {
-    activeUrl: activeItem?.url || null,
+    activeUrl: activeStandard?.url || null,
+    activeHighAmountUrl: activeHigh?.url || null,
     activeTotal,
+    standardActiveTotal: standardUsable,
+    highAmountActiveTotal: highUsable,
     standbyCount,
     blockedCount,
     totalInPool: pool.length,
+    highAmountThreshold: getRappiHighAmountThreshold(userIdOrSlug),
   };
 }
 
-export function getEffectiveRappiUrl(userIdOrSlug?: string): { ownerId: string; url: string } {
+export function getEffectiveRappiUrl(
+  userIdOrSlug?: string,
+  amount?: number | string
+): { ownerId: string; url: string; tier: RappiLinkTier; slot?: number } {
   const ownerId = resolveOwnerId(userIdOrSlug);
   const settings = getGatewaySettings(ownerId);
   const pool = getRappiLinksPool(ownerId);
+  const threshold = getRappiHighAmountThreshold(ownerId);
+  const numericAmount = Number(String(amount ?? '0').replace(/[^\d]/g, '')) || 0;
+  const isHighAmount = numericAmount >= threshold;
+
+  const standardPool = pool.filter((p) => getLinkTier(p) === 'standard');
+  const highPool = pool.filter((p) => getLinkTier(p) === 'high_amount');
+
+  // 1. Si el monto es GRANDE (>= umbral, por defecto $1.000.000), usar EXCLUSIVAMENTE los 2 links aislados (Slots 4-5)
+  if (isHighAmount) {
+    const activeHigh = highPool.find((p) => p.status === 'ACTIVE');
+    if (activeHigh) {
+      return { ownerId, url: activeHigh.url, tier: 'high_amount', slot: activeHigh.slot };
+    }
+    const standbyHigh = highPool.find((p) => p.status === 'STANDBY');
+    if (standbyHigh) {
+      const allPool = getAllRappiPoolRaw();
+      for (const item of allPool) {
+        if ((item.ownerId || MASTER_ADMIN_ID) !== ownerId) continue;
+        if (getLinkTier(item) !== 'high_amount') continue;
+        if (item.id === standbyHigh.id) {
+          item.status = 'ACTIVE';
+        } else if (item.status === 'ACTIVE') {
+          item.status = 'STANDBY';
+        }
+      }
+      saveAllRappiPoolRaw(allPool);
+      return { ownerId, url: standbyHigh.url, tier: 'high_amount', slot: standbyHigh.slot };
+    }
+    console.warn(
+      `[RappiPool][${ownerId}] Monto grande ($${numericAmount.toLocaleString('es-CO')}) >= $${threshold.toLocaleString('es-CO')} pero no hay links de monto grande disponibles (Slots 4-5); usando link estándar como respaldo.`
+    );
+  }
+
+  // 2. Montos normales (< umbral) o respaldo si no hay Slots 4-5: usar EXCLUSIVAMENTE links estándar (Slots 1-3)
+  const activeStandard = standardPool.find((p) => p.status === 'ACTIVE');
   const configuredUrl = (settings.rappiUrl || settings.paymentUrl || '').trim();
 
-  if (configuredUrl) {
-    const inPool = pool.find((p) => p.url.trim().toLowerCase() === configuredUrl.toLowerCase());
-    if (inPool?.status === 'ACTIVE' || (!inPool && !isUrlBlockedForOwner(configuredUrl, ownerId))) {
-      return { ownerId, url: configuredUrl };
+  if (activeStandard) {
+    if (configuredUrl.toLowerCase() !== activeStandard.url.trim().toLowerCase()) {
+      updateGatewaySettings({ rappiUrl: activeStandard.url, paymentUrl: activeStandard.url }, ownerId);
     }
+    return { ownerId, url: activeStandard.url, tier: 'standard', slot: activeStandard.slot };
   }
 
-  const activeInPool = pool.find((p) => p.status === 'ACTIVE');
-  if (activeInPool) {
-    if (configuredUrl.toLowerCase() !== activeInPool.url.trim().toLowerCase()) {
-      updateGatewaySettings({ rappiUrl: activeInPool.url, paymentUrl: activeInPool.url }, ownerId);
-    }
-    return { ownerId, url: activeInPool.url };
-  }
-
-  const standbyInPool = pool.find((p) => p.status === 'STANDBY');
-  if (standbyInPool) {
+  const standbyStandard = standardPool.find((p) => p.status === 'STANDBY');
+  if (standbyStandard) {
     const allPool = getAllRappiPoolRaw();
     for (const item of allPool) {
       if ((item.ownerId || MASTER_ADMIN_ID) !== ownerId) continue;
-      if (item.id === standbyInPool.id) {
+      if (getLinkTier(item) !== 'standard') continue;
+      if (item.id === standbyStandard.id) {
         item.status = 'ACTIVE';
       } else if (item.status === 'ACTIVE') {
         item.status = 'STANDBY';
       }
     }
     saveAllRappiPoolRaw(allPool);
-    updateGatewaySettings({ rappiUrl: standbyInPool.url, paymentUrl: standbyInPool.url }, ownerId);
-    return { ownerId, url: standbyInPool.url };
+    updateGatewaySettings({ rappiUrl: standbyStandard.url, paymentUrl: standbyStandard.url }, ownerId);
+    return { ownerId, url: standbyStandard.url, tier: 'standard', slot: standbyStandard.slot };
+  }
+
+  if (configuredUrl) {
+    const inHigh = highPool.some((p) => p.url.trim().toLowerCase() === configuredUrl.toLowerCase());
+    if (!inHigh && !isUrlBlockedForOwner(configuredUrl, ownerId)) {
+      return { ownerId, url: configuredUrl, tier: 'standard' };
+    }
   }
 
   const fallbackOwnerId = findMostRecentActiveOwnerId();
   if (fallbackOwnerId !== ownerId) {
-    const fallbackPool = getRappiLinksPool(fallbackOwnerId);
+    const fallbackPool = getRappiLinksPool(fallbackOwnerId).filter((p) => getLinkTier(p) === 'standard');
     const fallbackActive = fallbackPool.find((p) => p.status === 'ACTIVE' || p.status === 'STANDBY');
     if (fallbackActive) {
-      return { ownerId: fallbackOwnerId, url: fallbackActive.url };
+      return { ownerId: fallbackOwnerId, url: fallbackActive.url, tier: 'standard', slot: fallbackActive.slot };
     }
     const fallbackSettings = getGatewaySettings(fallbackOwnerId);
     const fallbackUrl = (fallbackSettings.rappiUrl || fallbackSettings.paymentUrl || '').trim();
     if (fallbackUrl && !isUrlBlockedForOwner(fallbackUrl, fallbackOwnerId)) {
-      return { ownerId: fallbackOwnerId, url: fallbackUrl };
+      return { ownerId: fallbackOwnerId, url: fallbackUrl, tier: 'standard' };
     }
   }
 
-  const anyActive = getAllRappiPoolRaw().find((p) => p.status === 'ACTIVE');
-  if (anyActive) {
-    return { ownerId: anyActive.ownerId || ownerId, url: anyActive.url };
+  const anyActiveStandard = getAllRappiPoolRaw().find(
+    (p) => getLinkTier(p) === 'standard' && p.status === 'ACTIVE'
+  );
+  if (anyActiveStandard) {
+    return {
+      ownerId: anyActiveStandard.ownerId || ownerId,
+      url: anyActiveStandard.url,
+      tier: 'standard',
+      slot: anyActiveStandard.slot,
+    };
   }
 
-  return { ownerId, url: configuredUrl };
+  return { ownerId, url: configuredUrl, tier: 'standard' };
 }
 
 function getAllLinkLogsRaw(): LinkEventLog[] {
@@ -1055,12 +1287,18 @@ export function addRappiLinksToPool(
 ): RappiLinkItem[] {
   const ownerId = resolveOwnerId(userIdOrSlug);
   const allPool = getAllRappiPoolRaw();
-  const userPool = allPool.filter((p) => (p.ownerId || MASTER_ADMIN_ID) === ownerId);
-  let hasActive = makeFirstActive ? false : userPool.some((p) => p.status === 'ACTIVE');
+  const userStandardPool = allPool.filter(
+    (p) => (p.ownerId || MASTER_ADMIN_ID) === ownerId && getLinkTier(p) === 'standard'
+  );
+  let hasActive = makeFirstActive ? false : userStandardPool.some((p) => p.status === 'ACTIVE');
 
   if (makeFirstActive && rawUrls.some((u) => (u || '').trim().length > 0)) {
     for (const item of allPool) {
-      if ((item.ownerId || MASTER_ADMIN_ID) === ownerId && item.status === 'ACTIVE') {
+      if (
+        (item.ownerId || MASTER_ADMIN_ID) === ownerId &&
+        getLinkTier(item) === 'standard' &&
+        item.status === 'ACTIVE'
+      ) {
         item.status = 'STANDBY';
       }
     }
@@ -1071,22 +1309,35 @@ export function addRappiLinksToPool(
     if (!clean) continue;
     const info = detectGatewayFromUrl(clean);
     const existing = allPool.find(
-      (p) => (p.ownerId || MASTER_ADMIN_ID) === ownerId && p.url.toLowerCase() === clean.toLowerCase()
+      (p) =>
+        (p.ownerId || MASTER_ADMIN_ID) === ownerId &&
+        getLinkTier(p) === 'standard' &&
+        p.url.toLowerCase() === clean.toLowerCase()
     );
     if (existing) {
       if (makeFirstActive && !hasActive) {
         existing.status = 'ACTIVE';
         existing.blockedAt = undefined;
         existing.blockReason = undefined;
+        existing.rotationUsesCount = 0;
         hasActive = true;
       } else if (existing.status === 'BLOCKED') {
         existing.status = hasActive ? 'STANDBY' : 'ACTIVE';
         existing.blockedAt = undefined;
         existing.blockReason = undefined;
+        existing.rotationUsesCount = 0;
         if (existing.status === 'ACTIVE') hasActive = true;
       }
       continue;
     }
+
+    const usedStdSlots = new Set<number>(
+      allPool
+        .filter((p) => (p.ownerId || MASTER_ADMIN_ID) === ownerId && getLinkTier(p) === 'standard')
+        .map((p) => p.slot)
+        .filter((s): s is 1 | 2 | 3 => s === 1 || s === 2 || s === 3)
+    );
+    const freeStdSlot = ([1, 2, 3] as const).find((s) => !usedStdSlots.has(s));
 
     const status: RappiLinkItem['status'] = hasActive ? 'STANDBY' : 'ACTIVE';
     if (status === 'ACTIVE') hasActive = true;
@@ -1094,10 +1345,13 @@ export function addRappiLinksToPool(
     allPool.push({
       id: `RPL_${Date.now()}_${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
       ownerId,
+      slot: freeStdSlot,
+      tier: 'standard',
       url: clean,
       linkCode: info.linkId || clean.split('/').pop() || 'link',
       status,
       usesCount: 0,
+      rotationUsesCount: 0,
       addedAt: new Date().toISOString(),
     });
   }
@@ -1105,7 +1359,7 @@ export function addRappiLinksToPool(
   saveAllRappiPoolRaw(allPool);
 
   const updatedUserPool = getRappiLinksPool(ownerId);
-  const activeNow = updatedUserPool.find((p) => p.status === 'ACTIVE');
+  const activeNow = updatedUserPool.find((p) => getLinkTier(p) === 'standard' && p.status === 'ACTIVE');
   if (activeNow) {
     const currentSettings = getGatewaySettings(ownerId);
     if (
@@ -1129,24 +1383,29 @@ export function activateRappiLinkInPool(idOrUrl: string, userIdOrSlug?: string):
     throw new Error('Link no encontrado en tu cola.');
   }
 
+  const targetTier = getLinkTier(target);
   for (const item of allPool) {
     if ((item.ownerId || MASTER_ADMIN_ID) !== ownerId) continue;
+    if (getLinkTier(item) !== targetTier) continue;
     if (item.id === target.id) {
       item.status = 'ACTIVE';
       item.blockedAt = undefined;
       item.blockReason = undefined;
       item.consecutiveFailures = 0;
       item.consecutivePseRejections = 0;
+      item.rotationUsesCount = 0;
     } else if (item.status === 'ACTIVE') {
       item.status = 'STANDBY';
     }
   }
 
   saveAllRappiPoolRaw(allPool);
-  updateGatewaySettings(
-    { gatewayProvider: 'rappipay', rappiUrl: target.url, paymentUrl: target.url },
-    ownerId
-  );
+  if (targetTier === 'standard') {
+    updateGatewaySettings(
+      { gatewayProvider: 'rappipay', rappiUrl: target.url, paymentUrl: target.url },
+      ownerId
+    );
+  }
   return getRappiLinksPool(ownerId);
 }
 
@@ -1156,17 +1415,23 @@ export function removeRappiLinkFromPool(idOrUrl: string, userIdOrSlug?: string):
   const target = allPool.find(
     (p) => (p.ownerId || MASTER_ADMIN_ID) === ownerId && (p.id === idOrUrl || p.url === idOrUrl)
   );
+  const targetTier = getLinkTier(target);
   allPool = allPool.filter(
     (p) => !((p.ownerId || MASTER_ADMIN_ID) === ownerId && (p.id === idOrUrl || p.url === idOrUrl))
   );
 
   if (target?.status === 'ACTIVE') {
     const nextStandby = allPool.find(
-      (p) => (p.ownerId || MASTER_ADMIN_ID) === ownerId && p.status === 'STANDBY'
+      (p) =>
+        (p.ownerId || MASTER_ADMIN_ID) === ownerId &&
+        getLinkTier(p) === targetTier &&
+        p.status === 'STANDBY'
     );
     if (nextStandby) {
       nextStandby.status = 'ACTIVE';
-      updateGatewaySettings({ rappiUrl: nextStandby.url, paymentUrl: nextStandby.url }, ownerId);
+      if (targetTier === 'standard') {
+        updateGatewaySettings({ rappiUrl: nextStandby.url, paymentUrl: nextStandby.url }, ownerId);
+      }
     }
   }
 
@@ -1174,34 +1439,120 @@ export function removeRappiLinkFromPool(idOrUrl: string, userIdOrSlug?: string):
   return getRappiLinksPool(ownerId);
 }
 
-export function incrementRappiLinkUse(url: string, userIdOrSlug?: string): void {
+export function incrementRappiLinkUse(
+  url: string,
+  userIdOrSlug?: string,
+  countForRotation = true
+): { rotatedTo: string | null; tier: RappiLinkTier; rotationUsesCount: number; rotateEvery: number } {
   const ownerId = resolveOwnerId(userIdOrSlug);
   const allPool = getAllRappiPoolRaw();
   const clean = (url || '').trim().toLowerCase();
   const found = allPool.find(
     (p) => (p.ownerId || MASTER_ADMIN_ID) === ownerId && p.url.toLowerCase() === clean
   );
-  if (found) {
-    found.usesCount = (found.usesCount || 0) + 1;
-    found.consecutiveFailures = 0;
-    let reactivatedAsActive = false;
-    if (found.status === 'BLOCKED') {
-      const hasOtherActive = allPool.some(
-        (p) => (p.ownerId || MASTER_ADMIN_ID) === ownerId && p.id !== found.id && p.status === 'ACTIVE'
-      );
-      found.status = hasOtherActive ? 'STANDBY' : 'ACTIVE';
-      found.blockedAt = undefined;
-      found.blockReason = undefined;
-      reactivatedAsActive = found.status === 'ACTIVE';
-    }
-    saveAllRappiPoolRaw(allPool);
-    if (reactivatedAsActive) {
-      const currentSettings = getGatewaySettings(ownerId);
-      if (currentSettings.rappiUrl !== found.url) {
-        updateGatewaySettings({ rappiUrl: found.url, paymentUrl: found.url }, ownerId);
+  if (!found) {
+    return { rotatedTo: null, tier: 'standard', rotationUsesCount: 0, rotateEvery: STANDARD_ROTATE_EVERY };
+  }
+
+  const tier = getLinkTier(found);
+  const rotateEvery = getTierRotateEvery(tier);
+  found.usesCount = (found.usesCount || 0) + 1;
+  found.consecutiveFailures = 0;
+
+  let reactivatedAsActive = false;
+  if (found.status === 'BLOCKED') {
+    const hasOtherActiveInTier = allPool.some(
+      (p) =>
+        (p.ownerId || MASTER_ADMIN_ID) === ownerId &&
+        getLinkTier(p) === tier &&
+        p.id !== found.id &&
+        p.status === 'ACTIVE'
+    );
+    found.status = hasOtherActiveInTier ? 'STANDBY' : 'ACTIVE';
+    found.blockedAt = undefined;
+    found.blockReason = undefined;
+    reactivatedAsActive = found.status === 'ACTIVE';
+  }
+
+  let rotatedTo: string | null = null;
+  let rotatedFromSlot = found.slot;
+  let rotatedToSlot: number | undefined;
+
+  if (countForRotation) {
+    found.rotationUsesCount = (found.rotationUsesCount || 0) + 1;
+
+    if (found.rotationUsesCount >= rotateEvery) {
+      const eligibleInTier = allPool
+        .filter(
+          (p) =>
+            (p.ownerId || MASTER_ADMIN_ID) === ownerId &&
+            getLinkTier(p) === tier &&
+            p.status !== 'BLOCKED'
+        )
+        .sort((a, b) => (a.slot || 99) - (b.slot || 99));
+
+      if (eligibleInTier.length > 1) {
+        const currentIndex = eligibleInTier.findIndex((p) => p.id === found.id);
+        const nextItem = eligibleInTier[(currentIndex + 1) % eligibleInTier.length];
+
+        for (const item of eligibleInTier) {
+          if (item.id === nextItem.id) {
+            item.status = 'ACTIVE';
+            item.rotationUsesCount = 0;
+          } else {
+            item.status = 'STANDBY';
+            if (item.id === found.id) {
+              item.rotationUsesCount = 0;
+            }
+          }
+        }
+        rotatedTo = nextItem.url;
+        rotatedToSlot = nextItem.slot;
+      } else {
+        // Solo hay 1 link disponible en este grupo; reiniciar ciclo y mantenerlo activo
+        found.rotationUsesCount = 0;
       }
     }
   }
+
+  saveAllRappiPoolRaw(allPool);
+
+  if (rotatedTo) {
+    if (tier === 'standard') {
+      const currentSettings = getGatewaySettings(ownerId);
+      if (currentSettings.rappiUrl !== rotatedTo) {
+        updateGatewaySettings({ rappiUrl: rotatedTo, paymentUrl: rotatedTo }, ownerId);
+      }
+    }
+    const tierLabel = tier === 'high_amount' ? 'Montos Grandes (≥$1M)' : 'Estándar';
+    const slotNote =
+      rotatedFromSlot && rotatedToSlot ? ` (Slot ${rotatedFromSlot} → Slot ${rotatedToSlot})` : '';
+    console.log(
+      `[Auto-Rotación por Uso][${ownerId}] 🔄 ${tierLabel} (${rotateEvery}/${rotateEvery} redirecciones)${slotNote}: ${found.url} -> ${rotatedTo}`
+    );
+    recordLinkEvent(
+      {
+        type: 'ROTATED',
+        gateway: 'rappipay',
+        url: found.url,
+        nextUrl: rotatedTo,
+        reason: `Rotación automática ${tierLabel} cada ${rotateEvery} redirección(es)${slotNote}.`,
+      },
+      ownerId
+    );
+  } else if (reactivatedAsActive && tier === 'standard') {
+    const currentSettings = getGatewaySettings(ownerId);
+    if (currentSettings.rappiUrl !== found.url) {
+      updateGatewaySettings({ rappiUrl: found.url, paymentUrl: found.url }, ownerId);
+    }
+  }
+
+  return {
+    rotatedTo,
+    tier,
+    rotationUsesCount: found.rotationUsesCount || 0,
+    rotateEvery,
+  };
 }
 
 export function recordRappiLinkFailure(
@@ -1313,34 +1664,43 @@ export function markLinkBlockedAndRotate(
       target.status = 'BLOCKED';
       target.blockedAt = new Date().toISOString();
       target.blockReason = shortReason;
+      target.rotationUsesCount = 0;
     }
 
-    const nextCandidate = allPool.find(
-      (p) =>
-        (p.ownerId || MASTER_ADMIN_ID) === ownerId &&
-        (p.status === 'STANDBY' || p.status === 'ACTIVE') &&
-        p.url.toLowerCase() !== cleanBlocked.toLowerCase()
-    );
+    const targetTier = getLinkTier(target);
+    const nextCandidate = allPool
+      .filter(
+        (p) =>
+          (p.ownerId || MASTER_ADMIN_ID) === ownerId &&
+          getLinkTier(p) === targetTier &&
+          (p.status === 'STANDBY' || p.status === 'ACTIVE') &&
+          p.url.toLowerCase() !== cleanBlocked.toLowerCase()
+      )
+      .sort((a, b) => (a.slot || 99) - (b.slot || 99))[0];
 
     let rotatedTo: string | null = null;
     if (nextCandidate) {
       for (const item of allPool) {
         if ((item.ownerId || MASTER_ADMIN_ID) !== ownerId) continue;
+        if (getLinkTier(item) !== targetTier) continue;
         if (item.id === nextCandidate.id) {
           item.status = 'ACTIVE';
+          item.rotationUsesCount = 0;
         } else if (item.status === 'ACTIVE') {
           item.status = 'STANDBY';
         }
       }
       rotatedTo = nextCandidate.url;
-      updateGatewaySettings(
-        {
-          gatewayProvider: 'rappipay',
-          rappiUrl: rotatedTo,
-          paymentUrl: rotatedTo,
-        },
-        ownerId
-      );
+      if (targetTier === 'standard') {
+        updateGatewaySettings(
+          {
+            gatewayProvider: 'rappipay',
+            rappiUrl: rotatedTo,
+            paymentUrl: rotatedTo,
+          },
+          ownerId
+        );
+      }
     }
 
     saveAllRappiPoolRaw(allPool);
