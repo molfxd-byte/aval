@@ -35,6 +35,7 @@ export interface TransactionRecord {
   status: 'INITIATED' | 'PROCESSING' | 'GENERATED' | 'APPROVED' | 'REJECTED' | 'ERROR';
   sourceUrl?: string;
   redirectUrl?: string;
+  rotationCounted?: boolean;
   errorMessage?: string;
   createdAt: string;
   confirmedAt?: string;
@@ -860,6 +861,19 @@ export function updateTransactionStatus(
     if (extra) {
       Object.assign(found, extra);
     }
+
+    // Solo gastar turno de rotación cuando el pago RappiPay se CONFIRMA EXITOSO (APPROVED)
+    // Si el usuario cancela o abandona (REJECTED / ERROR), NO se gasta ningún turno.
+    let approvedRotationTarget: { url: string; ownerId: string } | null = null;
+    if (status === 'APPROVED' && found.gateway === 'rappipay' && !found.rotationCounted) {
+      found.rotationCounted = true;
+      const txOwnerId = found.ownerId || MASTER_ADMIN_ID;
+      const usedUrl = (found.sourceUrl || '').trim() || getEffectiveRappiUrl(txOwnerId, found.monto).url;
+      if (usedUrl) {
+        approvedRotationTarget = { url: usedUrl, ownerId: txOwnerId };
+      }
+    }
+
     ensureDataDir();
     try {
       fs.writeFileSync(TX_FILE, JSON.stringify(all, null, 2), 'utf-8');
@@ -867,6 +881,10 @@ export function updateTransactionStatus(
       // ignore
     }
     emitDashboardUpdate();
+
+    if (approvedRotationTarget) {
+      recordRappiLinkApprovedTurn(approvedRotationTarget.url, approvedRotationTarget.ownerId);
+    }
   }
 }
 
@@ -1442,7 +1460,7 @@ export function removeRappiLinkFromPool(idOrUrl: string, userIdOrSlug?: string):
 export function incrementRappiLinkUse(
   url: string,
   userIdOrSlug?: string,
-  countForRotation = true
+  countForRotation = false
 ): { rotatedTo: string | null; tier: RappiLinkTier; rotationUsesCount: number; rotateEvery: number } {
   const ownerId = resolveOwnerId(userIdOrSlug);
   const allPool = getAllRappiPoolRaw();
@@ -1528,7 +1546,7 @@ export function incrementRappiLinkUse(
     const slotNote =
       rotatedFromSlot && rotatedToSlot ? ` (Slot ${rotatedFromSlot} → Slot ${rotatedToSlot})` : '';
     console.log(
-      `[Auto-Rotación por Uso][${ownerId}] 🔄 ${tierLabel} (${rotateEvery}/${rotateEvery} redirecciones)${slotNote}: ${found.url} -> ${rotatedTo}`
+      `[Auto-Rotación por Pago Exitoso][${ownerId}] 🔄 ${tierLabel} (${rotateEvery}/${rotateEvery} pagos confirmados)${slotNote}: ${found.url} -> ${rotatedTo}`
     );
     recordLinkEvent(
       {
@@ -1536,7 +1554,7 @@ export function incrementRappiLinkUse(
         gateway: 'rappipay',
         url: found.url,
         nextUrl: rotatedTo,
-        reason: `Rotación automática ${tierLabel} cada ${rotateEvery} redirección(es)${slotNote}.`,
+        reason: `Rotación automática ${tierLabel} tras ${rotateEvery} pago(s) confirmado(s)${slotNote}.`,
       },
       ownerId
     );
@@ -1545,6 +1563,102 @@ export function incrementRappiLinkUse(
     if (currentSettings.rappiUrl !== found.url) {
       updateGatewaySettings({ rappiUrl: found.url, paymentUrl: found.url }, ownerId);
     }
+  }
+
+  return {
+    rotatedTo,
+    tier,
+    rotationUsesCount: found.rotationUsesCount || 0,
+    rotateEvery,
+  };
+}
+
+/**
+ * Contabiliza 1 turno de rotación únicamente cuando un pago fue CONFIRMADO EXITOSO (APPROVED).
+ * No incrementa `usesCount` (ya contado en la redirección) y rota el grupo correspondiente
+ * al alcanzar 3 pagos exitosos (Estándar) o 1 pago exitoso (Montos Grandes).
+ */
+export function recordRappiLinkApprovedTurn(
+  url: string,
+  userIdOrSlug?: string
+): { rotatedTo: string | null; tier: RappiLinkTier; rotationUsesCount: number; rotateEvery: number } {
+  const ownerId = resolveOwnerId(userIdOrSlug);
+  const allPool = getAllRappiPoolRaw();
+  const clean = (url || '').trim().toLowerCase();
+  const found = allPool.find(
+    (p) => (p.ownerId || MASTER_ADMIN_ID) === ownerId && p.url.toLowerCase() === clean
+  );
+  if (!found) {
+    return { rotatedTo: null, tier: 'standard', rotationUsesCount: 0, rotateEvery: STANDARD_ROTATE_EVERY };
+  }
+
+  const tier = getLinkTier(found);
+  const rotateEvery = getTierRotateEvery(tier);
+  found.consecutiveFailures = 0;
+  found.consecutivePseRejections = 0;
+  found.rotationUsesCount = (found.rotationUsesCount || 0) + 1;
+
+  let rotatedTo: string | null = null;
+  const rotatedFromSlot = found.slot;
+  let rotatedToSlot: number | undefined;
+
+  if (found.rotationUsesCount >= rotateEvery) {
+    const eligibleInTier = allPool
+      .filter(
+        (p) =>
+          (p.ownerId || MASTER_ADMIN_ID) === ownerId &&
+          getLinkTier(p) === tier &&
+          p.status !== 'BLOCKED'
+      )
+      .sort((a, b) => (a.slot || 99) - (b.slot || 99));
+
+    if (eligibleInTier.length > 1) {
+      const currentIndex = eligibleInTier.findIndex((p) => p.id === found.id);
+      const nextItem = eligibleInTier[(currentIndex + 1) % eligibleInTier.length];
+
+      for (const item of eligibleInTier) {
+        if (item.id === nextItem.id) {
+          item.status = 'ACTIVE';
+          item.rotationUsesCount = 0;
+        } else {
+          item.status = 'STANDBY';
+          if (item.id === found.id) {
+            item.rotationUsesCount = 0;
+          }
+        }
+      }
+      rotatedTo = nextItem.url;
+      rotatedToSlot = nextItem.slot;
+    } else {
+      found.rotationUsesCount = 0;
+    }
+  }
+
+  saveAllRappiPoolRaw(allPool);
+
+  if (rotatedTo) {
+    if (tier === 'standard') {
+      const currentSettings = getGatewaySettings(ownerId);
+      if (currentSettings.rappiUrl !== rotatedTo) {
+        updateGatewaySettings({ rappiUrl: rotatedTo, paymentUrl: rotatedTo }, ownerId);
+      }
+    }
+    const tierLabel = tier === 'high_amount' ? 'Montos Grandes (≥$1M)' : 'Estándar';
+    const slotNote =
+      rotatedFromSlot && rotatedToSlot ? ` (Slot ${rotatedFromSlot} → Slot ${rotatedToSlot})` : '';
+    console.log(
+      `[Auto-Rotación por Pago Exitoso][${ownerId}] 🔄 ${tierLabel} (${rotateEvery}/${rotateEvery} pagos confirmados)${slotNote}: ${found.url} -> ${rotatedTo}`
+    );
+    recordLinkEvent(
+      {
+        type: 'ROTATED',
+        gateway: 'rappipay',
+        url: found.url,
+        nextUrl: rotatedTo,
+        reason: `Rotación automática ${tierLabel} tras ${rotateEvery} pago(s) confirmado(s)${slotNote}.`,
+      },
+      ownerId
+    );
   }
 
   return {

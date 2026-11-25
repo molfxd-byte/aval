@@ -1375,9 +1375,9 @@ export default function Dashboard() {
             <section className="atelier-panel" style={{ marginBottom: '24px' }}>
               <div className="atelier-panel-head">
                 <div>
-                  <h3>5 Links RappiPay — Auto-Rotación por Redirecciones y Monto</h3>
+                  <h3>5 Links RappiPay — Auto-Rotación por Pagos Exitosos y Monto</h3>
                   <p>
-                    Configura <strong>3 links estándar</strong> (rotan automáticamente cada <strong>3 redirecciones</strong>) y <strong>2 links aislados para montos grandes</strong> (solo se usan cuando el pago es igual o superior al monto configurado y rotan cada <strong>1 uso</strong>). Todo está aislado por usuario.
+                    Configura <strong>3 links estándar</strong> (rotan cada <strong>3 pagos terminados exitosamente</strong>) y <strong>2 links aislados para montos grandes</strong> (solo se usan desde el monto configurado y rotan cada <strong>1 pago terminado</strong>). Si un usuario cancela o abandona, <strong>no gasta turno</strong>.
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
@@ -1405,10 +1405,10 @@ export default function Dashboard() {
                           <strong>
                             ${(Number(String(highAmountThresholdInput).replace(/[^\d]/g, '')) || 1000000).toLocaleString('es-CO')}
                           </strong>
-                          . Rotación automática cada <strong>3 redirecciones exitosas</strong>.
+                          . Rotación automática cada <strong>3 pagos confirmados exitosos</strong> (cancelados no gastan turno).
                         </p>
                       </div>
-                      <span className="dash-status-badge APPROVED">ROTA CADA 3 USOS</span>
+                      <span className="dash-status-badge APPROVED">ROTA CADA 3 APROBADOS</span>
                     </div>
 
                     {rappiSlots
@@ -1447,11 +1447,11 @@ export default function Dashboard() {
                                 {item && (
                                   <>
                                     <span>
-                                      Ciclo: <strong>{item.rotationUsesCount || 0}/3</strong>
+                                      Aprobados: <strong>{item.rotationUsesCount || 0}/3</strong>
                                     </span>
                                     <span>·</span>
                                     <span>
-                                      Total: <strong>{item.usesCount || 0}</strong>
+                                      Redirecciones: <strong>{item.usesCount || 0}</strong>
                                     </span>
                                   </>
                                 )}
@@ -1509,10 +1509,10 @@ export default function Dashboard() {
                       <div>
                         <h4 className="rappi-tier-title">Links Montos Grandes — Aislados (Slots 4 y 5)</h4>
                         <p className="rappi-tier-sub">
-                          Se activan <strong>únicamente</strong> cuando el pago alcanza o supera el monto configurado. Rotan automáticamente en <strong>cada uso (1/1)</strong>.
+                          Se activan <strong>únicamente</strong> cuando el pago alcanza o supera el monto configurado. Rotan al confirmar <strong>1 pago exitoso (1/1)</strong> — si se cancela, no gasta turno.
                         </p>
                       </div>
-                      <span className="dash-status-badge PENDING">ROTA CADA 1 USO</span>
+                      <span className="dash-status-badge PENDING">ROTA CADA 1 APROBADO</span>
                     </div>
 
                     <div className="rappi-threshold-box">
@@ -1570,7 +1570,7 @@ export default function Dashboard() {
                               <div className="rappi-slot-meta">
                                 {item && (
                                   <span>
-                                    Usos totales: <strong>{item.usesCount || 0}</strong> · Rota cada <strong>1</strong>
+                                    Redirecciones: <strong>{item.usesCount || 0}</strong> · Rota cada <strong>1 aprobado</strong>
                                   </span>
                                 )}
                               </div>

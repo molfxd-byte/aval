@@ -131,7 +131,8 @@ export async function executeFill(
   try {
     const res = await executeFillReal({ ...data, url: currentRappiUrl }, effectiveOwnerId);
     res.source_url = currentRappiUrl;
-    incrementRappiLinkUse(currentRappiUrl, effectiveOwnerId, true);
+    // Registrar redirección sin gastar turno de rotación (el turno solo cuenta cuando el pago termina APPROVED)
+    incrementRappiLinkUse(currentRappiUrl, effectiveOwnerId, false);
     return res;
   } catch (err: any) {
     const msg = String(err?.message || 'Error en link de RappiPay');
@@ -195,7 +196,7 @@ export async function executeFill(
         );
         const retryRes = await executeFillReal({ ...data, url: rotation.rotatedTo }, effectiveOwnerId);
         retryRes.source_url = rotation.rotatedTo;
-        incrementRappiLinkUse(rotation.rotatedTo, effectiveOwnerId);
+        incrementRappiLinkUse(rotation.rotatedTo, effectiveOwnerId, false);
         return retryRes;
       }
     } else if (isTemporaryError || !isGatewayRejection) {
