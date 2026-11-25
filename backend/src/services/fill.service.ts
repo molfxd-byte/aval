@@ -23,6 +23,7 @@ export interface FillRequest {
   celular?: string;
   url?: string;
   ownerId?: string;
+  verify_pse?: boolean;
 }
 
 export interface FillResponse {
@@ -33,6 +34,7 @@ export interface FillResponse {
   proxy_ip?: string;
   reference_id?: string;
   gateway_used?: string;
+  source_url?: string;
 }
 
 export async function executeFillBoldApi(
@@ -121,6 +123,7 @@ export async function executeFill(
   const currentRappiUrl = effective.url || settings.rappiUrl || settings.paymentUrl;
   try {
     const res = await executeFillReal({ ...data, url: currentRappiUrl }, effectiveOwnerId);
+    res.source_url = currentRappiUrl;
     incrementRappiLinkUse(currentRappiUrl, effectiveOwnerId);
     return res;
   } catch (err: any) {
@@ -128,6 +131,8 @@ export async function executeFill(
     const isInputValidationError = msg.includes('inferior al mínimo permitido');
 
     const isInstantPermanentBlock =
+      msg.includes('PSE_TRANSACTION_TERMINATED') ||
+      msg.toLowerCase().includes('transactiontermination') ||
       msg.includes('El link de pago con PSE expiró') ||
       msg.includes('404') ||
       msg.includes('Página no encontrada');
@@ -182,6 +187,7 @@ export async function executeFill(
           `[Auto-Rotación RappiPay][${effectiveOwnerId}] Reintentando cobro automáticamente con nuevo link: ${rotation.rotatedTo}`
         );
         const retryRes = await executeFillReal({ ...data, url: rotation.rotatedTo }, effectiveOwnerId);
+        retryRes.source_url = rotation.rotatedTo;
         incrementRappiLinkUse(rotation.rotatedTo, effectiveOwnerId);
         return retryRes;
       }

@@ -408,6 +408,7 @@ def fill(data):
         """)
 
         captured_pse_url = []
+        captured_pse_terminated = []
         captured_kushki_url = []
         captured_firebase_error = []
 
@@ -446,7 +447,12 @@ def fill(data):
                             captured_kushki_url.append(url)
                             _log(f"URL Kushki Token REAL interceptada en red: {url}")
             if "registro.pse.com.co" in url or "pse.com.co" in url:
-                if url not in captured_pse_url:
+                url_lower = url.lower()
+                if "transactiontermination" in url_lower or "starttransactionf.htm" in url_lower:
+                    if url not in captured_pse_terminated:
+                        captured_pse_terminated.append(url)
+                        _log(f"ALERTA PSE TransactionTermination interceptada en red: {url}")
+                elif url not in captured_pse_url:
                     captured_pse_url.append(url)
                     _log(f"URL PSE interceptada en red: {url}")
 
@@ -646,6 +652,9 @@ def fill(data):
             max_espera_segundos = 28
 
             while time.time() - t_inicio_wait < max_espera_segundos:
+                if captured_pse_terminated:
+                    _log("PSE devolvió TransactionTermination.aspx durante la redirección.")
+                    break
                 # 1. Priorizar la URL de Kushki para que el navegador del cliente sea quien abra y envíe a PSE
                 if captured_kushki_url:
                     url_destino = captured_kushki_url[0]
@@ -669,6 +678,48 @@ def fill(data):
                     break
                 page.wait_for_timeout(300)
 
+            # En modo prueba manual (verify_pse=True), validar que Kushki -> PSE no rebote a TransactionTermination.aspx
+            # (NUNCA se ejecuta en pagos reales para no tocar ni invalidar la sesión PSE del cliente)
+            verify_pse = bool(data.get("verify_pse"))
+            if verify_pse and url_destino and "kushkipagos.com" in url_destino and not captured_pse_terminated:
+                try:
+                    _log("Modo prueba (verify_pse): verificando pantalla PSE destino...")
+                    pse_page = context.new_page()
+                    pse_page.on("request", _on_request)
+                    pse_page.goto(url_destino, wait_until="domcontentloaded", timeout=15000)
+                    t_pse = time.time()
+                    while time.time() - t_pse < 8:
+                        cur_u = (pse_page.url or "").lower()
+                        if captured_pse_terminated or "transactiontermination" in cur_u or "starttransactionf.htm" in cur_u:
+                            if pse_page.url not in captured_pse_terminated:
+                                captured_pse_terminated.append(pse_page.url)
+                            break
+                        if "starttransaction.aspx" in cur_u:
+                            try:
+                                body_pse = pse_page.locator("body").inner_text()
+                                if "no se pudo realizar" in body_pse.lower() and "cus" in body_pse.lower():
+                                    captured_pse_terminated.append(pse_page.url)
+                                    break
+                                if "correo electrónico" in body_pse.lower() or "usuario registrado" in body_pse.lower():
+                                    _log("Modo prueba (verify_pse): PSE cargó formulario de correo correctamente.")
+                                    break
+                            except Exception:
+                                pass
+                        pse_page.wait_for_timeout(400)
+                    if captured_pse_terminated:
+                        try:
+                            cus_el = pse_page.locator("#ContentSection_lblCUS").first
+                            if cus_el.count():
+                                cus_txt = cus_el.inner_text().strip()
+                                if cus_txt:
+                                    _log(f"CUS detectado en TransactionTermination: {cus_txt}")
+                                    captured_pse_terminated.append(f"CUS:{cus_txt}")
+                        except Exception:
+                            pass
+                    pse_page.close()
+                except Exception as e_pse:
+                    _log(f"Aviso durante verify_pse (no bloqueante): {e_pse}")
+
             # Captura de la página final para auditoría
             png = None
             try:
@@ -682,6 +733,17 @@ def fill(data):
                 texto_pantalla = page.locator("body").inner_text()
             except Exception:
                 pass
+
+            if (
+                captured_pse_terminated
+                or (url_destino and ("transactiontermination" in url_destino.lower() or "starttransactionf.htm" in url_destino.lower()))
+                or "transactiontermination" in (page.url or "").lower()
+                or ("no se pudo realizar" in texto_pantalla.lower() and "código único" in texto_pantalla.lower())
+            ):
+                cus_info = next((x for x in captured_pse_terminated if str(x).startswith("CUS:")), "")
+                cus_suffix = f" ({cus_info})" if cus_info else ""
+                _log(f"PSE rechazó la transacción en TransactionTermination.aspx{cus_suffix}.")
+                raise Exception(f"PSE_TRANSACTION_TERMINATED: PSE rechazó la transacción en TransactionTermination.aspx{cus_suffix}. El link está bloqueado.")
 
             if "Link de pago PSE rechazado" in texto_pantalla or "no podemos continuar con la transacción" in texto_pantalla or captured_firebase_error:
                 fb_detail = captured_firebase_error[0] if captured_firebase_error else "Link de pago PSE rechazado en pantalla"

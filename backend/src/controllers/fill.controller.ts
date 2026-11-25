@@ -98,9 +98,12 @@ export async function postFill(req: Request, res: Response) {
       ownerId
     );
 
+    const usedSourceUrl = result.source_url || settings.rappiUrl || settings.paymentUrl;
+
     updateTransactionStatus(initialTx.id, 'GENERATED', {
       referenceId: result.reference_id,
       redirectUrl: result.redirect_url,
+      sourceUrl: usedSourceUrl,
     });
 
     if (result.redirect_url) {
@@ -131,7 +134,9 @@ export async function postFill(req: Request, res: Response) {
       } else if (settings.gatewayProvider === 'rappipay' || result.gateway_used === 'rappipay') {
         startTrackingRappiPayment({
           txId: initialTx.id,
+          ownerId,
           sessionId: sid,
+          sourceUrl: usedSourceUrl,
           redirectUrl: result.redirect_url,
           kushkiUrl: result.kushki_url,
           amount: Number(cleanMonto),

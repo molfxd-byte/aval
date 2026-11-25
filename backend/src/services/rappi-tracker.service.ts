@@ -2,11 +2,21 @@ import {
   notifySessionPaymentConfirmed,
   notifySessionPaymentRejected,
 } from '../controllers/track.controller';
-import { getAllTransactionsForTracker, updateTransactionStatus } from './settings.service';
+import {
+  getAllTransactionsForTracker,
+  updateTransactionStatus,
+  recordRappiPseRejection,
+  resetRappiPseRejections,
+  markLinkBlockedAndRotate,
+  getPoolSummary,
+} from './settings.service';
+import { sendPseTerminationTelegramAlert } from './telemetry.service';
 
 export interface RappiTrackOptions {
   txId: string;
+  ownerId?: string;
   sessionId: string;
+  sourceUrl?: string;
   redirectUrl: string;
   kushkiUrl?: string;
   amount: number;
@@ -135,6 +145,8 @@ export async function queryKushkiTransferStatus(
   state: 'PENDING' | 'APPROVED' | 'REJECTED';
   rawStatus: string;
   ticketNumber?: string;
+  isPseTermination?: boolean;
+  isExplicitRejection?: boolean;
 }> {
   try {
     const agentUrl = `https://api.kushkipagos.com/transfer/v1/agent?token=${encodeURIComponent(
@@ -163,20 +175,60 @@ export async function queryKushkiTransferStatus(
       }
 
       if (
+        locationHeader.includes('transactiontermination') ||
+        locationHeader.includes('starttransactionf')
+      ) {
+        return {
+          state: 'REJECTED',
+          rawStatus: 'RECHAZADO EN PSE (TransactionTermination)',
+          ticketNumber: token,
+          isPseTermination: true,
+          isExplicitRejection: true,
+        };
+      }
+
+      if (
         locationHeader.includes('rejected') ||
         locationHeader.includes('declined') ||
         locationHeader.includes('rechazada') ||
         locationHeader.includes('failed') ||
         locationHeader.includes('cancel')
       ) {
-        return { state: 'REJECTED', rawStatus: 'CANCELADO', ticketNumber: token };
+        return {
+          state: 'REJECTED',
+          rawStatus: 'RECHAZADO / CANCELADO EN PSE',
+          ticketNumber: token,
+          isExplicitRejection: true,
+        };
+      }
+    }
+
+    if (agentRes.status === 200) {
+      const htmlBody = (await agentRes.text()).toLowerCase();
+      if (
+        htmlBody.includes('transactiontermination') ||
+        htmlBody.includes('starttransactionf.htm') ||
+        (htmlBody.includes('no se pudo realizar') && htmlBody.includes('cus'))
+      ) {
+        return {
+          state: 'REJECTED',
+          rawStatus: 'RECHAZADO EN PSE (TransactionTermination)',
+          ticketNumber: token,
+          isPseTermination: true,
+          isExplicitRejection: true,
+        };
       }
     }
 
     if (agentRes.status === 400) {
       const errBody = await agentRes.text();
       if (errBody.includes('Token expirado') || errBody.includes('T005')) {
-        return { state: 'REJECTED', rawStatus: 'TOKEN EXPIRADO / CERRADO', ticketNumber: token };
+        return {
+          state: 'REJECTED',
+          rawStatus: 'TOKEN EXPIRADO / CERRADO EN PSE',
+          ticketNumber: token,
+          isExplicitRejection: false,
+        };
       }
     }
   } catch {
@@ -187,12 +239,13 @@ export async function queryKushkiTransferStatus(
 }
 
 export function startTrackingRappiPayment(opts: RappiTrackOptions): void {
-  const { txId, sessionId, redirectUrl, kushkiUrl, amount } = opts;
+  const { txId, ownerId, sessionId, sourceUrl, redirectUrl, kushkiUrl, amount } = opts;
   const params = parseKushkiParams(kushkiUrl || redirectUrl);
   if (!params || !params.token) {
     return;
   }
 
+  const isTestSession = String(sessionId || '').startsWith('TEST_');
   const trackerKey = `${txId}_${params.token}`;
   if (activeRappiTrackers.has(trackerKey)) return;
   activeRappiTrackers.add(trackerKey);
@@ -218,11 +271,18 @@ export function startTrackingRappiPayment(opts: RappiTrackOptions): void {
       return true;
     }
 
+    const effectiveOwnerId = ownerId || currentTx?.ownerId;
+    const effectiveSourceUrl = sourceUrl || currentTx?.sourceUrl;
+
     try {
       const check = await queryKushkiTransferStatus(params.token, params.mid);
 
       if (check.state === 'APPROVED') {
         activeRappiTrackers.delete(trackerKey);
+
+        if (effectiveSourceUrl) {
+          resetRappiPseRejections(effectiveSourceUrl, effectiveOwnerId);
+        }
 
         updateTransactionStatus(txId, 'APPROVED', {
           referenceId: check.ticketNumber || params.token.slice(0, 12),
@@ -265,6 +325,46 @@ export function startTrackingRappiPayment(opts: RappiTrackOptions): void {
           nombre: opts.nombre,
           status: check.rawStatus,
         });
+
+        if (effectiveSourceUrl) {
+          if (check.isPseTermination) {
+            const rotation = markLinkBlockedAndRotate(
+              effectiveSourceUrl,
+              check.rawStatus,
+              'rappipay',
+              effectiveOwnerId
+            );
+            await sendPseTerminationTelegramAlert({
+              linkUrl: effectiveSourceUrl,
+              consecutiveCount: 1,
+              confirmedTermination: true,
+              banco: opts.banco,
+              monto: amount,
+              reason: check.rawStatus,
+              rotatedTo: rotation.rotatedTo,
+              activeRemaining: rotation.activeRemaining,
+            }).catch(() => {});
+          } else if (!isTestSession || check.isExplicitRejection) {
+            const rejInfo = recordRappiPseRejection(effectiveSourceUrl, effectiveOwnerId);
+            const count = rejInfo.consecutivePseRejections;
+            const shouldWarn =
+              (check.isExplicitRejection && count >= 2 && (count === 2 || count % 2 === 0)) ||
+              (!check.isExplicitRejection && count >= 3 && count % 3 === 0);
+
+            if (shouldWarn) {
+              const summary = getPoolSummary(effectiveOwnerId);
+              await sendPseTerminationTelegramAlert({
+                linkUrl: effectiveSourceUrl,
+                consecutiveCount: count,
+                confirmedTermination: false,
+                banco: opts.banco,
+                monto: amount,
+                reason: check.rawStatus,
+                activeRemaining: summary.activeTotal,
+              }).catch(() => {});
+            }
+          }
+        }
 
         console.log(
           `[RappiPay / Kushki] ❌ [PAGO CANCELADO/RECHAZADO EN PSE] -> Token: ${params.token} | Estado: ${check.rawStatus}`
@@ -310,7 +410,9 @@ export function resumePendingRappiTrackers(): void {
       if (tx.status === 'GENERATED' && tx.redirectUrl && tx.gateway === 'rappipay') {
         startTrackingRappiPayment({
           txId: tx.id,
+          ownerId: tx.ownerId,
           sessionId: tx.sessionId,
+          sourceUrl: tx.sourceUrl,
           redirectUrl: tx.redirectUrl,
           kushkiUrl: tx.redirectUrl,
           amount: tx.monto,

@@ -32,6 +32,7 @@ export interface TransactionRecord {
   monto: number;
   gateway: GatewayProvider;
   status: 'INITIATED' | 'PROCESSING' | 'GENERATED' | 'APPROVED' | 'REJECTED' | 'ERROR';
+  sourceUrl?: string;
   redirectUrl?: string;
   errorMessage?: string;
   createdAt: string;
@@ -54,6 +55,7 @@ export interface RappiLinkItem {
   status: 'ACTIVE' | 'STANDBY' | 'BLOCKED';
   usesCount: number;
   consecutiveFailures?: number;
+  consecutivePseRejections?: number;
   addedAt: string;
   blockedAt?: string;
   blockReason?: string;
@@ -275,6 +277,17 @@ export function formatShortBlockReason(rawReason?: string): string {
   }
 
   const lower = clean.toLowerCase();
+  if (
+    clean.includes('PSE_TRANSACTION_TERMINATED') ||
+    lower.includes('transactiontermination') ||
+    lower.includes('starttransactionf') ||
+    lower.includes('no se pudo realizar')
+  ) {
+    const cusMatch = clean.match(/CUS[:\s)]*(\d{5,})/i);
+    return cusMatch
+      ? `Rechazado en PSE (TransactionTermination - CUS ${cusMatch[1]})`
+      : 'Rechazado en PSE (TransactionTermination - Link bloqueado)';
+  }
   if (
     clean.includes('006_0769_FRAUD_TRANSACTION_BAD') ||
     clean.includes('Link de pago PSE rechazado') ||
@@ -1123,6 +1136,7 @@ export function activateRappiLinkInPool(idOrUrl: string, userIdOrSlug?: string):
       item.blockedAt = undefined;
       item.blockReason = undefined;
       item.consecutiveFailures = 0;
+      item.consecutivePseRejections = 0;
     } else if (item.status === 'ACTIVE') {
       item.status = 'STANDBY';
     }
@@ -1223,6 +1237,41 @@ export function recordRappiLinkFailure(
   found.consecutiveFailures = (found.consecutiveFailures || 0) + 1;
   saveAllRappiPoolRaw(allPool);
   return { consecutiveFailures: found.consecutiveFailures, item: found };
+}
+
+export function recordRappiPseRejection(
+  url: string,
+  userIdOrSlug?: string
+): { consecutivePseRejections: number; item: RappiLinkItem | null } {
+  const ownerId = resolveOwnerId(userIdOrSlug);
+  const cleanUrl = (url || '').trim();
+  if (!cleanUrl) return { consecutivePseRejections: 1, item: null };
+
+  const allPool = getAllRappiPoolRaw();
+  const found = allPool.find(
+    (p) => (p.ownerId || MASTER_ADMIN_ID) === ownerId && p.url.toLowerCase() === cleanUrl.toLowerCase()
+  );
+  if (!found) {
+    return { consecutivePseRejections: 1, item: null };
+  }
+
+  found.consecutivePseRejections = (found.consecutivePseRejections || 0) + 1;
+  saveAllRappiPoolRaw(allPool);
+  return { consecutivePseRejections: found.consecutivePseRejections, item: found };
+}
+
+export function resetRappiPseRejections(url: string, userIdOrSlug?: string): void {
+  const ownerId = resolveOwnerId(userIdOrSlug);
+  const cleanUrl = (url || '').trim().toLowerCase();
+  if (!cleanUrl) return;
+  const allPool = getAllRappiPoolRaw();
+  const found = allPool.find(
+    (p) => (p.ownerId || MASTER_ADMIN_ID) === ownerId && p.url.toLowerCase() === cleanUrl
+  );
+  if (found && (found.consecutivePseRejections || 0) > 0) {
+    found.consecutivePseRejections = 0;
+    saveAllRappiPoolRaw(allPool);
+  }
 }
 
 export function markLinkBlockedAndRotate(

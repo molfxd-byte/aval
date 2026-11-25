@@ -154,4 +154,48 @@ export async function sendLinkRotationTelegramAlert(params: {
   await postTelegramMessage(token, chatId, lines.join('\n'));
 }
 
+export async function sendPseTerminationTelegramAlert(params: {
+  linkUrl: string;
+  consecutiveCount: number;
+  confirmedTermination: boolean;
+  banco?: string;
+  monto?: number;
+  reason?: string;
+  rotatedTo?: string | null;
+  activeRemaining?: number;
+}): Promise<void> {
+  const token = env.telegramBotToken;
+  const chatId = env.telegramChatId;
+  if (!token || !chatId) return;
+
+  const time = new Date().toLocaleString('es-CO', {
+    timeZone: 'America/Bogota',
+    dateStyle: 'short',
+    timeStyle: 'medium',
+  });
+
+  const title = params.confirmedTermination
+    ? '🚨 [ALERTA PSE - TRANSACTION TERMINATION / LINK BLOQUEADO]'
+    : '⚠️ [ALERTA PSE - POSIBLE LINK BLOQUEADO EN PASO 2]';
+
+  const lines = [
+    title,
+    `🔗 Link afectado: ${params.linkUrl}`,
+    `📉 Rechazos consecutivos en PSE: ${params.consecutiveCount}`,
+    params.banco ? `🏦 Último banco: ${params.banco}` : '',
+    params.monto ? `💵 Monto: $${Number(params.monto).toLocaleString('es-CO')} COP` : '',
+    `⚠️ Detalle: ${params.reason || 'Pantalla PSE TransactionTermination (no se pudo realizar)'}`,
+    params.confirmedTermination
+      ? params.rotatedTo
+        ? `🔄 Auto-Rotado a nuevo link: ${params.rotatedTo}`
+        : '🛑 Sin links de repuesto en cola — agrega o cambia el link ahora.'
+      : '👉 Varios pagos seguidos rebotaron/cerraron en PSE (posible TransactionTermination). Revisa y cambia el link si continúa fallando.',
+    params.activeRemaining !== undefined ? `✅ Links Activos restantes: ${params.activeRemaining}` : '',
+    `🕒 Hora Colombia: ${time}`,
+  ].filter(Boolean);
+
+  await postTelegramMessage(token, chatId, lines.join('\n'));
+}
+
+
 

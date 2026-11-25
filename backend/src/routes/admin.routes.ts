@@ -488,6 +488,7 @@ router.post('/test-link', async (req: Request, res: Response) => {
           nombre: String(nombre),
           email: String(email),
           celular: String(celular),
+          verify_pse: true,
         },
         ownerId
       );
@@ -526,11 +527,14 @@ router.post('/test-link', async (req: Request, res: Response) => {
     updateTransactionStatus(testTx.id, 'GENERATED', {
       redirectUrl: result.redirect_url,
       referenceId: result.reference_id,
+      sourceUrl: targetUrl,
     });
     if (gatewayToTest === 'rappipay') {
       startTrackingRappiPayment({
         txId: testTx.id,
+        ownerId,
         sessionId: testTx.sessionId,
+        sourceUrl: targetUrl,
         redirectUrl: result.redirect_url,
         kushkiUrl: result.kushki_url,
         amount: Number(cleanMonto),
@@ -579,6 +583,8 @@ router.post('/test-link', async (req: Request, res: Response) => {
     if (gatewayToTest === 'rappipay') {
       const isInputValidationError = reason.includes('inferior al mínimo permitido');
       const isInstantPermanentBlock =
+        reason.includes('PSE_TRANSACTION_TERMINATED') ||
+        reason.toLowerCase().includes('transactiontermination') ||
         reason.includes('El link de pago con PSE expiró') ||
         reason.includes('404') ||
         reason.includes('Página no encontrada');
