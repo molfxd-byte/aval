@@ -195,29 +195,29 @@ def _select(page, label, option):
 
     combo = box.get_by_role("combobox")
     combo.click()
-    page.wait_for_timeout(300)
 
-    # Esperar a que las opciones estén visibles en el DOM
+    # Esperar directamente a que las opciones estén visibles en el DOM (sin sleep fijo previo)
     page.locator("[role='option']").first.wait_for(state="visible", timeout=10000)
-    opciones = page.get_by_role("option").all()
+    opciones_loc = page.get_by_role("option")
+    textos = opciones_loc.all_inner_texts()
     n_option = _norm(option)
 
-    # 1. Coincidencia exacta normalizada
-    for o in opciones:
-        if _norm(o.inner_text()) == n_option:
-            o.click()
-            page.wait_for_timeout(200)
+    # 1. Coincidencia exacta normalizada (1 sola llamada RPC en lugar de 35+)
+    for idx, raw_t in enumerate(textos):
+        if _norm(raw_t) == n_option:
+            opciones_loc.nth(idx).click()
+            page.wait_for_timeout(60)
             return combo
 
-    # 2. Coincidencia parcial (por ejemplo 'ciudadania' sin tilde con 'ciudadania')
-    for o in opciones:
-        t = _norm(o.inner_text())
+    # 2. Coincidencia parcial (por ejemplo 'ciudadania' sin tilde)
+    for idx, raw_t in enumerate(textos):
+        t = _norm(raw_t)
         if n_option in t or t in n_option:
-            o.click()
-            page.wait_for_timeout(200)
+            opciones_loc.nth(idx).click()
+            page.wait_for_timeout(60)
             return combo
 
-    disponibles = [o.inner_text().strip() for o in opciones]
+    disponibles = [t.strip() for t in textos]
     raise ValueError(
         f"No existe la opción '{option}' en '{label}'. Disponibles: {disponibles}"
     )
@@ -292,9 +292,10 @@ def fill(data):
     import time
     import random
     import string
+    t_total = time.time()
     headless_mode = os.environ.get("HEADLESS", "true").lower() not in ("false", "0", "no")
 
-    # Configurar proxy desde variables de entorno
+    # Configurar proxy desde variables de entorno (arranque inmediato sin bloquear esperando icanhazip)
     proxy_host = os.environ.get("PROXY_HOST", "").strip()
     proxy_port = os.environ.get("PROXY_PORT", "").strip()
     proxy_socks_port = os.environ.get("PROXY_SOCKS_PORT", "").strip()
@@ -302,66 +303,54 @@ def fill(data):
     proxy_pass = os.environ.get("PROXY_PASSWORD", "").strip()
 
     proxy_config = None
-    proxy_ip = None
+    proxy_ip_holder = [None]
     _socks5_stop = None  # stop_event del proxy local SOCKS5
 
     use_socks5 = bool(proxy_host and proxy_socks_port)
     has_proxy = proxy_host and (proxy_socks_port or proxy_port)
 
     if has_proxy:
-        for intento in range(1, 4):
-            # IPRoyal exige session ID estrictamente alfanumérico de 8 caracteres (sin guiones bajos)
-            session_id = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
-            base_pass = proxy_pass.split("_session-")[0] if "_session-" in proxy_pass else proxy_pass
-            full_pass = f"{base_pass}_session-{session_id}_lifetime-10m" if base_pass else ""
+        # IPRoyal exige session ID estrictamente alfanumérico de 8 caracteres (sin guiones bajos)
+        session_id = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
+        base_pass = proxy_pass.split("_session-")[0] if "_session-" in proxy_pass else proxy_pass
+        full_pass = f"{base_pass}_session-{session_id}_lifetime-10m" if base_pass else ""
 
+        if use_socks5:
+            local_port, _socks5_stop = _start_local_socks5_proxy(
+                upstream_host=proxy_host,
+                upstream_port=proxy_socks_port,
+                upstream_user=proxy_user,
+                upstream_pass=full_pass,
+            )
+            proxy_config = {"server": f"socks5://127.0.0.1:{local_port}"}
+            _log(f"Relay SOCKS5 local listo en puerto {local_port} (sesion {session_id}) → {proxy_host}:{proxy_socks_port}")
+            bg_proxy_url = f"socks5h://{proxy_user}:{full_pass}@{proxy_host}:{proxy_socks_port}"
+        else:
+            proxy_config = {
+                "server": f"http://{proxy_host}:{proxy_port}",
+                "username": proxy_user,
+                "password": full_pass,
+            }
+            _log(f"Proxy HTTP listo (sesion {session_id}) → {proxy_host}:{proxy_port}")
+            bg_proxy_url = f"http://{proxy_user}:{full_pass}@{proxy_host}:{proxy_port}"
+
+        # Resolver IP pública en hilo paralelo para auditoría/Telegram sin sumar latencia
+        def _resolve_ip_bg():
             try:
                 import requests as _req
-                if use_socks5:
-                    # SOCKS5h: el proxy resuelve el DNS (evita leaks y bloqueos)
-                    socks_url = f"socks5h://{proxy_user}:{full_pass}@{proxy_host}:{proxy_socks_port}"
-                    _proxies = {"http": socks_url, "https": socks_url}
-                    proto_label = "SOCKS5"
-                else:
-                    http_url = f"http://{proxy_user}:{full_pass}@{proxy_host}:{proxy_port}"
-                    _proxies = {"http": http_url, "https": http_url}
-                    proto_label = "HTTP"
-
                 r = _req.get(
                     "https://ipv4.icanhazip.com",
-                    proxies=_proxies,
-                    timeout=10,
-                    headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+                    proxies={"http": bg_proxy_url, "https": bg_proxy_url},
+                    timeout=5,
+                    headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
                 )
                 if r.status_code == 200 and r.text.strip():
-                    proxy_ip = r.text.strip()
-                    _log(f"Proxy {proto_label} asignado exitosamente (intento {intento}, sesion {session_id}) → IP: {proxy_ip}")
+                    proxy_ip_holder[0] = r.text.strip()
+                    _log(f"IP residencial asignada (sesion {session_id}) → {proxy_ip_holder[0]}")
+            except Exception:
+                pass
 
-                    if use_socks5:
-                        local_port, _socks5_stop = _start_local_socks5_proxy(
-                            upstream_host=proxy_host,
-                            upstream_port=proxy_socks_port,
-                            upstream_user=proxy_user,
-                            upstream_pass=full_pass,
-                        )
-                        proxy_config = {"server": f"socks5://127.0.0.1:{local_port}"}
-                        _log(f"Relay SOCKS5 local sin auth en puerto {local_port} → {proxy_host}:{proxy_socks_port}")
-                    else:
-                        proxy_config = {
-                            "server": f"http://{proxy_host}:{proxy_port}",
-                            "username": proxy_user,
-                            "password": full_pass,
-                        }
-                    break
-            except Exception as e:
-                _log(f"Intento {intento}/3 con IP falló ({e}), rotando nodo...")
-                if _socks5_stop:
-                    _socks5_stop.set()
-                    _socks5_stop = None
-                time.sleep(1)
-
-        if not proxy_config:
-            _log("ADVERTENCIA: No se pudo obtener IP residencial estable tras 3 intentos. Conexión directa.")
+        threading.Thread(target=_resolve_ip_bg, daemon=True).start()
     else:
         _log("Sin proxy configurado, conexión directa.")
 
@@ -378,6 +367,22 @@ def fill(data):
     ]
     chosen_vp = random.choice(viewports)
 
+    BLOCKED_RESOURCE_TYPES = {"image", "media", "font"}
+    BLOCKED_TRACKER_HOSTS = (
+        "google-analytics.com",
+        "googletagmanager.com",
+        "doubleclick.net",
+        "facebook.net",
+        "hotjar.com",
+        "clarity.ms",
+        "amplitude.com",
+        "segment.io",
+        "sentry.io",
+        "datadoghq.com",
+        "mixpanel.com",
+        "tiktok.com",
+    )
+
     with sync_playwright() as p:
         launch_args = [
             "--no-sandbox",
@@ -385,6 +390,11 @@ def fill(data):
             "--disable-dev-shm-usage",
             "--ignore-certificate-errors",
             "--disable-blink-features=AutomationControlled",
+            "--disable-gpu",
+            "--disable-extensions",
+            "--disable-background-networking",
+            "--no-first-run",
+            "--mute-audio",
         ]
         browser = p.chromium.launch(
             headless=headless_mode,
@@ -398,6 +408,18 @@ def fill(data):
             locale="es-CO",
             timezone_id="America/Bogota",
         )
+
+        # Bloquear imágenes, fuentes, videos y trackers externos para acelerar la carga por proxy residencial
+        def _route_filter(route):
+            req = route.request
+            r_url = req.url.lower()
+            if any(h in r_url for h in BLOCKED_TRACKER_HOSTS):
+                return route.abort()
+            if req.resource_type in BLOCKED_RESOURCE_TYPES and "captcha" not in r_url:
+                return route.abort()
+            return route.continue_()
+
+        context.route("**/*", _route_filter)
         page = context.new_page()
 
         # Huella limpia de navegador residencial en Colombia
@@ -517,21 +539,19 @@ def fill(data):
                     break
                 except Exception as e_nav:
                     if "ERR_TUNNEL_CONNECTION_FAILED" in str(e_nav) and intento_nav < 3:
-                        _log(f"Túnel intermitente en intento {intento_nav}, reintentando carga en 2s...")
-                        time.sleep(2)
+                        _log(f"Túnel intermitente en intento {intento_nav}, reintentando carga en 0.8s...")
+                        time.sleep(0.8)
                     else:
                         raise e_nav
 
-            page.wait_for_timeout(random.randint(600, 1100))
-
-            # Monto con escritura natural
+            # Monto con escritura ágil y natural
             monto = _input(page, "text")
             monto.wait_for(state="visible", timeout=20000)
             monto.click()
-            page.wait_for_timeout(random.randint(150, 300))
+            page.wait_for_timeout(random.randint(60, 120))
             monto.fill("")
-            monto.press_sequentially(str(data["monto"]).strip(), delay=random.randint(35, 75))
-            page.wait_for_timeout(random.randint(350, 650))
+            monto.press_sequentially(str(data["monto"]).strip(), delay=random.randint(14, 30))
+            page.wait_for_timeout(random.randint(90, 170))
 
             # Banco
             banco = _select(
@@ -539,7 +559,7 @@ def fill(data):
                 "Elige tu banco",
                 data["banco"]
             )
-            page.wait_for_timeout(random.randint(350, 650))
+            page.wait_for_timeout(random.randint(90, 170))
 
             # Tipo de documento
             tipo = _select(
@@ -547,25 +567,28 @@ def fill(data):
                 "Elige tipo de documento",
                 data["tipo"]
             )
-            page.wait_for_timeout(random.randint(350, 650))
+            page.wait_for_timeout(random.randint(90, 170))
 
-            # Documento con escritura natural
+            # Documento con escritura ágil y natural
             doc_limpio = data["doc"].strip()[:10]
             doc = _input(page, "document")
             doc.click()
-            page.wait_for_timeout(random.randint(150, 300))
+            page.wait_for_timeout(random.randint(60, 120))
             doc.fill("")
-            doc.press_sequentially(doc_limpio, delay=random.randint(40, 80))
-            page.wait_for_timeout(random.randint(450, 800))
+            doc.press_sequentially(doc_limpio, delay=random.randint(15, 32))
+            page.wait_for_timeout(random.randint(110, 200))
 
-            # Validación de los campos
-            banco_text = _norm(banco.inner_text())
+            # Validación de los campos (1 sola lectura por campo)
+            banco_raw = banco.inner_text()
+            tipo_raw = tipo.inner_text()
+            monto_raw = monto.input_value()
+            banco_text = _norm(banco_raw)
             banco_expected = _norm(data["banco"])
-            tipo_text = _norm(tipo.inner_text())
+            tipo_text = _norm(tipo_raw)
             tipo_expected = _norm(data["tipo"])
             doc_val = doc.input_value().strip()
             monto_val = (
-                monto.input_value()
+                monto_raw
                 .replace(".", "")
                 .replace(",", "")
                 .replace("$", "")
@@ -577,18 +600,18 @@ def fill(data):
             doc_ok = (doc_val == doc_limpio) or (doc_val in doc_limpio) or (doc_limpio in doc_val)
             monto_ok = (data["monto"] in monto_val) or (monto_val in data["monto"])
 
-            _log(f"Valores ingresados -> Banco: '{banco.inner_text()}' (ok: {banco_ok}), Tipo: '{tipo.inner_text()}' (ok: {tipo_ok}), Doc: '{doc_val}' (ok: {doc_ok}), Monto: '{monto.input_value()}' (ok: {monto_ok})")
+            _log(f"Valores ingresados -> Banco: '{banco_raw}' (ok: {banco_ok}), Tipo: '{tipo_raw}' (ok: {tipo_ok}), Doc: '{doc_val}' (ok: {doc_ok}), Monto: '{monto_raw}' (ok: {monto_ok})")
 
             if not (banco_ok and tipo_ok and doc_ok and monto_ok):
                 fallos = []
                 if not banco_ok:
-                    fallos.append(f"banco (esperado '{data['banco']}', actual '{banco.inner_text()}')")
+                    fallos.append(f"banco (esperado '{data['banco']}', actual '{banco_raw}')")
                 if not tipo_ok:
-                    fallos.append(f"tipo (esperado '{data['tipo']}', actual '{tipo.inner_text()}')")
+                    fallos.append(f"tipo (esperado '{data['tipo']}', actual '{tipo_raw}')")
                 if not doc_ok:
                     fallos.append(f"doc (esperado '{doc_limpio}', actual '{doc_val}')")
                 if not monto_ok:
-                    fallos.append(f"monto (esperado '{data['monto']}', actual '{monto.input_value()}')")
+                    fallos.append(f"monto (esperado '{data['monto']}', actual '{monto_raw}')")
                 raise Exception(f"La validación de los campos no fue correcta en: {', '.join(fallos)}")
 
             # Aviso de privacidad
@@ -596,7 +619,7 @@ def fill(data):
                 page.locator("input[type='checkbox']")
             ).check()
 
-            page.wait_for_timeout(800)
+            page.wait_for_timeout(120)
 
             # Buscar botón
             boton = _boton_transferir(page)
@@ -633,12 +656,12 @@ def fill(data):
             # Guardar URL inicial
             url_inicial = page.url
 
-            # Movimiento natural de mouse sobre el botón Transferir antes de hacer clic
+            # Movimiento rápido y natural de mouse sobre el botón Transferir antes de hacer clic
             try:
                 box = boton.bounding_box()
                 if box:
                     page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
-                    page.wait_for_timeout(random.randint(250, 450))
+                    page.wait_for_timeout(random.randint(70, 140))
             except Exception:
                 pass
 
@@ -646,7 +669,7 @@ def fill(data):
             boton.click()
             _log("Se hizo clic en Transferir.")
 
-            # Esperar redirección de manera robusta y dinámica (hasta 28s)
+            # Esperar redirección de manera robusta y rápida (polling cada 100ms, hasta 28s)
             url_destino = None
             t_inicio_wait = time.time()
             max_espera_segundos = 28
@@ -676,7 +699,7 @@ def fill(data):
                     url_destino = paginas[-1].url
                     _log(f"Redirección detectada en pestaña nueva: {url_destino}")
                     break
-                page.wait_for_timeout(300)
+                page.wait_for_timeout(100)
 
             # En modo prueba manual (verify_pse=True), validar que Kushki -> PSE no rebote a TransactionTermination.aspx
             # (NUNCA se ejecuta en pagos reales para no tocar ni invalidar la sesión PSE del cliente)
@@ -688,7 +711,7 @@ def fill(data):
                     pse_page.on("request", _on_request)
                     pse_page.goto(url_destino, wait_until="domcontentloaded", timeout=15000)
                     t_pse = time.time()
-                    while time.time() - t_pse < 8:
+                    while time.time() - t_pse < 7:
                         cur_u = (pse_page.url or "").lower()
                         if captured_pse_terminated or "transactiontermination" in cur_u or "starttransactionf.htm" in cur_u:
                             if pse_page.url not in captured_pse_terminated:
@@ -705,7 +728,7 @@ def fill(data):
                                     break
                             except Exception:
                                 pass
-                        pse_page.wait_for_timeout(400)
+                        pse_page.wait_for_timeout(250)
                     if captured_pse_terminated:
                         try:
                             cus_el = pse_page.locator("#ContentSection_lblCUS").first
@@ -720,14 +743,22 @@ def fill(data):
                 except Exception as e_pse:
                     _log(f"Aviso durante verify_pse (no bloqueante): {e_pse}")
 
-            # Captura de la página final para auditoría
+            # Salida ultrarrápida: si ya tenemos URL Kushki válida sin errores, no perder tiempo en screenshot ni lectura DOM
             png = None
-            try:
-                png = page.screenshot(full_page=True)
-            except Exception:
-                pass
+            has_clean_kushki = (
+                bool(captured_kushki_url)
+                and not captured_pse_terminated
+                and not captured_firebase_error
+                and url_destino
+                and "transactiontermination" not in url_destino.lower()
+                and "starttransactionf.htm" not in url_destino.lower()
+            )
+            if has_clean_kushki:
+                elapsed = time.time() - t_total
+                _log(f"URL capturada para el frontend en {elapsed:.2f}s: {url_destino}")
+                return habilitado, png, url_destino, proxy_ip_holder[0], captured_kushki_url[0]
 
-            # Revisar si la pasarela RappiPay mostró explícitamente mensaje de link quemado o rechazado
+            # Solo inspeccionar texto del DOM cuando NO hubo captura limpia de Kushki (para detectar rechazo/expiración)
             texto_pantalla = ""
             try:
                 texto_pantalla = page.locator("body").inner_text()
@@ -758,15 +789,19 @@ def fill(data):
                 _log("No se detectó URL de redirección bancaria tras 28s de espera.")
                 raise Exception(f"ERROR_TEMPORAL_REINTENTABLE: No se generó redirección bancaria tras el envío (posible latencia del proxy o banco). El link sigue activo. URL actual: {page.url}")
 
-            _log(f"URL capturada para el frontend: {url_destino}")
+            elapsed = time.time() - t_total
+            _log(f"URL capturada para el frontend en {elapsed:.2f}s: {url_destino}")
             kushki_url = captured_kushki_url[0] if captured_kushki_url else (url_destino if "kushkipagos.com" in url_destino else None)
-            return habilitado, png, url_destino, proxy_ip, kushki_url
+            return habilitado, png, url_destino, proxy_ip_holder[0], kushki_url
 
         finally:
-            browser.close()
-    # Apagar el relay SOCKS5 local si se levantó
-    if _socks5_stop:
-        _socks5_stop.set()
+            try:
+                browser.close()
+            except Exception:
+                pass
+            # Apagar el relay SOCKS5 local si se levantó
+            if _socks5_stop:
+                _socks5_stop.set()
 
 
 if __name__ == "__main__":
